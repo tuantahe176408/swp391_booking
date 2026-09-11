@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- You may freely edit this file. See commented blocks below for -->
+<!-- some examples of how to customize the build. -->
+<!-- For example, you can choose to override the "-init-user" target to -->
+<!-- customize the values of the project properties, for example set a -->
+<!-- different value for "user.properties.file". -->
+<project name="swp391_booking" default="default" basedir=".">
+    <description>Builds, tests, and runs the project swp391_booking.</description>
+    <import file="nbproject/build-impl.xml" optional="true"/>
+</project>
