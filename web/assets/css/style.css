@@ -1,0 +1,240 @@
+/* ====================================================================
+ * SMART BOOKING PLATFORM - DESIGN SYSTEM & MODULAR STYLESHEET
+ * Theme: Modern Indigo Glassmorphism & Vibrant Hotel Aesthetics
+ * ==================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+:root {
+    --primary-color: #4f46e5;
+    --primary-hover: #4338ca;
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    --secondary-color: #06b6d4;
+    --accent-color: #f59e0b;
+    --dark-bg: #0f172a;
+    --card-bg: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --radius-lg: 16px;
+    --radius-md: 10px;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 10px 30px rgba(79, 70, 229, 0.08);
+    --shadow-lg: 0 20px 60px rgba(15, 23, 42, 0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: var(--text-primary);
+    background-color: #f8fafc;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* ── Navbar ────────────────────────────────────────────────────── */
+.navbar-custom {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.85rem 2rem;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 1px 12px rgba(0,0,0,0.06);
+}
+
+.navbar-brand {
+    font-size: 1.4rem;
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-decoration: none;
+}
+
+/* ── Hero Section ──────────────────────────────────────────────── */
+.hero-wrapper {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%);
+    padding-bottom: 5rem;
+    position: relative;
+}
+
+.hero-wrapper::after {
+    content: '';
+    display: block;
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 80px;
+    background: #f8fafc;
+    border-radius: 50% 50% 0 0 / 30px 30px 0 0;
+}
+
+.hero-banner {
+    color: white;
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+}
+
+.hero-banner h1 {
+    color: #ffffff;
+    font-size: clamp(1.8rem, 4vw, 3rem);
+    margin-bottom: 1rem;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.2);
+}
+
+.hero-banner .lead {
+    color: rgba(255,255,255,0.85);
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* ── Search Box ────────────────────────────────────────────────── */
+.hero-search-section {
+    position: relative;
+    z-index: 10;
+    padding: 0 1rem;
+}
+
+.hero-search-box {
+    max-width: 960px;
+    margin: -2.5rem auto 0;
+    background: #ffffff;
+    padding: 2rem 2rem 1.75rem;
+    border-radius: 20px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--border-color);
+}
+
+.hero-search-box .form-label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+    margin-bottom: 0.4rem;
+    display: block;
+}
+
+.hero-search-box .form-control,
+.hero-search-box .form-select {
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    padding: 0.65rem 1rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.hero-search-box .form-control:focus,
+.hero-search-box .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    outline: none;
+}
+
+/* ── Section spacing ───────────────────────────────────────────── */
+.section-content {
+    padding-top: 4rem;
+}
+
+/* ── Homestay Cards ────────────────────────────────────────────── */
+.homestay-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+}
+
+.homestay-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(79, 70, 229, 0.14);
+}
+
+.homestay-card img {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    transition: transform 0.4s ease;
+}
+
+.homestay-card:hover img {
+    transform: scale(1.04);
+}
+
+.homestay-card-body {
+    padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.badge-tag {
+    background: #e0e7ff;
+    color: var(--primary-color);
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.price-tag {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* ── Buttons ───────────────────────────────────────────────────── */
+.btn-primary-custom {
+    background: var(--primary-gradient);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1.75rem;
+    border-radius: 12px;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-primary-custom:hover {
+    box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
+    transform: translateY(-2px);
+    color: white;
+}
+
+/* ── Footer ────────────────────────────────────────────────────── */
+footer {
+    background: var(--dark-bg);
+    color: #94a3b8;
+    padding: 4rem 2rem 2rem;
+    margin-top: 5rem;
+}
+
+footer a {
+    color: #cbd5e1;
+    text-decoration: none;
+}
+
+footer a:hover {
+    color: #ffffff;
+}
+
+/* ── Responsive ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .hero-banner { padding: 3.5rem 1.25rem 2.5rem; }
+    .hero-search-box { margin: -1.5rem 1rem 0; padding: 1.5rem 1.25rem; }
+    .hero-search-box .row.g-3 > div { margin-bottom: 0.25rem; }
+}
