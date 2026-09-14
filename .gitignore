@@ -47,3 +47,8 @@ src/main/
 
 # Tomcat deploy metadata
 web/META-INF/context.xml
+
+# Local secrets & credentials
+oauth.properties
+*.env
+config.local.properties

@@ -11,7 +11,7 @@ import java.io.IOException;
  * Controller: Public Home Page Orchestration
  * Package: com.project.controller
  */
-@WebServlet(name = "HomeController", urlPatterns = {"/home", ""})
+@WebServlet(name = "HomeController", urlPatterns = {"/home", "/index", "/default"})
 public class HomeController extends HttpServlet {
 
     @Override

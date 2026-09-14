@@ -55,6 +55,41 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public Optional<User> findByGoogleId(String googleId) {
+        String sql = "SELECT * FROM users WHERE google_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, googleId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in findByGoogleId for googleId: " + googleId, e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
+    public boolean linkGoogleAccount(int userId, String googleId, String avatarUrl) {
+        String sql = "UPDATE users SET google_id = ?, auth_provider = 'GOOGLE', avatar_url = COALESCE(?, avatar_url), is_email_verified = TRUE WHERE user_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, googleId);
+            ps.setString(2, avatarUrl);
+            ps.setInt(3, userId);
+
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in linkGoogleAccount for userId: " + userId, e);
+        }
+        return false;
+    }
+
+    @Override
     public boolean insertUser(User user) {
         String sql = "INSERT INTO users (email, password_hash, full_name, phone_number, avatar_url, role, auth_provider, google_id, is_active, is_email_verified) " +
                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
