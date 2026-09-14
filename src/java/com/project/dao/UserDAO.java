@@ -14,7 +14,11 @@ public interface UserDAO {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByGoogleId(String googleId);
+
     boolean insertUser(User user);
+
+    boolean linkGoogleAccount(int userId, String googleId, String avatarUrl);
 
     boolean updateUser(User user);
 

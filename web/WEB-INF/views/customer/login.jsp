@@ -78,7 +78,7 @@
                     <div class="text-center mt-4">
                         <span class="text-muted small">Hoặc đăng nhập nhanh bằng</span>
                         <div class="mt-2">
-                            <a href="#" class="btn btn-outline-danger w-100 btn-lg"><i class="fa-brands fa-google me-2"></i>Đăng nhập với Google</a>
+                            <a href="${pageContext.request.contextPath}/auth/google" class="btn btn-outline-danger w-100 btn-lg"><i class="fa-brands fa-google me-2"></i>Đăng nhập với Google</a>
                         </div>
                     </div>
                 </div>

@@ -45,6 +45,10 @@ public class AuthController extends HttpServlet {
         }
 
         if ("/login".equals(path)) {
+            String error = request.getParameter("error");
+            if (error != null && !error.trim().isEmpty()) {
+                request.setAttribute("errorMessage", error.trim());
+            }
             request.setAttribute("pageTitle", "Đăng nhập - Smart Booking Platform");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
         } else if ("/register".equals(path)) {
