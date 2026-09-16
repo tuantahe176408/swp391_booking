@@ -13,7 +13,7 @@ import java.io.IOException;
  * Servlet Filter: Authentication & Role-Based Access Control (RBAC) Filter
  * Package: com.project.filter
  */
-@WebFilter(urlPatterns = {"/admin/*", "/owner/*", "/reception/*", "/customer/profile", "/customer/bookings"})
+@WebFilter(urlPatterns = {"/admin/*", "/owner/*", "/reception/*", "/customer/profile", "/customer/bookings", "/customer/recommendations"})
 public class AuthenticationFilter implements Filter {
 
     @Override
