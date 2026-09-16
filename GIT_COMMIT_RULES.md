@@ -8,9 +8,9 @@ Tài liệu này quy định tiêu chuẩn commit, phân công tác giả và qu
 
 | Thành viên | Tên đăng nhập / Mã SV | Email FPT | Scope Phụ Trách (Use Cases) |
 | :--- | :--- | :--- | :--- |
-| **Thành viên 1** | `tuantahe176408` | `tuantahe176408@fpt.edu.vn` | **UC01 - UC06**: Auth & Discovery (Login/Register, Profile, Search, Details, AI Recommend, Wishlist) |
+| **Thành viên 1** | `tuantahe176408` | `tuantahe176408@fpt.edu.vn` | **UC12 - UC16**: Reception Desk (Check-in/out OCR, Walk-in, Room Matrix, On-site Payment, Housekeeping) |
 | **Thành viên 2** | `sangnvhe171435` | `sangnvhe171435@fpt.edu.vn` | **UC07 - UC11**: Booking & Payments (Booking Add-ons, Payment Gateway, Refund, Reviews, Vouchers) |
-| **Thành viên 3** | `binhtxghe171513` | `binhtxghe171513@fpt.edu.vn` | **UC12 - UC16**: Reception Desk (Check-in/out OCR, Walk-in, Room Matrix, On-site Payment, Housekeeping) |
+| **Thành viên 3** | `binhtxghe171513` | `binhtxghe171513@fpt.edu.vn` | **UC01 - UC06**: Auth & Discovery (Login/Register, Profile, Search, Details, AI Recommend, Wishlist) |
 | **Thành viên 4** | `khoandhe173573` | `khoandhe173573@fpt.edu.vn` | **UC17 - UC21**: Owner Dashboard (Homestay/Room Listing, Calendar/Pricing, Add-ons, Analytics, Staff Accounts) |
 | **Thành viên 5** | `Thanhlthe171416` | `Thanhlthe171416@fpt.edu.vn` | **UC22 - UC26**: System Admin (Users/Permissions, Homestay Approvals, System/AI Config, Platform Analytics, Campaign Vouchers) |
 
