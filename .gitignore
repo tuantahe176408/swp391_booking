@@ -2,12 +2,7 @@
 build/
 dist/
 nbproject/private/
-nbproject/project.subprojects
-nbproject/glassfish-build.xml
-nbproject/build-impl.xml
-nbproject/build-impl.xml~
-nbproject/ant-deploy.xml
-nbproject/genfiles.properties
+
 
 # Compiled Class Files & Packaging
 *.class
