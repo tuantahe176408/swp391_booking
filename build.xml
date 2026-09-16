@@ -6,5 +6,8 @@
 <!-- different value for "user.properties.file". -->
 <project name="swp391_booking" default="default" basedir=".">
     <description>Builds, tests, and runs the project swp391_booking.</description>
-    <import file="nbproject/build-impl.xml" optional="true"/>
+    <!-- Fallback j2ee.server.home if not set in nbproject/private/private.properties -->
+    <property name="j2ee.server.home" value="C:/Program Files/Apache Software Foundation/Tomcat 10.1"/>
+    <import file="nbproject/build-impl.xml"/>
 </project>
+
