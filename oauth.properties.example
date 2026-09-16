@@ -1,0 +1,5 @@
+# Template Google OAuth 2.0 Configuration
+# Copy or rename this file to oauth.properties in the project root directory
+google.client.id=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+google.client.secret=YOUR_GOOGLE_CLIENT_SECRET
+google.redirect.uri=http://localhost:8080/auth/google/callback
