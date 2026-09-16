@@ -120,7 +120,11 @@ public class GoogleAuthController extends HttpServlet {
             return;
         }
 
-        // Authentication success: set session
+        // Authentication success: renew session for security
+        HttpSession oldSession = request.getSession(false);
+        if (oldSession != null) {
+            oldSession.invalidate();
+        }
         session = request.getSession(true);
         session.setAttribute("currentUser", user);
 
@@ -193,13 +197,13 @@ public class GoogleAuthController extends HttpServlet {
         if (user.getRole() != null) {
             switch (user.getRole()) {
                 case ADMIN:
-                    redirectUrl = request.getContextPath() + "/admin/dashboard";
+                    redirectUrl = request.getContextPath() + "/admin/users";
                     break;
                 case OWNER:
-                    redirectUrl = request.getContextPath() + "/owner/dashboard";
+                    redirectUrl = request.getContextPath() + "/owner/homestays";
                     break;
                 case RECEPTIONIST:
-                    redirectUrl = request.getContextPath() + "/reception/matrix";
+                    redirectUrl = request.getContextPath() + "/reception/checkin";
                     break;
                 case CUSTOMER:
                 default:

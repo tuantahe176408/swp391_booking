@@ -21,16 +21,16 @@
                     <!-- Tabs for Login / Register -->
                     <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active fw-semibold" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab">Đăng nhập</button>
+                            <button class="nav-link ${activeTab == 'register' ? '' : 'active'} fw-semibold" id="login-tab" data-bs-toggle="tab" data-bs-target="#login-panel" type="button" role="tab">Đăng nhập</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link fw-semibold" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab">Tạo tài khoản</button>
+                            <button class="nav-link ${activeTab == 'register' ? 'active' : ''} fw-semibold" id="register-tab" data-bs-toggle="tab" data-bs-target="#register-panel" type="button" role="tab">Tạo tài khoản</button>
                         </li>
                     </ul>
 
                     <div class="tab-content" id="authTabsContent">
                         <!-- Login Form -->
-                        <div class="tab-pane fade show active" id="login-panel" role="tabpanel">
+                        <div class="tab-pane fade ${activeTab == 'register' ? '' : 'show active'}" id="login-panel" role="tabpanel">
                             <form action="${pageContext.request.contextPath}/login" method="POST">
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Địa chỉ Email</label>
@@ -48,19 +48,19 @@
                         </div>
 
                         <!-- Register Form -->
-                        <div class="tab-pane fade" id="register-panel" role="tabpanel">
+                        <div class="tab-pane fade ${activeTab == 'register' ? 'show active' : ''}" id="register-panel" role="tabpanel">
                             <form action="${pageContext.request.contextPath}/register" method="POST">
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Họ và Tên</label>
-                                    <input type="text" name="fullName" class="form-control form-control-lg" placeholder="Nguyễn Văn A" required>
+                                    <input type="text" name="fullName" class="form-control form-control-lg" placeholder="Nguyễn Văn A" value="${regFullName}" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Địa chỉ Email</label>
-                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="nhapemail@example.com" required>
+                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="nhapemail@example.com" value="${regEmail}" required>
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Số điện thoại</label>
-                                    <input type="tel" name="phone" class="form-control form-control-lg" placeholder="0901234567">
+                                    <input type="tel" name="phone" class="form-control form-control-lg" placeholder="0901234567" value="${regPhone}">
                                 </div>
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Mật khẩu</label>
