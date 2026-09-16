@@ -15,23 +15,30 @@ nbproject/genfiles.properties
 *.ear
 *.nar
 target/
+out/
+bin/
 
 # Keep JARs in WEB-INF/lib (runtime deps), exclude others
 *.jar
 !web/WEB-INF/lib/*.jar
 
-# IDE Configuration Files
+# IDE Configuration Files (IntelliJ, Eclipse, VSCode)
 .idea/
 *.iml
+*.iws
+*.ipr
 .project
 .classpath
 .settings/
 .vscode/
+.factorypath
 
 # Log & Temporary Files
 *.log
 *.tmp
 *.temp
+*.swp
+*~
 hs_err_pid*
 replay_pid*
 .mtj.tmp/
@@ -51,4 +58,6 @@ web/META-INF/context.xml
 # Local secrets & credentials
 oauth.properties
 *.env
+.env.*
 config.local.properties
+
