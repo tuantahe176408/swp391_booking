@@ -85,9 +85,9 @@ web/ (or src/main/webapp/)
 Whenever performing git operations or executing a commit command on behalf of the user, refer to `GIT_COMMIT_RULES.md` and strictly follow these rules:
 
 1. **Author Mapping & Git Config**:
-   - TV 1 (`tuantahe176408@fpt.edu.vn` / `tuantahe176408`): **UC01 - UC06**
+   - TV 1 (`tuantahe176408@fpt.edu.vn` / `tuantahe176408`): **UC12 - UC16**
    - TV 2 (`sangnvhe171435@fpt.edu.vn` / `sangnvhe171435`): **UC07 - UC11**
-   - TV 3 (`binhtxghe171513@fpt.edu.vn` / `binhtxghe171513`): **UC12 - UC16**
+   - TV 3 (`binhtxghe171513@fpt.edu.vn` / `binhtxghe171513`): **UC01 - UC06**
    - TV 4 (`khoandhe173573@fpt.edu.vn` / `khoandhe173573`): **UC17 - UC21**
    - TV 5 (`Thanhlthe171416@fpt.edu.vn` / `Thanhlthe171416`): **UC22 - UC26**
 2. **Branch Workflow**:
