@@ -1,5 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container-fluid px-4">
         <a class="navbar-brand d-flex align-items-center me-4" href="${pageContext.request.contextPath}/home">
@@ -22,7 +22,7 @@
                     </a>
                 </li>
             </ul>
-            <div class="d-flex align-items-center gap-3">
+            <div class="d-flex align-items-center gap-3 ms-auto">
                 <c:choose>
                     <c:when test="${not empty sessionScope.currentUser}">
                         <!-- Role Badge Indicator -->
@@ -83,4 +83,52 @@
         </div>
     </div>
 </nav>
+
+<script>
+(function() {
+    function initNavbarInteractions() {
+        document.addEventListener('click', function(e) {
+            var toggleBtn = e.target.closest('[data-bs-toggle="dropdown"]');
+            if (toggleBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                var container = toggleBtn.closest('.dropdown');
+                if (container) {
+                    var menu = container.querySelector('.dropdown-menu');
+                    if (menu) {
+                        var isShown = menu.classList.contains('show');
+                        document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
+                            m.classList.remove('show');
+                        });
+                        if (!isShown) {
+                            menu.classList.add('show');
+                        }
+                    }
+                }
+            } else if (!e.target.closest('.dropdown-menu')) {
+                document.querySelectorAll('.dropdown-menu.show').forEach(function(m) {
+                    m.classList.remove('show');
+                });
+            }
+
+            var collapseBtn = e.target.closest('[data-bs-toggle="collapse"]');
+            if (collapseBtn) {
+                e.preventDefault();
+                var targetSel = collapseBtn.getAttribute('data-bs-target');
+                if (targetSel) {
+                    var targetEl = document.querySelector(targetSel);
+                    if (targetEl) {
+                        targetEl.classList.toggle('show');
+                    }
+                }
+            }
+        });
+    }
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initNavbarInteractions);
+    } else {
+        initNavbarInteractions();
+    }
+})();
+</script>
 

@@ -41,6 +41,42 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ── Navbar ────────────────────────────────────────────────────── */
+ul.navbar-nav, .navbar ul, .navbar ol {
+    list-style: none !important;
+    list-style-type: none !important;
+    padding-left: 0 !important;
+    margin: 0 !important;
+}
+
+.navbar-nav .nav-item {
+    list-style: none !important;
+    list-style-type: none !important;
+}
+
+.navbar-nav .nav-link {
+    text-decoration: none !important;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: 0.5rem 0.85rem;
+    display: inline-flex;
+    align-items: center;
+}
+
+.navbar-collapse {
+    display: flex;
+    flex-grow: 1;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.navbar-nav.me-auto {
+    margin-right: auto !important;
+}
+
+.navbar .ms-auto, .navbar-collapse > div:last-child {
+    margin-left: auto !important;
+}
+
 .navbar-custom {
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(12px);
@@ -51,6 +87,66 @@ h1, h2, h3, h4, h5, h6 {
     top: 0;
     z-index: 1000;
     box-shadow: 0 1px 12px rgba(0,0,0,0.06);
+}
+
+/* ── Dropdown Resets & Styling ──────────────────────────────────── */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1050;
+    min-width: 13rem;
+    padding: 0.5rem 0;
+    margin-top: 0.5rem;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    text-align: left;
+    list-style: none !important;
+    background-color: #ffffff;
+    background-clip: padding-box;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.dropdown-menu-end {
+    right: 0;
+    left: auto;
+}
+
+.dropdown-menu.show {
+    display: block !important;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.6rem 1.25rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    text-decoration: none !important;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    color: var(--primary-color);
+    background-color: #f1f5f9;
+}
+
+.dropdown-divider {
+    height: 0;
+    margin: 0.4rem 0;
+    overflow: hidden;
+    border-top: 1px solid var(--border-color);
 }
 
 .navbar-brand {
