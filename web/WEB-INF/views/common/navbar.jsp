@@ -17,8 +17,23 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/search">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm phòng
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="${pageContext.request.contextPath}/customer/recommendations">
                         <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Gợi ý AI <span class="badge bg-danger ms-1">New</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/about">
+                        <i class="fa-solid fa-circle-info me-1"></i> Giới thiệu
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="${pageContext.request.contextPath}/contact">
+                        <i class="fa-solid fa-headset me-1"></i> Liên hệ
                     </a>
                 </li>
             </ul>
@@ -58,7 +73,8 @@
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userMenu">
                                 <li><a class="dropdown-item" href="${pageContext.request.contextPath}/customer/profile"><i class="fa-regular fa-user me-2"></i> Hồ sơ cá nhân</a></li>
-                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/customer/bookings"><i class="fa-solid fa-receipt me-2"></i> Đơn đặt phòng</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/customer/wishlist"><i class="fa-solid fa-heart me-2 text-danger"></i> Yêu thích đã lưu</a></li>
+                                <li><a class="dropdown-item" href="${pageContext.request.contextPath}/customer/bookings"><i class="fa-solid fa-receipt me-2 text-primary"></i> Đơn đặt phòng</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
                                     <li><a class="dropdown-item text-danger fw-semibold" href="${pageContext.request.contextPath}/admin/users"><i class="fa-solid fa-gauge-high me-2"></i> Dashboard Admin</a></li>
