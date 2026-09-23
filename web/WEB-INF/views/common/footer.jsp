@@ -9,9 +9,11 @@
             <div class="col-lg-2 col-md-6">
                 <h6 class="text-white mb-3">Dành cho Khách hàng</h6>
                 <ul class="list-unstyled">
-                    <li><a href="${pageContext.request.contextPath}/home">Tìm kiếm homestay</a></li>
+                    <li><a href="${pageContext.request.contextPath}/search">Tìm kiếm homestay</a></li>
                     <li><a href="${pageContext.request.contextPath}/customer/bookings">Quản lý đơn đặt</a></li>
-                    <li><a href="${pageContext.request.contextPath}/customer/profile">Hồ sơ cá nhân</a></li>
+                    <li><a href="${pageContext.request.contextPath}/customer/wishlist">Yêu thích đã lưu</a></li>
+                    <li><a href="${pageContext.request.contextPath}/about">Về chúng tôi</a></li>
+                    <li><a href="${pageContext.request.contextPath}/contact">Liên hệ hỗ trợ</a></li>
                 </ul>
             </div>
             <div class="col-lg-3 col-md-6">
