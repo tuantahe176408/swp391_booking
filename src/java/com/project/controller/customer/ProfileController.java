@@ -58,6 +58,12 @@ public class ProfileController extends HttpServlet {
             return;
         }
 
+        String action = request.getParameter("action");
+        if ("changePassword".equals(action)) {
+            handleChangePassword(request, response, currentUser);
+            return;
+        }
+
         String fullName = JSoupUtil.sanitizeText(request.getParameter("fullName"));
         String phoneNumber = JSoupUtil.sanitizeText(request.getParameter("phoneNumber"));
         String avatarUrl = JSoupUtil.sanitizeText(request.getParameter("avatarUrl"));
@@ -73,6 +79,35 @@ public class ProfileController extends HttpServlet {
             request.setAttribute("successMessage", "Cập nhật thông tin hồ sơ thành công!");
         } else {
             request.setAttribute("errorMessage", "Cập nhật hồ sơ thất bại. Vui lòng thử lại!");
+        }
+
+        request.setAttribute("activeTab", "profile");
+        request.setAttribute("pageTitle", "Hồ sơ cá nhân - Smart Booking Platform");
+        request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp").forward(request, response);
+    }
+
+    private void handleChangePassword(HttpServletRequest request, HttpServletResponse response, User currentUser)
+            throws ServletException, IOException {
+        String currentPassword = request.getParameter("currentPassword");
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        if (currentUser.getPasswordHash() == null || currentUser.getPasswordHash().trim().isEmpty()) {
+            request.setAttribute("passwordError", "Tài khoản đăng nhập bằng Google không sử dụng mật khẩu hệ thống.");
+        } else if (currentPassword == null || !com.project.util.PasswordUtil.checkPassword(currentPassword, currentUser.getPasswordHash())) {
+            request.setAttribute("passwordError", "Mật khẩu hiện tại không chính xác.");
+        } else if (newPassword == null || newPassword.length() < 6) {
+            request.setAttribute("passwordError", "Mật khẩu mới phải có tối thiểu 6 ký tự.");
+        } else if (!newPassword.equals(confirmPassword)) {
+            request.setAttribute("passwordError", "Xác nhận mật khẩu mới không trùng khớp.");
+        } else {
+            String newHash = com.project.util.PasswordUtil.hashPassword(newPassword);
+            if (userDAO.updatePassword(currentUser.getUserId(), newHash)) {
+                currentUser.setPasswordHash(newHash);
+                request.setAttribute("passwordSuccess", "Đổi mật khẩu thành công!");
+            } else {
+                request.setAttribute("passwordError", "Đổi mật khẩu thất bại. Vui lòng thử lại sau.");
+            }
         }
 
         request.setAttribute("activeTab", "profile");
