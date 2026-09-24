@@ -96,6 +96,50 @@
                     </form>
                 </div>
             </div>
+
+            <!-- Card: Đổi Mật Khẩu -->
+            <div class="card border-0 shadow-lg rounded-4 overflow-hidden mt-4">
+                <div class="card-header bg-dark text-white p-3 px-4">
+                    <h5 class="mb-0 fw-bold"><i class="fa-solid fa-key me-2 text-warning"></i>Đổi mật khẩu tài khoản</h5>
+                </div>
+                <div class="card-body p-4">
+                    <c:if test="${not empty passwordSuccess}">
+                        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-3">
+                            <i class="fa-solid fa-circle-check me-2"></i> ${passwordSuccess}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </c:if>
+                    <c:if test="${not empty passwordError}">
+                        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-3">
+                            <i class="fa-solid fa-circle-exclamation me-2"></i> ${passwordError}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </c:if>
+
+                    <form action="${pageContext.request.contextPath}/customer/profile" method="POST">
+                        <input type="hidden" name="action" value="changePassword">
+                        <div class="row g-3">
+                            <div class="col-md-12">
+                                <label class="form-label fw-semibold">Mật khẩu hiện tại <span class="text-danger">*</span></label>
+                                <input type="password" name="currentPassword" class="form-control rounded-3" placeholder="Nhập mật khẩu đang dùng" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Mật khẩu mới <span class="text-danger">*</span></label>
+                                <input type="password" name="newPassword" class="form-control rounded-3" placeholder="Tối thiểu 6 ký tự" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Xác nhận mật khẩu mới <span class="text-danger">*</span></label>
+                                <input type="password" name="confirmPassword" class="form-control rounded-3" placeholder="Nhập lại mật khẩu mới" required>
+                            </div>
+                            <div class="col-12 text-end mt-4">
+                                <button type="submit" class="btn btn-outline-dark px-4">
+                                    <i class="fa-solid fa-shield-check me-2"></i>Cập nhật mật khẩu
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>
