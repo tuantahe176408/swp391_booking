@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <jsp:include page="../common/header.jsp"/>
 <jsp:include page="../common/navbar.jsp"/>
 
@@ -23,74 +24,42 @@
     <!-- Recommendation Cards Grid -->
     <h4 class="fw-bold mb-4 text-dark"><i class="fa-solid fa-fire text-danger me-2"></i>Dành riêng cho bạn hôm nay</h4>
     <div class="row g-4">
-        <div class="col-md-4">
-            <div class="card homestay-card border-0 shadow-sm rounded-4 h-100 position-relative">
-                <span class="position-absolute top-0 end-0 m-3 badge bg-danger rounded-pill px-3 py-2 shadow-sm">
-                    <i class="fa-solid fa-bolt me-1"></i> Match 96%
-                </span>
-                <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80" class="card-img-top" alt="Homestay">
-                <div class="card-body p-4 d-flex flex-column justify-content-between">
-                    <div>
-                        <span class="badge-tag mb-2 d-inline-block"><i class="fa-solid fa-tag me-1"></i> Phù hợp sở thích View biển</span>
-                        <h5 class="fw-bold text-dark">Ocean Breeze Villa & Beachfront</h5>
-                        <p class="text-muted small"><i class="fa-solid fa-location-dot text-danger me-1"></i> Mỹ Khê, Đà Nẵng</p>
+        <c:forEach var="h" items="${recommendations}">
+            <div class="col-md-6 col-lg-4">
+                <div class="card homestay-card border-0 shadow-sm rounded-4 h-100 position-relative">
+                    <span class="position-absolute top-0 end-0 m-3 badge bg-danger rounded-pill px-3 py-2 shadow-sm" style="z-index: 5;">
+                        <i class="fa-solid fa-bolt me-1"></i> Match ${h.matchScore}%
+                    </span>
+                    <div class="position-relative overflow-hidden" style="height: 200px;">
+                        <c:choose>
+                            <c:when test="${not empty h.primaryImageUrl}">
+                                <img src="${h.primaryImageUrl}" class="card-img-top w-100 h-100 object-fit-cover" alt="${h.name}">
+                            </c:when>
+                            <c:otherwise>
+                                <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80" class="card-img-top w-100 h-100 object-fit-cover" alt="${h.name}">
+                            </c:otherwise>
+                        </c:choose>
                     </div>
-                    <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
+                    <div class="card-body p-4 d-flex flex-column justify-content-between">
                         <div>
-                            <small class="text-muted d-block">Chỉ từ</small>
-                            <span class="price-tag">1.250.000₫ <small class="text-muted fw-normal">/ đêm</small></span>
+                            <span class="badge-tag mb-2 d-inline-block"><i class="fa-solid fa-tag me-1"></i> ${h.reasonTag}</span>
+                            <h5 class="fw-bold text-dark text-truncate" title="${h.name}">${h.name}</h5>
+                            <p class="text-muted small"><i class="fa-solid fa-location-dot text-danger me-1"></i> ${h.city}</p>
                         </div>
-                        <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-primary btn-sm rounded-3 fw-semibold">Xem chi tiết</a>
+                        <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
+                            <div>
+                                <small class="text-muted d-block">Chỉ từ</small>
+                                <span class="price-tag">
+                                    <fmt:formatNumber value="${h.minPrice}" type="currency" currencySymbol="VNĐ" maxFractionDigits="0"/>
+                                    <small class="text-muted fw-normal">/ đêm</small>
+                                </span>
+                            </div>
+                            <a href="${pageContext.request.contextPath}/detail?id=${h.homestayId}" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold px-3">Xem chi tiết</a>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card homestay-card border-0 shadow-sm rounded-4 h-100 position-relative">
-                <span class="position-absolute top-0 end-0 m-3 badge bg-danger rounded-pill px-3 py-2 shadow-sm">
-                    <i class="fa-solid fa-bolt me-1"></i> Match 92%
-                </span>
-                <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" class="card-img-top" alt="Homestay">
-                <div class="card-body p-4 d-flex flex-column justify-content-between">
-                    <div>
-                        <span class="badge-tag mb-2 d-inline-block"><i class="fa-solid fa-tag me-1"></i> Thích hợp nghỉ dưỡng yên tĩnh</span>
-                        <h5 class="fw-bold text-dark">Dalat Pine Forest Glasshouse</h5>
-                        <p class="text-muted small"><i class="fa-solid fa-location-dot text-danger me-1"></i> Phường 11, Đà Lạt</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
-                        <div>
-                            <small class="text-muted d-block">Chỉ từ</small>
-                            <span class="price-tag">950.000₫ <small class="text-muted fw-normal">/ đêm</small></span>
-                        </div>
-                        <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-primary btn-sm rounded-3 fw-semibold">Xem chi tiết</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card homestay-card border-0 shadow-sm rounded-4 h-100 position-relative">
-                <span class="position-absolute top-0 end-0 m-3 badge bg-danger rounded-pill px-3 py-2 shadow-sm">
-                    <i class="fa-solid fa-bolt me-1"></i> Match 89%
-                </span>
-                <img src="https://images.unsplash.com/photo-1618773928121-c32242e63f39?auto=format&fit=crop&w=600&q=80" class="card-img-top" alt="Homestay">
-                <div class="card-body p-4 d-flex flex-column justify-content-between">
-                    <div>
-                        <span class="badge-tag mb-2 d-inline-block"><i class="fa-solid fa-tag me-1"></i> Phong cách Eco Natural</span>
-                        <h5 class="fw-bold text-dark">Sapa Cloud Horizon Bungalow</h5>
-                        <p class="text-muted small"><i class="fa-solid fa-location-dot text-danger me-1"></i> Tả Van, Sa Pa</p>
-                    </div>
-                    <div class="d-flex align-items-center justify-content-between pt-3 border-top mt-3">
-                        <div>
-                            <small class="text-muted d-block">Chỉ từ</small>
-                            <span class="price-tag">1.100.000₫ <small class="text-muted fw-normal">/ đêm</small></span>
-                        </div>
-                        <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-primary btn-sm rounded-3 fw-semibold">Xem chi tiết</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+        </c:forEach>
     </div>
 </div>
 
