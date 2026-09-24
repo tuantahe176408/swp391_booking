@@ -59,6 +59,13 @@ public class AdminUserController extends HttpServlet {
         if (userIdStr != null && !userIdStr.trim().isEmpty()) {
             int userId = Integer.parseInt(userIdStr);
             if ("ban".equals(action)) {
+                // UC22: Protect admin accounts from being banned
+                java.util.Optional<User> targetUser = userDAO.findById(userId);
+                if (targetUser.isPresent() && targetUser.get().getRole() == User.Role.ADMIN) {
+                    session.setAttribute("adminErrorMessage", "Không thể khóa tài khoản Quản trị viên (ADMIN)!");
+                    response.sendRedirect(request.getContextPath() + "/admin/users");
+                    return;
+                }
                 userDAO.updateLockStatus(userId, false);
             } else if ("unban".equals(action)) {
                 userDAO.updateLockStatus(userId, true);

@@ -26,5 +26,8 @@
         <a class="nav-link ${activeTab == 'vouchers' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/vouchers">
             <i class="fa-solid fa-ticket me-2"></i> UC26: Chiến dịch Vouchers
         </a>
+        <a class="nav-link ${activeTab == 'tests' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/tests">
+            <i class="fa-solid fa-vial-circle-check me-2"></i> Kiểm thử Tích hợp (Tests)
+        </a>
     </div>
 </div>
