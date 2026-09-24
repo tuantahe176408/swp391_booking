@@ -32,6 +32,9 @@
         <url-pattern>/reception/*</url-pattern>
         <url-pattern>/customer/profile</url-pattern>
         <url-pattern>/customer/bookings</url-pattern>
+        <url-pattern>/customer/recommendations</url-pattern>
+        <url-pattern>/customer/wishlist</url-pattern>
+        <url-pattern>/customer/payment-history</url-pattern>
     </filter-mapping>
 
     <session-config>
