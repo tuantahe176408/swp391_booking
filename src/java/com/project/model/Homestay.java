@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Domain Entity: Homestay
@@ -35,10 +37,22 @@ public class Homestay implements Serializable {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
+    // Transient attributes for UI and AI rendering
+    private String primaryImageUrl;
+    private BigDecimal minPrice;
+    private List<String> amenityNames = new ArrayList<>();
+    private List<HomestayImage> images = new ArrayList<>();
+    private List<RoomType> roomTypes = new ArrayList<>();
+    private List<Review> reviews = new ArrayList<>();
+    private Double matchScore;
+    private String reasonTag;
+    private boolean wishlisted;
+
     public Homestay() {
         this.status = Status.PENDING_APPROVAL;
         this.ratingAvg = BigDecimal.ZERO;
         this.reviewCount = 0;
+        this.minPrice = BigDecimal.ZERO;
     }
 
     public int getHomestayId() {
@@ -175,5 +189,77 @@ public class Homestay implements Serializable {
 
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public String getPrimaryImageUrl() {
+        return primaryImageUrl;
+    }
+
+    public void setPrimaryImageUrl(String primaryImageUrl) {
+        this.primaryImageUrl = primaryImageUrl;
+    }
+
+    public BigDecimal getMinPrice() {
+        return minPrice;
+    }
+
+    public void setMinPrice(BigDecimal minPrice) {
+        this.minPrice = minPrice;
+    }
+
+    public List<String> getAmenityNames() {
+        return amenityNames;
+    }
+
+    public void setAmenityNames(List<String> amenityNames) {
+        this.amenityNames = amenityNames;
+    }
+
+    public List<HomestayImage> getImages() {
+        return images;
+    }
+
+    public void setImages(List<HomestayImage> images) {
+        this.images = images;
+    }
+
+    public List<RoomType> getRoomTypes() {
+        return roomTypes;
+    }
+
+    public void setRoomTypes(List<RoomType> roomTypes) {
+        this.roomTypes = roomTypes;
+    }
+
+    public List<Review> getReviews() {
+        return reviews;
+    }
+
+    public void setReviews(List<Review> reviews) {
+        this.reviews = reviews;
+    }
+
+    public Double getMatchScore() {
+        return matchScore;
+    }
+
+    public void setMatchScore(Double matchScore) {
+        this.matchScore = matchScore;
+    }
+
+    public String getReasonTag() {
+        return reasonTag;
+    }
+
+    public void setReasonTag(String reasonTag) {
+        this.reasonTag = reasonTag;
+    }
+
+    public boolean isWishlisted() {
+        return wishlisted;
+    }
+
+    public void setWishlisted(boolean wishlisted) {
+        this.wishlisted = wishlisted;
     }
 }
