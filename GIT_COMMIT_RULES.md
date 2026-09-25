@@ -59,6 +59,10 @@ Cấu trúc tin nhắn commit:
 
 ## 5. Quy Trình Workflow 6 Bước (Checkout ➔ Dev ➔ Merge)
 
+> **CẢNH BÁO QUAN TRỌNG:**
+> - **TUYỆT ĐỐI KHÔNG BAO GIỜ COMMIT TRỰC TIẾP LÊN NHÁNH `main`!**
+> - Mọi thay đổi code PHẢI được commit trên một nhánh riêng (`feature/...` hoặc `fix/...`), sau đó mới checkout về `main` và merge (`git merge --no-ff`) vào `main`.
+
 Mọi thao tác commit và merge phải làm đúng theo trình tự:
 
 1. **Pull code mới nhất từ nhánh `main` / `dev`:**
