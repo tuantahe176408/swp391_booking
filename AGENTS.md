@@ -21,7 +21,7 @@ These rules apply to the entire repository of the Smart Booking Platform, coveri
 
 **Tech Stack & IDE Requirements:**
 - **IDE:** NetBeans IDE 8.2 / 12 / 17 / 20+ (NetBeans Java Web Application project setup)
-- **Application Server:** Apache Tomcat 10.0+
+- **Application Server:** Apache Tomcat 9.0+
 - **Language & Runtime:** Java 17
 - **Web Standard:** Servlet 4.0+ (`javax.servlet.*`), JSP/JSTL 1.2
 - **Architecture:** Classic MVC Pattern (Session-based Auth, Servlet Filters, PreparedStatement DAOs, protected JSPs in `/WEB-INF/views/`)
@@ -90,9 +90,15 @@ Whenever performing git operations or executing a commit command on behalf of th
    - TV 3 (`binhtxghe171513@fpt.edu.vn` / `binhtxghe171513`): **UC01 - UC06**
    - TV 4 (`khoandhe173573@fpt.edu.vn` / `khoandhe173573`): **UC17 - UC21**
    - TV 5 (`Thanhlthe171416@fpt.edu.vn` / `Thanhlthe171416`): **UC22 - UC26**
-2. **Branch Workflow**:
-   - Always checkout a feature branch before committing: `feature/UC<XX>-<short-description>` or `fix/UC<XX>-<short-description>`.
-   - Update main (`git checkout main` -> `git pull`), re-merge main into feature branch, test, then merge feature branch back to main (`git merge feature/UC<XX>-...`), and cleanup branch.
+2. **Branch Workflow (QUY TẮC BẮT BUỘC - TUYỆT ĐỐI KHÔNG COMMIT TRỰC TIẾP LÊN MAIN)**:
+   - **CẤM:** Tuyệt đối KHÔNG BAO GIỜ commit trực tiếp trên nhánh `main`.
+   - **BẮT BUỘC:** Mọi thao tác commit PHẢI checkout ra nhánh feature hoặc fix trước, commit trên nhánh đó, rồi mới checkout về `main` và merge vào `main`.
+   - **Quy trình chuẩn 5 bước:**
+     1. Checkout nhánh riêng: `git checkout -b fix/<scope>-<short-description>` (hoặc `feature/UC<XX>-...`).
+     2. Thêm file và commit tại nhánh riêng: `git add .` và `git commit -m "<type>(<scope>): <nội dung commit>"`.
+     3. Quay về `main`: `git checkout main`.
+     4. Merge nhánh tính năng vào `main`: `git merge --no-ff fix/<scope>-<short-description> -m "Merge branch '...' into main"`.
+     5. Xóa nhánh local sau khi đã merge: `git branch -d fix/<scope>-<short-description>`.
 3. **Commit Message Format**:
    - `<type>(<scope>): <short description in Vietnamese or English>`
    - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `chore`
