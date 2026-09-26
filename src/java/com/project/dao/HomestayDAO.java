@@ -39,4 +39,13 @@ public interface HomestayDAO {
     List<Review> getReviewsByHomestayId(int homestayId);
 
     List<Homestay> getRecommendedHomestays(int userId, int limit);
+
+    /**
+     * UC17/UC20: Return all homestays owned by a given user.
+     * Used by owner controllers to populate filters and dashboards.
+     *
+     * @param ownerId the owner's user ID
+     * @return list of Homestay entities (all statuses) ordered by name ASC
+     */
+    List<Homestay> getHomestaysByOwnerId(int ownerId);
 }
