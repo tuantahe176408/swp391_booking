@@ -87,21 +87,63 @@
 }
 .cal-dow-cell.is-weekend { color: #ef4444; }
 .rt-tab {
-    padding: .45rem 1rem;
-    border-radius: 8px;
+    padding: .45rem 1.1rem;
+    border-radius: 50px;
     font-size: .82rem;
     font-weight: 600;
     cursor: pointer;
-    border: 1px solid #e2e8f0;
+    border: 1.5px solid #e2e8f0;
     background: #fff;
-    color: #64748b;
-    transition: all .15s ease;
+    color: #475569;
+    transition: all .18s ease;
     white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    display: inline-flex;
+    align-items: center;
+    gap: .35rem;
+    text-decoration: none !important;
 }
-.rt-tab.active, .rt-tab:hover {
-    background: #6366f1;
-    color: #fff;
+.rt-tab:hover {
     border-color: #6366f1;
+    color: #6366f1;
+    background: #f5f3ff;
+    box-shadow: 0 2px 8px rgba(99,102,241,.12);
+}
+.rt-tab.active {
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(99,102,241,.35);
+}
+
+/* Homestay selector cards */
+.hs-tab {
+    padding: .5rem 1.1rem;
+    border-radius: 50px;
+    font-size: .83rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1.5px solid #e2e8f0;
+    background: #fff;
+    color: #475569;
+    transition: all .18s ease;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
+    display: inline-flex;
+    align-items: center;
+    gap: .4rem;
+    text-decoration: none !important;
+}
+.hs-tab:hover {
+    border-color: #6366f1;
+    color: #6366f1;
+    background: #f5f3ff;
+}
+.hs-tab.active {
+    background: linear-gradient(135deg, #1e1b4b, #4338ca);
+    color: #fff !important;
+    border-color: transparent;
+    box-shadow: 0 4px 14px rgba(67,56,202,.3);
 }
 
 /* ── Bulk panel ─────────────────────────────────────────────── */
@@ -149,20 +191,32 @@
                     <h2><i class="fa-regular fa-calendar-days text-primary me-2"></i>Lịch bán phòng &amp; Giá linh hoạt</h2>
                     <p>Xem giá thực tế theo ngày, điều chỉnh giá và khóa phòng</p>
                 </div>
-                <button class="btn btn-primary-custom btn-sm px-4" id="btnBulkToggle">
-                    <i class="fa-solid fa-sliders me-1"></i>Áp dụng quy tắc giá
-                </button>
+                <c:if test="${not empty myHomestays and not empty roomTypes}">
+                    <button class="btn btn-primary-custom btn-sm px-4" id="btnBulkToggle">
+                        <i class="fa-solid fa-sliders me-1"></i>Áp dụng quy tắc giá
+                    </button>
+                </c:if>
             </div>
 
             <!-- Homestay selector -->
             <div class="d-flex gap-2 mb-4 flex-wrap align-items-center">
-                <span class="text-muted fw-semibold" style="font-size:.83rem;">Cơ sở:</span>
-                <c:forEach var="hs" items="${myHomestays}">
-                    <a href="${pageContext.request.contextPath}/owner/calendar?homestayId=${hs.homestayId}&year=${year}&month=${month}"
-                       class="hs-tab rt-tab ${hs.homestayId == selectedHomestayId ? 'active' : ''}">
-                        ${hs.name}
-                    </a>
-                </c:forEach>
+                <span class="fw-semibold text-muted" style="font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;">
+                    <i class="fa-solid fa-building-user me-1"></i>Cơ sở
+                </span>
+                <c:choose>
+                    <c:when test="${not empty myHomestays}">
+                        <c:forEach var="hs" items="${myHomestays}">
+                            <a href="${pageContext.request.contextPath}/owner/calendar?homestayId=${hs.homestayId}&year=${year}&month=${month}"
+                               class="hs-tab ${hs.homestayId == selectedHomestayId ? 'active' : ''}">
+                                <i class="fa-solid fa-house-chimney" style="font-size:.75rem;opacity:.8;"></i>
+                                ${hs.name}
+                            </a>
+                        </c:forEach>
+                    </c:when>
+                    <c:otherwise>
+                        <span class="text-muted" style="font-size:.83rem;">Chưa có cơ sở nào.</span>
+                    </c:otherwise>
+                </c:choose>
             </div>
 
             <%-- Bulk apply panel --%>
@@ -251,13 +305,16 @@
             <!-- Room type tab selector -->
             <c:if test="${not empty roomTypes}">
                 <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
-                    <span class="text-muted fw-semibold" style="font-size:.83rem;">Loại phòng:</span>
+                    <span class="fw-semibold text-muted" style="font-size:.78rem;letter-spacing:.04em;text-transform:uppercase;">
+                        <i class="fa-solid fa-bed me-1"></i>Loại phòng
+                    </span>
+                    <div style="width:1px;height:18px;background:#e2e8f0;flex-shrink:0;"></div>
                     <c:forEach var="rt" items="${roomTypes}" varStatus="rtSt">
                         <button class="rt-tab ${rtSt.first ? 'active' : ''}"
                                 onclick="switchRoomType(${rt.roomTypeId}, this)"
                                 data-rtid="${rt.roomTypeId}">
                             ${rt.name}
-                            <span class="ms-1 text-muted" style="font-size:.75rem; font-weight:500;">
+                            <span style="font-size:.72rem;font-weight:500;opacity:.75;background:rgba(0,0,0,.07);border-radius:50px;padding:1px 7px;margin-left:2px;">
                                 <fmt:formatNumber value="${rt.basePrice}" type="number" groupingUsed="true"/>đ
                             </span>
                         </button>
@@ -291,6 +348,12 @@
                 </div>
 
                 <c:choose>
+                    <c:when test="${empty myHomestays}">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fa-regular fa-calendar-xmark fa-2x mb-2 d-block opacity-25"></i>
+                            Bạn chưa có cơ sở homestay nào ở trạng thái đang hoạt động.
+                        </div>
+                    </c:when>
                     <c:when test="${empty roomTypes}">
                         <div class="text-center py-5 text-muted">
                             <i class="fa-regular fa-calendar-xmark fa-2x mb-2 d-block opacity-25"></i>

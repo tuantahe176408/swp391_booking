@@ -21,26 +21,24 @@ public class RoomDAOImpl implements RoomDAO {
     private Room mapRoom(ResultSet rs) throws SQLException {
         Room r = new Room();
         r.setRoomId(rs.getInt("room_id"));
-        r.setHomestayId(rs.getInt("homestay_id"));
         r.setRoomTypeId(rs.getInt("room_type_id"));
         r.setRoomNumber(rs.getString("room_number"));
         String statusStr = rs.getString("status");
         r.setStatus(statusStr != null ? Room.Status.valueOf(statusStr) : Room.Status.AVAILABLE);
-        r.setNotes(rs.getString("notes"));
         r.setCreatedAt(rs.getTimestamp("created_at"));
-        r.setUpdatedAt(rs.getTimestamp("updated_at"));
         // Transient from JOIN
         try { r.setRoomTypeName(rs.getString("room_type_name")); } catch (SQLException ignored) {}
         try { r.setBasePrice(rs.getBigDecimal("base_price")); } catch (SQLException ignored) {}
+        try { r.setHomestayId(rs.getInt("homestay_id")); } catch (SQLException ignored) {}
         return r;
     }
 
     @Override
     public List<Room> getRoomsByHomestayId(int homestayId) {
         List<Room> list = new ArrayList<>();
-        String sql = "SELECT r.*, rt.name AS room_type_name, rt.base_price " +
-                     "FROM rooms r LEFT JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
-                     "WHERE r.homestay_id = ? ORDER BY r.room_number";
+        String sql = "SELECT r.*, rt.name AS room_type_name, rt.base_price, rt.homestay_id " +
+                     "FROM rooms r JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                     "WHERE rt.homestay_id = ? ORDER BY rt.name, r.room_number";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, homestayId);
@@ -49,6 +47,24 @@ public class RoomDAOImpl implements RoomDAO {
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error in getRoomsByHomestayId: " + homestayId, e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<Room> getRoomsByRoomTypeId(int roomTypeId) {
+        List<Room> list = new ArrayList<>();
+        String sql = "SELECT r.*, rt.name AS room_type_name, rt.base_price, rt.homestay_id " +
+                     "FROM rooms r JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                     "WHERE r.room_type_id = ? ORDER BY r.room_number";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, roomTypeId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapRoom(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getRoomsByRoomTypeId: " + roomTypeId, e);
         }
         return list;
     }
@@ -99,14 +115,12 @@ public class RoomDAOImpl implements RoomDAO {
 
     @Override
     public int insertRoom(Room r) {
-        String sql = "INSERT INTO rooms (homestay_id, room_type_id, room_number, status, notes) VALUES (?,?,?,?,?)";
+        String sql = "INSERT INTO rooms (room_type_id, room_number, status) VALUES (?,?,?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setInt(1, r.getHomestayId());
-            ps.setInt(2, r.getRoomTypeId());
-            ps.setString(3, r.getRoomNumber());
-            ps.setString(4, r.getStatus().name());
-            ps.setString(5, r.getNotes());
+            ps.setInt(1, r.getRoomTypeId());
+            ps.setString(2, r.getRoomNumber());
+            ps.setString(3, r.getStatus() != null ? r.getStatus().name() : "AVAILABLE");
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
@@ -119,7 +133,7 @@ public class RoomDAOImpl implements RoomDAO {
 
     @Override
     public boolean updateRoomStatus(int roomId, Room.Status status) {
-        String sql = "UPDATE rooms SET status=?, updated_at=NOW() WHERE room_id=?";
+        String sql = "UPDATE rooms SET status=? WHERE room_id=?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, status.name());
@@ -133,14 +147,13 @@ public class RoomDAOImpl implements RoomDAO {
 
     @Override
     public boolean updateRoom(Room r) {
-        String sql = "UPDATE rooms SET room_type_id=?, room_number=?, status=?, notes=?, updated_at=NOW() WHERE room_id=?";
+        String sql = "UPDATE rooms SET room_type_id=?, room_number=?, status=? WHERE room_id=?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, r.getRoomTypeId());
             ps.setString(2, r.getRoomNumber());
-            ps.setString(3, r.getStatus().name());
-            ps.setString(4, r.getNotes());
-            ps.setInt(5, r.getRoomId());
+            ps.setString(3, r.getStatus() != null ? r.getStatus().name() : "AVAILABLE");
+            ps.setInt(4, r.getRoomId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error in updateRoom", e);

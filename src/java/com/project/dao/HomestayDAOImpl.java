@@ -12,6 +12,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -496,12 +498,16 @@ public class HomestayDAOImpl implements HomestayDAO {
     public List<Homestay> getHomestaysByOwnerId(int ownerId) {
         List<Homestay> list = new ArrayList<>();
         String sql = "SELECT h.homestay_id, h.owner_id, h.name, h.description, h.address, h.city, " +
-                     "h.district, h.latitude, h.longitude, h.status, h.checkin_time, h.checkout_time, " +
-                     "h.rating_avg, h.review_count, " +
+                     "h.district, h.latitude, h.longitude, h.status, h.rejection_reason, " +
+                     "h.checkin_time, h.checkout_time, " +
+                     "h.rating_avg, h.review_count, h.created_at, h.updated_at, " +
                      "(SELECT hi.image_url FROM homestay_images hi WHERE hi.homestay_id = h.homestay_id " +
                      " ORDER BY hi.is_primary DESC, hi.display_order ASC LIMIT 1) AS primary_image, " +
-                     "(SELECT MIN(rt.base_price) FROM room_types rt WHERE rt.homestay_id = h.homestay_id) AS min_price " +
-                     "FROM homestays h WHERE h.owner_id = ? ORDER BY h.name ASC";
+                     "(SELECT MIN(rt.base_price) FROM room_types rt WHERE rt.homestay_id = h.homestay_id) AS min_price, " +
+                     "(SELECT COUNT(r.room_id) FROM rooms r " +
+                     " JOIN room_types rt2 ON r.room_type_id = rt2.room_type_id " +
+                     " WHERE rt2.homestay_id = h.homestay_id) AS room_count " +
+                     "FROM homestays h WHERE h.owner_id = ? ORDER BY h.updated_at DESC";
 
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -517,18 +523,234 @@ public class HomestayDAOImpl implements HomestayDAO {
                     h.setAddress(rs.getString("address"));
                     h.setCity(rs.getString("city"));
                     h.setDistrict(rs.getString("district"));
+                    h.setRatingAvg(rs.getBigDecimal("rating_avg"));
+                    h.setReviewCount(rs.getInt("review_count"));
+                    h.setCheckinTime(rs.getTime("checkin_time"));
+                    h.setCheckoutTime(rs.getTime("checkout_time"));
+                    h.setCreatedAt(rs.getTimestamp("created_at"));
+                    h.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    h.setRejectionReason(rs.getString("rejection_reason"));
                     String statusStr = rs.getString("status");
                     if (statusStr != null) {
                         try { h.setStatus(Homestay.Status.valueOf(statusStr)); } catch (IllegalArgumentException ignored) {}
                     }
-                    h.setRatingAvg(rs.getBigDecimal("rating_avg"));
-                    h.setReviewCount(rs.getInt("review_count"));
                     h.setPrimaryImageUrl(rs.getString("primary_image"));
+                    BigDecimal minP = rs.getBigDecimal("min_price");
+                    if (minP != null) h.setMinPrice(minP);
+                    h.setRoomCount(rs.getInt("room_count"));
                     list.add(h);
                 }
             }
         } catch (SQLException e) {
             LOGGER.log(Level.SEVERE, "Error in getHomestaysByOwnerId for ownerId=" + ownerId, e);
+        }
+        return list;
+    }
+
+    @Override
+    public int countHomestaysByOwnerAndStatus(int ownerId, Homestay.Status status) {
+        String sql = (status == null)
+            ? "SELECT COUNT(*) FROM homestays WHERE owner_id = ?"
+            : "SELECT COUNT(*) FROM homestays WHERE owner_id = ? AND status = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ownerId);
+            if (status != null) ps.setString(2, status.name());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in countHomestaysByOwnerAndStatus", e);
+        }
+        return 0;
+    }
+
+    @Override
+    public boolean updateHomestay(Homestay hs) {
+        // If currently REJECTED, reset to PENDING_APPROVAL on save (re-submit for review)
+        String sql =
+            "UPDATE homestays SET name=?, description=?, address=?, city=?, district=?, " +
+            "checkin_time=?, checkout_time=?, " +
+            "status = CASE WHEN status = 'REJECTED' THEN 'PENDING_APPROVAL' ELSE status END, " +
+            "updated_at = CURRENT_TIMESTAMP " +
+            "WHERE homestay_id = ? AND owner_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, hs.getName());
+            ps.setString(2, hs.getDescription());
+            ps.setString(3, hs.getAddress());
+            ps.setString(4, hs.getCity());
+            ps.setString(5, hs.getDistrict());
+            ps.setTime(6, hs.getCheckinTime());
+            ps.setTime(7, hs.getCheckoutTime());
+            ps.setInt(8, hs.getHomestayId());
+            ps.setInt(9, hs.getOwnerId());
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in updateHomestay id=" + hs.getHomestayId(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean updateHomestayStatus(int homestayId, int ownerId, Homestay.Status newStatus) {
+        String sql = "UPDATE homestays SET status=?, updated_at=CURRENT_TIMESTAMP " +
+                     "WHERE homestay_id=? AND owner_id=?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newStatus.name());
+            ps.setInt(2, homestayId);
+            ps.setInt(3, ownerId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in updateHomestayStatus id=" + homestayId, e);
+            return false;
+        }
+    }
+
+    // ── RoomType CRUD ─────────────────────────────────────────────────────────
+
+    @Override
+    public int insertHomestay(Homestay hs) {
+        String sql = "INSERT INTO homestays (owner_id, name, description, address, city, district, " +
+                     "checkin_time, checkout_time, status) " +
+                     "VALUES (?,?,?,?,?,?,?,?,'PENDING_APPROVAL')";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, hs.getOwnerId());
+            ps.setString(2, hs.getName());
+            ps.setString(3, hs.getDescription());
+            ps.setString(4, hs.getAddress());
+            ps.setString(5, hs.getCity());
+            ps.setString(6, hs.getDistrict());
+            ps.setTime(7, hs.getCheckinTime() != null ? hs.getCheckinTime() : Time.valueOf("14:00:00"));
+            ps.setTime(8, hs.getCheckoutTime() != null ? hs.getCheckoutTime() : Time.valueOf("12:00:00"));
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) return keys.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in insertHomestay", e);
+        }
+        return -1;
+    }
+
+    @Override
+    public int insertRoomType(RoomType rt) {
+        String sql = "INSERT INTO room_types (homestay_id, name, description, base_price, " +
+                     "max_occupancy, bed_count, room_size_sqm) VALUES (?,?,?,?,?,?,?)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, rt.getHomestayId());
+            ps.setString(2, rt.getName());
+            ps.setString(3, rt.getDescription());
+            ps.setBigDecimal(4, rt.getBasePrice());
+            ps.setInt(5, rt.getMaxOccupancy());
+            ps.setInt(6, rt.getBedCount());
+            if (rt.getRoomSizeSqm() != null) ps.setBigDecimal(7, rt.getRoomSizeSqm());
+            else ps.setNull(7, java.sql.Types.DECIMAL);
+            int rows = ps.executeUpdate();
+            if (rows > 0) {
+                try (ResultSet keys = ps.getGeneratedKeys()) {
+                    if (keys.next()) return keys.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in insertRoomType", e);
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean updateRoomType(RoomType rt, int ownerId) {
+        String sql = "UPDATE room_types rt " +
+                     "JOIN homestays h ON rt.homestay_id = h.homestay_id " +
+                     "SET rt.name=?, rt.description=?, rt.base_price=?, " +
+                     "    rt.max_occupancy=?, rt.bed_count=?, rt.room_size_sqm=?, " +
+                     "    rt.updated_at=CURRENT_TIMESTAMP " +
+                     "WHERE rt.room_type_id=? AND h.owner_id=?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, rt.getName());
+            ps.setString(2, rt.getDescription());
+            ps.setBigDecimal(3, rt.getBasePrice());
+            ps.setInt(4, rt.getMaxOccupancy());
+            ps.setInt(5, rt.getBedCount());
+            if (rt.getRoomSizeSqm() != null) ps.setBigDecimal(6, rt.getRoomSizeSqm());
+            else ps.setNull(6, java.sql.Types.DECIMAL);
+            ps.setInt(7, rt.getRoomTypeId());
+            ps.setInt(8, ownerId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in updateRoomType id=" + rt.getRoomTypeId(), e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean deleteRoomType(int roomTypeId, int ownerId) {
+        // Block if active bookings exist
+        String checkSql = "SELECT COUNT(*) FROM bookings b " +
+                          "WHERE b.room_type_id=? " +
+                          "AND b.booking_status NOT IN ('CANCELLED','REFUNDED')";
+        try (Connection conn = DBContext.getConnection()) {
+            try (PreparedStatement chk = conn.prepareStatement(checkSql)) {
+                chk.setInt(1, roomTypeId);
+                try (ResultSet rs = chk.executeQuery()) {
+                    if (rs.next() && rs.getInt(1) > 0) return false; // has active bookings
+                }
+            }
+            String sql = "DELETE rt FROM room_types rt " +
+                         "JOIN homestays h ON rt.homestay_id = h.homestay_id " +
+                         "WHERE rt.room_type_id=? AND h.owner_id=?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setInt(1, roomTypeId);
+                ps.setInt(2, ownerId);
+                return ps.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in deleteRoomType id=" + roomTypeId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public List<RoomType> getRoomTypesWithCountByHomestayId(int homestayId, int ownerId) {
+        List<RoomType> list = new ArrayList<>();
+        String sql = "SELECT rt.room_type_id, rt.homestay_id, rt.name, rt.description, " +
+                     "rt.base_price, rt.max_occupancy, rt.bed_count, rt.room_size_sqm, " +
+                     "rt.created_at, rt.updated_at, " +
+                     "COUNT(r.room_id) AS room_count " +
+                     "FROM room_types rt " +
+                     "JOIN homestays h ON rt.homestay_id = h.homestay_id " +
+                     "LEFT JOIN rooms r ON r.room_type_id = rt.room_type_id " +
+                     "WHERE rt.homestay_id=? AND h.owner_id=? " +
+                     "GROUP BY rt.room_type_id ORDER BY rt.name ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, homestayId);
+            ps.setInt(2, ownerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    RoomType rt = new RoomType();
+                    rt.setRoomTypeId(rs.getInt("room_type_id"));
+                    rt.setHomestayId(rs.getInt("homestay_id"));
+                    rt.setName(rs.getString("name"));
+                    rt.setDescription(rs.getString("description"));
+                    rt.setBasePrice(rs.getBigDecimal("base_price"));
+                    rt.setMaxOccupancy(rs.getInt("max_occupancy"));
+                    rt.setBedCount(rs.getInt("bed_count"));
+                    rt.setRoomSizeSqm(rs.getBigDecimal("room_size_sqm"));
+                    rt.setCreatedAt(rs.getTimestamp("created_at"));
+                    rt.setUpdatedAt(rs.getTimestamp("updated_at"));
+                    rt.setRoomCount(rs.getInt("room_count"));
+                    list.add(rt);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getRoomTypesWithCountByHomestayId", e);
         }
         return list;
     }

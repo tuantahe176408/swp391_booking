@@ -43,17 +43,16 @@
         <!-- Group: Quản lý Tài sản -->
         <div class="owner-sidebar__group-label">Quản lý Tài sản</div>
 
-        <a class="owner-sidebar__link ${activeTab == 'homestays' ? 'is-active' : ''}"
+        <a class="owner-sidebar__link ${activeTab == 'homestays' || activeTab == 'rooms' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/owner/homestays">
             <span class="owner-sidebar__link-icon">
                 <i class="fa-solid fa-building-user"></i>
             </span>
             <span class="owner-sidebar__link-text">Cơ sở Homestay</span>
-            <c:if test="${activeTab == 'homestays'}">
+            <c:if test="${activeTab == 'homestays' || activeTab == 'rooms'}">
                 <span class="owner-sidebar__link-dot"></span>
             </c:if>
         </a>
-
         <a class="owner-sidebar__link ${activeTab == 'calendar' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/owner/calendar">
             <span class="owner-sidebar__link-icon">

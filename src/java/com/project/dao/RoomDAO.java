@@ -10,6 +10,7 @@ import java.util.Optional;
  */
 public interface RoomDAO {
     List<Room> getRoomsByHomestayId(int homestayId);
+    List<Room> getRoomsByRoomTypeId(int roomTypeId);
     List<Room> getAvailableRooms(int homestayId, int roomTypeId, String checkinDate, String checkoutDate);
     Optional<Room> getRoomById(int roomId);
     int insertRoom(Room room);
