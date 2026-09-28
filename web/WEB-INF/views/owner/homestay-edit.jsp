@@ -61,6 +61,7 @@
                 <form method="post"
                       action="${pageContext.request.contextPath}/owner/homestays/edit"
                       novalidate id="homestayEditForm">
+                    <input type="hidden" name="isNew"      value="${isNew}">
                     <input type="hidden" name="homestayId" value="${homestay.homestayId}">
 
                     <div class="row g-4">
