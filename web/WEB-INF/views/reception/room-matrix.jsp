@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-table-cells text-info me-2"></i>UC14: Ma trận Trạng thái Phòng (Room Matrix Grid)</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-table-cells text-info me-2"></i>Ma trận Trạng thái Phòng</h4>
                         <p class="text-muted mb-0">Theo dõi trực quan thời gian thực tình trạng toàn bộ các phòng tại Homestay</p>
                     </div>
                     <button class="btn btn-outline-secondary btn-sm rounded-pill"><i class="fa-solid fa-rotate me-1"></i> AJAX Polling Live</button>

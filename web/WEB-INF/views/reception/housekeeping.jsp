@@ -13,7 +13,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-broom text-warning me-2"></i>UC14: Quản lý Buồng phòng & Dọn dẹp (Housekeeping)</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-broom text-warning me-2"></i>Quản lý Buồng phòng & Dọn dẹp</h4>
                         <p class="text-muted mb-0">Cập nhật trạng thái vệ sinh phòng và đánh dấu phòng sẵn sàng đón khách mới</p>
                     </div>
                 </div>

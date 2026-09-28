@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-passport text-info me-2"></i>UC12: Quản lý Check-in & Quét CCCD OCR</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-passport text-info me-2"></i>Quản lý Check-in & Quét CCCD OCR</h4>
                         <p class="text-muted mb-0">Xử lý thủ tục nhận/trả phòng nhanh chóng với công nghệ bóc tách dữ liệu CCCD/Passport tự động</p>
                     </div>
                     <span class="badge bg-info-subtle text-info border border-info px-3 py-2 fs-6">

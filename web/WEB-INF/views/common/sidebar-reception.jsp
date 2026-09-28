@@ -12,16 +12,16 @@
     </div>
     <div class="nav flex-column nav-pills gap-1">
         <a class="nav-link ${activeTab == 'checkin' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/checkin">
-            <i class="fa-solid fa-passport me-2"></i> UC12: Check-in / Out & Scan OCR
+            <i class="fa-solid fa-passport me-2"></i> Check-in / Out & Scan OCR
         </a>
         <a class="nav-link ${activeTab == 'matrix' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/matrix">
-            <i class="fa-solid fa-table-cells me-2"></i> UC14: Ma trận Trạng thái Phòng
+            <i class="fa-solid fa-table-cells me-2"></i> Ma trận Trạng thái Phòng
         </a>
         <a class="nav-link ${activeTab == 'walkin' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/walk-in">
-            <i class="fa-solid fa-person-walking-luggage me-2"></i> UC13: Đặt phòng Khách Vãng lai
+            <i class="fa-solid fa-person-walking-luggage me-2"></i> Đặt phòng Khách Vãng lai
         </a>
         <a class="nav-link ${activeTab == 'housekeeping' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/daily-report">
-            <i class="fa-solid fa-broom me-2"></i> UC16: Báo cáo Tạm trú & Dọn dẹp
+            <i class="fa-solid fa-broom me-2"></i> Báo cáo Tạm trú & Dọn dẹp
         </a>
     </div>
 </div>
