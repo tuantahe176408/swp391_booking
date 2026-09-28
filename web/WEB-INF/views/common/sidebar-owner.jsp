@@ -1,30 +1,126 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
-    <div class="d-flex align-items-center gap-3 pb-3 border-bottom mb-3">
-        <div class="rounded-circle bg-primary-subtle text-primary p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-            <i class="fa-solid fa-house-user fs-4"></i>
+<aside class="owner-sidebar">
+    <!-- Brand / Portal Header -->
+    <div class="owner-sidebar__brand">
+        <div class="owner-sidebar__brand-icon">
+            <i class="fa-solid fa-house-user"></i>
         </div>
-        <div>
-            <h6 class="fw-bold mb-0 text-dark">Portal Chủ Nhà</h6>
-            <small class="text-muted">Quản lý Homestay & Doanh thu</small>
+        <div class="owner-sidebar__brand-text">
+            <span class="owner-sidebar__brand-title">Portal Chủ Nhà</span>
+            <span class="owner-sidebar__brand-sub">Smart Booking Platform</span>
         </div>
     </div>
-    <div class="nav flex-column nav-pills gap-1">
-        <a class="nav-link ${activeTab == 'homestays' ? 'active bg-primary text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/owner/homestays">
-            <i class="fa-solid fa-building-user me-2"></i> UC17: Quản lý Danh mục Homestay
+
+    <!-- Owner Profile Pill -->
+    <div class="owner-sidebar__profile">
+        <c:choose>
+            <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
+                <img src="${sessionScope.currentUser.avatarUrl}"
+                     class="owner-sidebar__avatar"
+                     alt="Avatar"
+                     onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
+            </c:when>
+            <c:otherwise>
+                <div class="owner-sidebar__avatar-fallback">
+                    ${not empty sessionScope.currentUser ? sessionScope.currentUser.fullName.substring(0,1).toUpperCase() : 'O'}
+                </div>
+            </c:otherwise>
+        </c:choose>
+        <div class="owner-sidebar__profile-info">
+            <span class="owner-sidebar__profile-name">
+                ${not empty sessionScope.currentUser ? sessionScope.currentUser.fullName : 'Chủ Nhà'}
+            </span>
+            <span class="owner-sidebar__profile-role">
+                <i class="fa-solid fa-circle-check me-1" style="color:#34d399;font-size:.65rem;"></i>Chủ nhà xác minh
+            </span>
+        </div>
+    </div>
+
+    <!-- Nav Groups -->
+    <nav class="owner-sidebar__nav">
+
+        <!-- Group: Quản lý Tài sản -->
+        <div class="owner-sidebar__group-label">Quản lý Tài sản</div>
+
+        <a class="owner-sidebar__link ${activeTab == 'homestays' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/homestays">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-solid fa-building-user"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Cơ sở Homestay</span>
+            <c:if test="${activeTab == 'homestays'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
         </a>
-        <a class="nav-link ${activeTab == 'calendar' ? 'active bg-primary text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/owner/calendar">
-            <i class="fa-regular fa-calendar-days me-2"></i> UC18: Lịch & Giá Linh hoạt
+
+        <a class="owner-sidebar__link ${activeTab == 'calendar' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/calendar">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-regular fa-calendar-days"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Lịch &amp; Giá phòng</span>
+            <c:if test="${activeTab == 'calendar'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
         </a>
-        <a class="nav-link ${activeTab == 'addons' ? 'active bg-primary text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/owner/addons">
-            <i class="fa-solid fa-bell-concierge me-2"></i> UC19: Dịch vụ Bổ sung
+
+        <a class="owner-sidebar__link ${activeTab == 'addons' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/addons">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-solid fa-bell-concierge"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Dịch vụ Bổ sung</span>
+            <c:if test="${activeTab == 'addons'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
         </a>
-        <a class="nav-link ${activeTab == 'analytics' ? 'active bg-primary text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/owner/analytics">
-            <i class="fa-solid fa-chart-pie me-2"></i> UC20: Báo cáo Doanh thu & Rate
+
+        <!-- Group: Vận hành & Báo cáo -->
+        <div class="owner-sidebar__group-label">Vận hành &amp; Báo cáo</div>
+
+        <a class="owner-sidebar__link ${activeTab == 'bookings' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/bookings">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-solid fa-list-check"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Đơn đặt phòng</span>
+            <c:if test="${activeTab == 'bookings'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
         </a>
-        <a class="nav-link ${activeTab == 'staffs' ? 'active bg-primary text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/owner/staffs">
-            <i class="fa-solid fa-user-gear me-2"></i> UC21: Quản lý Nhân viên Lễ tân
+
+        <a class="owner-sidebar__link ${activeTab == 'analytics' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/analytics">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-solid fa-chart-pie"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Doanh thu &amp; Thống kê</span>
+            <c:if test="${activeTab == 'analytics'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
+        </a>
+
+        <a class="owner-sidebar__link ${activeTab == 'staffs' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/staffs">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-solid fa-user-gear"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Nhân viên Lễ tân</span>
+            <c:if test="${activeTab == 'staffs'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
+        </a>
+
+    </nav>
+
+    <!-- Footer: Back to Site -->
+    <div class="owner-sidebar__footer">
+        <a href="${pageContext.request.contextPath}/home" class="owner-sidebar__back-link">
+            <i class="fa-solid fa-arrow-left me-2"></i>Về trang khách hàng
+        </a>
+        <a href="${pageContext.request.contextPath}/logout" class="owner-sidebar__logout-link">
+            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
         </a>
     </div>
-</div>
+</aside>
