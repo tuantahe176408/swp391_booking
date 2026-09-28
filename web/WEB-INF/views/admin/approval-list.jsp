@@ -36,7 +36,7 @@
                             <tr>
                                 <td>
                                     <div class="d-flex align-items-center gap-2">
-                                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=120&q=80" class="rounded-3" width="50" height="35" style="object-fit: cover;">
+                                        <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="rounded-3" width="50" height="35" style="object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=120&q=80';">
                                         <strong>Dalat Pine Forest Villa</strong>
                                     </div>
                                 </td>

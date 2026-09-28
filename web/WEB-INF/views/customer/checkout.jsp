@@ -130,8 +130,9 @@
                 <div class="order-summary">
                     <h5 class="fw-bold mb-3">Tóm tắt đơn đặt</h5>
                     <div class="d-flex gap-3 mb-3 pb-3 border-bottom">
-                        <img src="${not empty homestay.primaryImageUrl ? homestay.primaryImageUrl : 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=120&q=80'}"
-                             class="rounded-2" width="70" height="56" style="object-fit:cover;" alt="">
+                        <img src="${not empty homestay.primaryImageUrl ? homestay.primaryImageUrl : pageContext.request.contextPath.concat('/assets/images/default-homestay.svg')}"
+                             class="rounded-2" width="70" height="56" style="object-fit:cover;" alt=""
+                             onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                         <div>
                             <div class="fw-bold small">${homestay.name}</div>
                             <div class="text-muted small">${homestay.city}</div>

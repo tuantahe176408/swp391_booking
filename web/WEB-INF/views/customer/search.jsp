@@ -139,10 +139,10 @@
                                         <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}">
                                             <c:choose>
                                                 <c:when test="${not empty h.primaryImageUrl}">
-                                                    <img src="${h.primaryImageUrl}" alt="${h.name}" loading="lazy">
+                                                    <img src="${h.primaryImageUrl}" alt="${h.name}" loading="lazy" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80" alt="${h.name}" loading="lazy">
+                                                    <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" alt="${h.name}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80';">
                                                 </c:otherwise>
                                             </c:choose>
                                         </a>

@@ -24,10 +24,10 @@
                             <div class="position-relative overflow-hidden" style="height: 200px;">
                                 <c:choose>
                                     <c:when test="${not empty h.primaryImageUrl}">
-                                        <img src="${h.primaryImageUrl}" class="w-100 h-100 object-fit-cover" alt="${h.name}">
+                                        <img src="${h.primaryImageUrl}" class="w-100 h-100 object-fit-cover" alt="${h.name}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                                     </c:when>
                                     <c:otherwise>
-                                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" class="w-100 h-100 object-fit-cover" alt="${h.name}">
+                                        <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="w-100 h-100 object-fit-cover" alt="${h.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80';">
                                     </c:otherwise>
                                 </c:choose>
                                 <span class="badge bg-dark bg-opacity-75 text-white position-absolute top-0 end-0 m-2 px-2 py-1 rounded-pill small">

@@ -65,10 +65,10 @@
                             <div class="position-relative overflow-hidden" style="height: 220px;">
                                 <c:choose>
                                     <c:when test="${not empty h.primaryImageUrl}">
-                                        <img src="${h.primaryImageUrl}" class="w-100 h-100 object-fit-cover" alt="${h.name}">
+                                        <img src="${h.primaryImageUrl}" class="w-100 h-100 object-fit-cover" alt="${h.name}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                                     </c:when>
                                     <c:otherwise>
-                                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" class="w-100 h-100 object-fit-cover" alt="${h.name}">
+                                        <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="w-100 h-100 object-fit-cover" alt="${h.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';">
                                     </c:otherwise>
                                 </c:choose>
                                 <span class="badge badge-tag position-absolute top-0 end-0 m-3 shadow-sm">
@@ -101,7 +101,7 @@
                 <div class="col-lg-4 col-md-6">
                     <div class="homestay-card">
                         <div class="position-relative overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80" alt="Homestay Đà Lạt">
+                            <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="w-100 h-100 object-fit-cover" alt="Homestay Đà Lạt" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=800&q=80';">
                             <span class="badge badge-tag position-absolute top-0 end-0 m-3">
                                 <i class="fa-solid fa-star text-warning me-1"></i>4.9 (128)
                             </span>

@@ -40,5 +40,38 @@
 <!-- Bootstrap 5 JS Bundle (Local & CDN Fallback) -->
 <script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Global Image Fallback Handler -->
+<script>
+    (function() {
+        const defaultHomestay = "${pageContext.request.contextPath}/assets/images/default-homestay.svg";
+        const defaultAvatar = "${pageContext.request.contextPath}/assets/images/default-avatar.svg";
+
+        function applyFallback(img) {
+            if (!img || img.dataset.fallbackApplied) return;
+            img.dataset.fallbackApplied = "true";
+            const isAvatar = img.classList.contains("rounded-circle") || 
+                             (img.alt && img.alt.toLowerCase().includes("avatar")) || 
+                             (img.src && img.src.toLowerCase().includes("avatar"));
+            img.src = isAvatar ? defaultAvatar : defaultHomestay;
+        }
+
+        // Catch error events on any img element during capture phase
+        window.addEventListener("error", function(e) {
+            if (e.target && e.target.tagName === "IMG") {
+                applyFallback(e.target);
+            }
+        }, true);
+
+        // Check already rendered images on load
+        document.addEventListener("DOMContentLoaded", function() {
+            document.querySelectorAll("img").forEach(function(img) {
+                if (img.complete && (img.naturalWidth === 0 || !img.src)) {
+                    applyFallback(img);
+                }
+            });
+        });
+    })();
+</script>
 </body>
 </html>

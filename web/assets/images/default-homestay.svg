@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="50%" stop-color="#6366f1" />
+      <stop offset="100%" stop-color="#818cf8" />
+    </linearGradient>
+    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.25)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.1)" />
+    </linearGradient>
+  </defs>
+  <!-- Background with gradient -->
+  <rect width="800" height="500" fill="url(#bgGrad)" />
+  
+  <!-- Subtle background patterns -->
+  <circle cx="150" cy="120" r="180" fill="white" opacity="0.05" />
+  <circle cx="700" cy="380" r="220" fill="white" opacity="0.06" />
+  <circle cx="400" cy="250" r="300" fill="none" stroke="white" stroke-width="2" opacity="0.08" />
+
+  <!-- Center Card / Icon Container -->
+  <rect x="250" y="110" width="300" height="280" rx="24" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+  
+  <!-- Hotel / Homestay House Icon -->
+  <g transform="translate(350, 160)" fill="white">
+    <!-- Roof -->
+    <path d="M50 5 L95 45 L5 45 Z" fill="#ffffff" />
+    <path d="M78 15 L78 30 L88 30 L88 23 Z" fill="#e0e7ff" />
+    <!-- Building Body -->
+    <rect x="15" y="45" width="70" height="55" rx="4" fill="#ffffff" />
+    <!-- Windows -->
+    <rect x="26" y="55" width="16" height="16" rx="2" fill="#4f46e5" />
+    <rect x="58" y="55" width="16" height="16" rx="2" fill="#4f46e5" />
+    <!-- Door -->
+    <path d="M42 80 L42 100 L58 100 L58 80 Q50 75 42 80 Z" fill="#4338ca" />
+  </g>
+
+  <!-- Text -->
+  <text x="400" y="325" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="1">SMART BOOKING</text>
+  <text x="400" y="355" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="500" fill="#e0e7ff">Homestay &amp; Hotel Image</text>
+</svg>
