@@ -47,6 +47,8 @@ public class Homestay implements Serializable {
     private Double matchScore;
     private String reasonTag;
     private boolean wishlisted;
+    /** Transient: total physical rooms count (from rooms table via room_types JOIN) */
+    private int roomCount;
 
     public Homestay() {
         this.status = Status.PENDING_APPROVAL;
@@ -262,4 +264,7 @@ public class Homestay implements Serializable {
     public void setWishlisted(boolean wishlisted) {
         this.wishlisted = wishlisted;
     }
+
+    public int getRoomCount() { return roomCount; }
+    public void setRoomCount(int roomCount) { this.roomCount = roomCount; }
 }

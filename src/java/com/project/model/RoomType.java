@@ -119,4 +119,9 @@ public class RoomType implements Serializable {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    /** Transient: physical room count for this type (from rooms table COUNT). */
+    private int roomCount;
+    public int getRoomCount() { return roomCount; }
+    public void setRoomCount(int roomCount) { this.roomCount = roomCount; }
 }
