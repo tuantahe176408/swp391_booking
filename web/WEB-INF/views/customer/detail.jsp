@@ -57,9 +57,9 @@
                         <div class="fs-5 fw-bold text-warning"><i class="fa-solid fa-star"></i> ${homestay.ratingAvg}</div>
                         <div class="text-muted small">${homestay.reviewCount} đánh giá</div>
                         <c:if test="${not empty sessionScope.currentUser}">
-                            <button class="btn btn-sm btn-outline-danger mt-1" onclick="toggleWishlist(${homestay.homestayId}, this)">
+                            <button class="btn btn-sm ${homestay.wishlisted ? 'btn-danger text-white' : 'btn-outline-danger'} mt-1 rounded-pill px-3 shadow-sm" id="wishlistBtn" onclick="toggleWishlist(${homestay.homestayId}, this)">
                                 <i class="fa-${homestay.wishlisted ? 'solid' : 'regular'} fa-heart me-1"></i>
-                                ${homestay.wishlisted ? 'Đã lưu' : 'Lưu yêu thích'}
+                                <span>${homestay.wishlisted ? 'Đã lưu' : 'Lưu yêu thích'}</span>
                             </button>
                         </c:if>
                     </div>
@@ -370,16 +370,27 @@ function selectRoom(roomTypeId, price, name, cardElem) {
 }
 
 function toggleWishlist(homestayId, btn) {
-    fetch('${pageContext.request.contextPath}/customer/wishlist', {
+    btn.disabled = true;
+    fetch('${pageContext.request.contextPath}/customer/wishlist/toggle', {
         method: 'POST',
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
-        body: 'action=toggle&homestayId=' + homestayId
-    }).then(r => r.json()).then(data => {
-        if (data.wishlisted) {
-            btn.innerHTML = '<i class="fa-solid fa-heart me-1"></i>Đã lưu';
+        body: 'homestayId=' + encodeURIComponent(homestayId)
+    })
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        const isSaved = (data.status === 'success' && (data.is_saved === true || data.wishlisted === true || data.saved === true));
+        if (isSaved) {
+            btn.className = 'btn btn-sm btn-danger text-white mt-1 rounded-pill px-3 shadow-sm';
+            btn.innerHTML = '<i class="fa-solid fa-heart me-1"></i><span>Đã lưu</span>';
         } else {
-            btn.innerHTML = '<i class="fa-regular fa-heart me-1"></i>Lưu yêu thích';
+            btn.className = 'btn btn-sm btn-outline-danger mt-1 rounded-pill px-3';
+            btn.innerHTML = '<i class="fa-regular fa-heart me-1"></i><span>Lưu yêu thích</span>';
         }
+    })
+    .catch(err => {
+        btn.disabled = false;
+        console.error('Error toggling wishlist:', err);
     });
 }
 
