@@ -84,10 +84,14 @@ public class WishlistController extends HttpServlet {
                 wishlistDAO.removeFromWishlist(currentUser.getUserId(), homestayId);
                 json.addProperty("status", "success");
                 json.addProperty("is_saved", false);
+                json.addProperty("wishlisted", false);
+                json.addProperty("saved", false);
             } else {
                 wishlistDAO.addToWishlist(currentUser.getUserId(), homestayId);
                 json.addProperty("status", "success");
                 json.addProperty("is_saved", true);
+                json.addProperty("wishlisted", true);
+                json.addProperty("saved", true);
             }
         } catch (NumberFormatException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
