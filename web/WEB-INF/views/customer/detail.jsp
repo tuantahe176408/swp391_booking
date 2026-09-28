@@ -182,15 +182,15 @@
                             <input type="hidden" name="homestayId" value="${homestay.homestayId}">
                             <input type="hidden" name="roomTypeId" id="selectedRoomTypeId" value="">
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small">Ngày nhận phòng</label>
+                                <label class="form-label fw-semibold small"><i class="fa-regular fa-calendar text-primary me-1"></i>Ngày nhận phòng</label>
                                 <input type="date" name="checkin" class="form-control rounded-3" value="${checkin}" required id="checkinInput">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small">Ngày trả phòng</label>
+                                <label class="form-label fw-semibold small"><i class="fa-regular fa-calendar-check text-primary me-1"></i>Ngày trả phòng</label>
                                 <input type="date" name="checkout" class="form-control rounded-3" value="${checkout}" required id="checkoutInput">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold small">Số khách</label>
+                                <label class="form-label fw-semibold small"><i class="fa-solid fa-user-group text-primary me-1"></i>Số khách</label>
                                 <select name="guests" class="form-select rounded-3">
                                     <c:forEach var="i" begin="1" end="10">
                                         <option value="${i}">${i} Khách</option>
@@ -199,12 +199,12 @@
                             </div>
                             <c:choose>
                                 <c:when test="${not empty sessionScope.currentUser}">
-                                    <button type="submit" class="btn btn-primary-custom w-100 fw-bold py-2" id="bookBtn" disabled>
+                                    <button type="submit" class="btn btn-primary-custom w-100 fw-bold py-2 shadow-sm" id="bookBtn">
                                         <i class="fa-solid fa-calendar-check me-2"></i>Đặt phòng ngay
                                     </button>
                                 </c:when>
                                 <c:otherwise>
-                                    <a href="${pageContext.request.contextPath}/login" class="btn btn-outline-primary w-100 fw-bold py-2">
+                                    <a href="${pageContext.request.contextPath}/login?redirect=${pageContext.request.contextPath}/homestay/detail?id=${homestay.homestayId}" class="btn btn-outline-primary w-100 fw-bold py-2">
                                         <i class="fa-solid fa-right-to-bracket me-2"></i>Đăng nhập để đặt phòng
                                     </a>
                                 </c:otherwise>
@@ -363,7 +363,10 @@ function selectRoom(roomTypeId, price, name, cardElem) {
         cardElem.classList.add('border-primary', 'bg-primary-subtle');
         cardElem.style.borderWidth = '2px';
     }
-    document.getElementById('bookBtn').disabled = false;
+    const bookBtn = document.getElementById('bookBtn');
+    if (bookBtn) {
+        bookBtn.disabled = false;
+    }
 }
 
 function toggleWishlist(homestayId, btn) {
@@ -379,6 +382,60 @@ function toggleWishlist(homestayId, btn) {
         }
     });
 }
+
+// Khởi tạo ngày tháng không cho chọn quá khứ & tự động chọn hạng phòng đầu tiên
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date();
+    const todayStr = today.toISOString().split('T')[0];
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+    const checkinInput = document.getElementById('checkinInput');
+    const checkoutInput = document.getElementById('checkoutInput');
+
+    if (checkinInput) {
+        checkinInput.min = todayStr;
+        if (!checkinInput.value || checkinInput.value < todayStr) {
+            checkinInput.value = todayStr;
+        }
+    }
+
+    if (checkoutInput) {
+        const currentCheckin = (checkinInput && checkinInput.value && checkinInput.value >= todayStr) ? checkinInput.value : todayStr;
+        const d = new Date(currentCheckin);
+        d.setDate(d.getDate() + 1);
+        const minCheckoutStr = d.toISOString().split('T')[0];
+        checkoutInput.min = minCheckoutStr;
+        if (!checkoutInput.value || checkoutInput.value <= currentCheckin) {
+            checkoutInput.value = minCheckoutStr;
+        }
+
+        if (checkinInput) {
+            checkinInput.addEventListener('change', function() {
+                const val = this.value || todayStr;
+                const nextD = new Date(val);
+                nextD.setDate(nextD.getDate() + 1);
+                const nextStr = nextD.toISOString().split('T')[0];
+                checkoutInput.min = nextStr;
+                if (!checkoutInput.value || checkoutInput.value <= val) {
+                    checkoutInput.value = nextStr;
+                }
+            });
+        }
+    }
+
+    // Tự động chọn hạng phòng đầu tiên nếu có
+    const firstRoomCard = document.querySelector('.room-type-card');
+    if (firstRoomCard) {
+        firstRoomCard.click();
+    } else {
+        const bookBtn = document.getElementById('bookBtn');
+        if (bookBtn) {
+            bookBtn.disabled = false;
+        }
+    }
+});
 </script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

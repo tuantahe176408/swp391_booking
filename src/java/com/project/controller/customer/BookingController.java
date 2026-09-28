@@ -48,7 +48,11 @@ public class BookingController extends HttpServlet {
         HttpSession session = request.getSession(false);
         User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
         if (currentUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login?redirect=/booking/checkout");
+            String redirectUrl = "/booking/checkout";
+            if (request.getQueryString() != null && !request.getQueryString().trim().isEmpty()) {
+                redirectUrl += "?" + request.getQueryString();
+            }
+            response.sendRedirect(request.getContextPath() + "/login?redirect=" + java.net.URLEncoder.encode(redirectUrl, "UTF-8"));
             return;
         }
 
@@ -57,13 +61,17 @@ public class BookingController extends HttpServlet {
         String checkinParam     = request.getParameter("checkin");
         String checkoutParam    = request.getParameter("checkout");
 
-        if (homestayIdParam == null || roomTypeIdParam == null || checkinParam == null || checkoutParam == null) {
+        int homestayId = 0;
+        try {
+            if (homestayIdParam != null && !homestayIdParam.trim().isEmpty()) {
+                homestayId = Integer.parseInt(homestayIdParam.trim());
+            }
+        } catch (NumberFormatException ignored) {}
+
+        if (homestayId <= 0) {
             response.sendRedirect(request.getContextPath() + "/search");
             return;
         }
-
-        int homestayId  = Integer.parseInt(homestayIdParam);
-        int roomTypeId  = Integer.parseInt(roomTypeIdParam);
 
         Optional<Homestay> optHomestay = homestayDAO.getHomestayById(homestayId);
         if (!optHomestay.isPresent()) {
@@ -72,15 +80,51 @@ public class BookingController extends HttpServlet {
         }
 
         Homestay homestay = optHomestay.get();
-        // Tìm room type cụ thể
-        RoomType selectedRoomType = homestay.getRoomTypes().stream()
-                .filter(rt -> rt.getRoomTypeId() == roomTypeId)
-                .findFirst().orElse(null);
 
-        // Tính số đêm
-        LocalDate checkin  = LocalDate.parse(checkinParam);
-        LocalDate checkout = LocalDate.parse(checkoutParam);
-        long totalNights   = ChronoUnit.DAYS.between(checkin, checkout);
+        // Tìm room type cụ thể hoặc lấy room type đầu tiên
+        int roomTypeId = 0;
+        try {
+            if (roomTypeIdParam != null && !roomTypeIdParam.trim().isEmpty()) {
+                roomTypeId = Integer.parseInt(roomTypeIdParam.trim());
+            }
+        } catch (NumberFormatException ignored) {}
+
+        RoomType selectedRoomType = null;
+        if (homestay.getRoomTypes() != null && !homestay.getRoomTypes().isEmpty()) {
+            if (roomTypeId > 0) {
+                final int targetId = roomTypeId;
+                selectedRoomType = homestay.getRoomTypes().stream()
+                        .filter(rt -> rt.getRoomTypeId() == targetId)
+                        .findFirst().orElse(null);
+            }
+            if (selectedRoomType == null) {
+                selectedRoomType = homestay.getRoomTypes().get(0);
+            }
+        }
+
+        // Parse ngày checkin / checkout an toàn không cho chọn quá khứ
+        LocalDate today = LocalDate.now();
+        LocalDate checkin;
+        try {
+            checkin = (checkinParam != null && !checkinParam.trim().isEmpty()) ? LocalDate.parse(checkinParam.trim()) : today;
+        } catch (Exception e) {
+            checkin = today;
+        }
+        if (checkin.isBefore(today)) {
+            checkin = today;
+        }
+
+        LocalDate checkout;
+        try {
+            checkout = (checkoutParam != null && !checkoutParam.trim().isEmpty()) ? LocalDate.parse(checkoutParam.trim()) : checkin.plusDays(1);
+        } catch (Exception e) {
+            checkout = checkin.plusDays(1);
+        }
+        if (!checkout.isAfter(checkin)) {
+            checkout = checkin.plusDays(1);
+        }
+
+        long totalNights = ChronoUnit.DAYS.between(checkin, checkout);
         if (totalNights <= 0) totalNights = 1;
 
         // Addons
@@ -89,8 +133,8 @@ public class BookingController extends HttpServlet {
         request.setAttribute("homestay", homestay);
         request.setAttribute("selectedRoomType", selectedRoomType);
         request.setAttribute("addons", addons);
-        request.setAttribute("checkin", checkinParam);
-        request.setAttribute("checkout", checkoutParam);
+        request.setAttribute("checkin", checkin.toString());
+        request.setAttribute("checkout", checkout.toString());
         request.setAttribute("totalNights", totalNights);
         request.setAttribute("currentUser", currentUser);
         request.setAttribute("pageTitle", "Xác nhận Đặt phòng - Smart Booking Platform");

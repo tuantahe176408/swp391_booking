@@ -16,13 +16,17 @@
         <div class="hero-search-box">
             <form action="${pageContext.request.contextPath}/search" method="GET">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         <label class="form-label"><i class="fa-solid fa-location-dot text-primary me-1"></i> Địa điểm</label>
                         <input type="text" name="location" class="form-control" placeholder="Đà Lạt, Nha Trang, Phú Quốc...">
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Ngày nhận / trả phòng</label>
-                        <input type="date" name="checkin" class="form-control">
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Nhận phòng</label>
+                        <input type="date" name="checkin" id="homeCheckin" class="form-control">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label"><i class="fa-regular fa-calendar-check text-primary me-1"></i> Trả phòng</label>
+                        <input type="date" name="checkout" id="homeCheckout" class="form-control">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label"><i class="fa-solid fa-user-group text-primary me-1"></i> Số khách</label>

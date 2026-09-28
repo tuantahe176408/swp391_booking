@@ -42,7 +42,7 @@
 <script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Global Image Fallback Handler -->
+<!-- Global Image Fallback Handler & Date Picker Constraints -->
 <script>
     (function() {
         const defaultHomestay = "${pageContext.request.contextPath}/assets/images/default-homestay.svg";
@@ -64,13 +64,58 @@
             }
         }, true);
 
-        // Check already rendered images on load
+        // Global Date Picker Constraints: Không cho chọn ngày quá khứ & tự động sync checkin/checkout
+        function applyDateRestrictions() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            
+            // Giới hạn tất cả input date không được chọn quá khứ (trừ khi có thuộc tính data-allow-past)
+            document.querySelectorAll('input[type="date"]').forEach(function(input) {
+                if (!input.dataset.allowPast && !input.getAttribute('min')) {
+                    input.setAttribute('min', todayStr);
+                }
+            });
+
+            // Đồng bộ cặp checkin và checkout
+            const checkins = document.querySelectorAll('input[name="checkin"], #checkinInput, #searchCheckin, #homeCheckin');
+            checkins.forEach(function(ci) {
+                ci.setAttribute('min', todayStr);
+                
+                const form = ci.closest('form');
+                const co = form ? form.querySelector('input[name="checkout"], #checkoutInput, #searchCheckout, #homeCheckout') : null;
+                if (co) {
+                    function syncCheckout() {
+                        const curVal = ci.value || todayStr;
+                        const d = new Date(curVal);
+                        if (!isNaN(d.getTime())) {
+                            d.setDate(d.getDate() + 1);
+                            const nextDay = d.toISOString().split('T')[0];
+                            co.setAttribute('min', nextDay);
+                            if (co.value && co.value <= curVal) {
+                                co.value = nextDay;
+                            }
+                        }
+                    }
+
+                    ci.addEventListener('change', syncCheckout);
+                    if (ci.value) {
+                        syncCheckout();
+                    } else {
+                        const tmr = new Date();
+                        tmr.setDate(tmr.getDate() + 1);
+                        co.setAttribute('min', tmr.toISOString().split('T')[0]);
+                    }
+                }
+            });
+        }
+
+        // Check already rendered images and inputs on load
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll("img").forEach(function(img) {
                 if (img.complete && (img.naturalWidth === 0 || !img.src)) {
                     applyFallback(img);
                 }
             });
+            applyDateRestrictions();
         });
     })();
 </script>

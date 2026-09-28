@@ -30,11 +30,11 @@
                 </div>
                 <div class="col-md-2">
                     <label class="form-label text-white small fw-semibold"><i class="fa-regular fa-calendar me-1 text-primary"></i> Nhận phòng</label>
-                    <input type="date" name="checkin" class="form-control rounded-3" value="${searchCheckin}">
+                    <input type="date" name="checkin" id="searchCheckin" class="form-control rounded-3" value="${searchCheckin}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label text-white small fw-semibold"><i class="fa-regular fa-calendar-check me-1 text-primary"></i> Trả phòng</label>
-                    <input type="date" name="checkout" class="form-control rounded-3" value="${searchCheckout}">
+                    <input type="date" name="checkout" id="searchCheckout" class="form-control rounded-3" value="${searchCheckout}">
                 </div>
                 <div class="col-md-2">
                     <label class="form-label text-white small fw-semibold"><i class="fa-solid fa-users me-1 text-primary"></i> Số khách</label>
