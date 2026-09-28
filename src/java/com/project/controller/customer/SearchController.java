@@ -79,6 +79,7 @@ public class SearchController extends HttpServlet {
         request.setAttribute("currentPage", page);
         request.setAttribute("totalPages", totalPages);
         request.setAttribute("allAmenities", allAmenities);
+        request.setAttribute("selectedAmenities", amenityList);
         request.setAttribute("cities", cities);
         request.setAttribute("searchLocation", location);
         request.setAttribute("searchCheckin", checkin);
