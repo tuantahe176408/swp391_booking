@@ -18,7 +18,40 @@
                 <div class="row g-3 align-items-end">
                     <div class="col-md-3">
                         <label class="form-label"><i class="fa-solid fa-location-dot text-primary me-1"></i> Địa điểm</label>
-                        <input type="text" name="location" class="form-control" placeholder="Đà Lạt, Nha Trang, Phú Quốc...">
+                        <div class="position-relative">
+                            <input type="text" name="location" id="homeLocationInput" class="form-control" placeholder="Đà Lạt, Nha Trang, Phú Quốc..." autocomplete="off">
+                            <div class="location-suggest-popup shadow-lg text-start" id="homeLocationPopup" style="position:absolute;top:100%;left:0;right:0;margin-top:6px;background:#fff;border-radius:14px;box-shadow:0 16px 40px rgba(0,0,0,0.2);border:1px solid rgba(0,0,0,0.08);z-index:1050;padding:10px;display:none;max-height:300px;overflow-y:auto;">
+                                <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 border-bottom text-muted" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">
+                                    <span><i class="fa-solid fa-fire text-danger me-1"></i> Điểm đến nổi bật</span>
+                                </div>
+                                <div id="homeLocationList">
+                                    <div class="d-flex align-items-center p-2 rounded-3 text-dark" style="cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'" onclick="selectHomeLoc('Đà Lạt')">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center me-2 text-primary" style="width:32px;height:32px;background:rgba(99,102,241,0.1);"><i class="fa-solid fa-mountain-sun"></i></div>
+                                        <div><div class="fw-bold small">Đà Lạt</div><div class="text-muted" style="font-size:0.75rem;">Lâm Đồng • Xứ sở sương mù</div></div>
+                                    </div>
+                                    <div class="d-flex align-items-center p-2 rounded-3 text-dark" style="cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'" onclick="selectHomeLoc('Đà Nẵng')">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center me-2 text-primary" style="width:32px;height:32px;background:rgba(99,102,241,0.1);"><i class="fa-solid fa-umbrella-beach"></i></div>
+                                        <div><div class="fw-bold small">Đà Nẵng</div><div class="text-muted" style="font-size:0.75rem;">Bãi biển Mỹ Khê &amp; Cầu Rồng</div></div>
+                                    </div>
+                                    <div class="d-flex align-items-center p-2 rounded-3 text-dark" style="cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'" onclick="selectHomeLoc('Hội An')">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center me-2 text-primary" style="width:32px;height:32px;background:rgba(99,102,241,0.1);"><i class="fa-solid fa-landmark"></i></div>
+                                        <div><div class="fw-bold small">Hội An</div><div class="text-muted" style="font-size:0.75rem;">Quảng Nam • Phố cổ đèn lồng</div></div>
+                                    </div>
+                                    <div class="d-flex align-items-center p-2 rounded-3 text-dark" style="cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'" onclick="selectHomeLoc('Nha Trang')">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center me-2 text-primary" style="width:32px;height:32px;background:rgba(99,102,241,0.1);"><i class="fa-solid fa-water"></i></div>
+                                        <div><div class="fw-bold small">Nha Trang</div><div class="text-muted" style="font-size:0.75rem;">Khánh Hòa • Thành phố biển</div></div>
+                                    </div>
+                                    <div class="d-flex align-items-center p-2 rounded-3 text-dark" style="cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'" onclick="selectHomeLoc('Phú Quốc')">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center me-2 text-primary" style="width:32px;height:32px;background:rgba(99,102,241,0.1);"><i class="fa-solid fa-sun"></i></div>
+                                        <div><div class="fw-bold small">Phú Quốc</div><div class="text-muted" style="font-size:0.75rem;">Kiên Giang • Đảo ngọc</div></div>
+                                    </div>
+                                    <div class="d-flex align-items-center p-2 rounded-3 text-dark" style="cursor:pointer;transition:background 0.15s;" onmouseover="this.style.background='#f0f4ff'" onmouseout="this.style.background='transparent'" onclick="selectHomeLoc('Hà Nội')">
+                                        <div class="rounded-3 d-flex align-items-center justify-content-center me-2 text-primary" style="width:32px;height:32px;background:rgba(99,102,241,0.1);"><i class="fa-solid fa-city"></i></div>
+                                        <div><div class="fw-bold small">Hà Nội</div><div class="text-muted" style="font-size:0.75rem;">Thủ đô nghìn năm văn hiến</div></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Nhận phòng</label>
@@ -128,5 +161,43 @@
         </c:choose>
     </div>
 </div>
+
+<script>
+function selectHomeLoc(loc) {
+    const input = document.getElementById('homeLocationInput');
+    if (input) input.value = loc;
+    const popup = document.getElementById('homeLocationPopup');
+    if (popup) popup.style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const input = document.getElementById('homeLocationInput');
+    const popup = document.getElementById('homeLocationPopup');
+    if (input && popup) {
+        input.addEventListener('focus', function() {
+            popup.style.display = 'block';
+        });
+
+        input.addEventListener('input', function() {
+            popup.style.display = 'block';
+            const term = this.value.trim().toLowerCase();
+            document.querySelectorAll('#homeLocationList > div').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (!term || text.includes(term)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!input.contains(e.target) && !popup.contains(e.target)) {
+                popup.style.display = 'none';
+            }
+        });
+    }
+});
+</script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />

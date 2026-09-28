@@ -27,6 +27,54 @@
 .price-range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6366f1; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.15s; }
 .price-range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
 .price-badge-display { background: #f5f7ff; border: 1px dashed #6366f1; color: #4f46e5; border-radius: 10px; padding: 7px 10px; font-weight: 700; font-size: 0.85rem; text-align: center; margin-bottom: 10px; transition: all 0.2s; }
+/* Smart Location Search Styles */
+.location-search-wrapper { position: relative; }
+.location-suggest-popup {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    margin-top: 6px;
+    background: #ffffff;
+    border-radius: 14px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    z-index: 1050;
+    padding: 10px;
+    display: none;
+    max-height: 320px;
+    overflow-y: auto;
+}
+.location-suggest-popup.show { display: block; animation: fadeInDown 0.2s ease; }
+.location-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #1f2937;
+    transition: all 0.15s ease;
+}
+.location-item:hover {
+    background: #f0f4ff;
+    color: #4338ca;
+}
+.location-icon-box {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.1);
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    flex-shrink: 0;
+}
+.city-filter-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.city-chip { background: #f8f9fc; color: #4b5563; border: 1px solid #e2e8f0; border-radius: 16px; font-size: 0.78rem; font-weight: 600; padding: 4px 10px; cursor: pointer; transition: all 0.2s; user-select: none; }
+.city-chip:hover { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; }
+.city-chip.active { background: #6366f1; color: #fff; border-color: #6366f1; box-shadow: 0 2px 8px rgba(99,102,241,0.25); }
 </style>
 
 <!-- Search Hero -->
@@ -36,7 +84,49 @@
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
                     <label class="form-label text-white small fw-semibold"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Địa điểm</label>
-                    <input type="text" name="location" class="form-control rounded-3" placeholder="Đà Lạt, Nha Trang, Hội An..." value="${searchLocation}">
+                    <div class="location-search-wrapper">
+                        <input type="text" name="location" id="heroLocationInput" class="form-control rounded-3" placeholder="Đà Lạt, Nha Trang, Hội An..." value="${searchLocation}" autocomplete="off">
+                        <div class="location-suggest-popup shadow-lg" id="heroLocationPopup">
+                            <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-1 border-bottom text-muted" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase;">
+                                <span><i class="fa-solid fa-fire text-danger me-1"></i> Điểm đến nổi bật</span>
+                                <span style="font-weight: normal; cursor: pointer;" onclick="selectLocation('')">Xóa</span>
+                            </div>
+                            <div class="location-list" id="heroLocationList">
+                                <div class="location-item" onclick="selectLocation('Đà Lạt')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-mountain-sun"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Đà Lạt</div><div class="text-muted small">Lâm Đồng • Xứ sở ngàn hoa</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Đà Nẵng')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-umbrella-beach"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Đà Nẵng</div><div class="text-muted small">Bãi biển Mỹ Khê &amp; Cầu Rồng</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Hội An')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-landmark"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Hội An</div><div class="text-muted small">Quảng Nam • Phố cổ đèn lồng</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Nha Trang')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-water"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Nha Trang</div><div class="text-muted small">Khánh Hòa • Thành phố biển</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Phú Quốc')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-sun"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Phú Quốc</div><div class="text-muted small">Kiên Giang • Đảo ngọc</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Hà Nội')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-city"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Hà Nội</div><div class="text-muted small">Thủ đô nghìn năm văn hiến</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Sapa')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-cloud-sun"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Sapa</div><div class="text-muted small">Lào Cai • Thị trấn sương mù</div></div>
+                                </div>
+                                <div class="location-item" onclick="selectLocation('Vũng Tàu')">
+                                    <div class="location-icon-box"><i class="fa-solid fa-ship"></i></div>
+                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Vũng Tàu</div><div class="text-muted small">Bà Rịa - Vũng Tàu</div></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-md-2">
                     <label class="form-label text-white small fw-semibold"><i class="fa-regular fa-calendar me-1 text-primary"></i> Nhận phòng</label>
@@ -69,7 +159,7 @@
         <!-- Sidebar Filter -->
         <div class="col-lg-3">
             <form action="${pageContext.request.contextPath}/search" method="GET" id="filterForm">
-                <input type="hidden" name="location" value="${searchLocation}">
+                <input type="hidden" name="location" id="filterLocationInput" value="${searchLocation}">
                 <input type="hidden" name="checkin" value="${searchCheckin}">
                 <input type="hidden" name="checkout" value="${searchCheckout}">
                 <input type="hidden" name="guests" value="${searchGuests}">
@@ -78,6 +168,24 @@
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <h6 class="fw-bold mb-0"><i class="fa-solid fa-sliders me-2 text-primary"></i>Bộ lọc</h6>
                         <a href="${pageContext.request.contextPath}/search" class="text-muted small">Xóa bộ lọc</a>
+                    </div>
+
+                    <!-- Khu vực & Thành phố Quick Filter -->
+                    <div class="mb-4">
+                        <div class="filter-section-title"><i class="fa-solid fa-map-location-dot text-primary me-1"></i> Thành phố / Khu vực</div>
+                        <div class="city-filter-grid">
+                            <div class="city-chip ${empty searchLocation ? 'active' : ''}" onclick="filterByCity('')">Tất cả</div>
+                            <c:forEach var="c" items="${cities}">
+                                <div class="city-chip ${searchLocation == c ? 'active' : ''}" onclick="filterByCity('${c}')">${c}</div>
+                            </c:forEach>
+                            <c:if test="${empty cities}">
+                                <div class="city-chip ${searchLocation == 'Đà Nẵng' ? 'active' : ''}" onclick="filterByCity('Đà Nẵng')">Đà Nẵng</div>
+                                <div class="city-chip ${searchLocation == 'Đà Lạt' ? 'active' : ''}" onclick="filterByCity('Đà Lạt')">Đà Lạt</div>
+                                <div class="city-chip ${searchLocation == 'Hội An' ? 'active' : ''}" onclick="filterByCity('Hội An')">Hội An</div>
+                                <div class="city-chip ${searchLocation == 'Nha Trang' ? 'active' : ''}" onclick="filterByCity('Nha Trang')">Nha Trang</div>
+                                <div class="city-chip ${searchLocation == 'Phú Quốc' ? 'active' : ''}" onclick="filterByCity('Phú Quốc')">Phú Quốc</div>
+                            </c:if>
+                        </div>
                     </div>
 
                     <!-- Khoảng giá Thông minh (Smart Price Filter) -->
@@ -344,8 +452,55 @@ function resetPriceFilter() {
     applyPricePreset(document.querySelector('.price-chip[data-min=""][data-max=""]'), null, null);
 }
 
+function selectLocation(loc) {
+    const input = document.getElementById('heroLocationInput');
+    if (input) {
+        input.value = loc;
+    }
+    const popup = document.getElementById('heroLocationPopup');
+    if (popup) popup.classList.remove('show');
+    
+    const filterInput = document.getElementById('filterLocationInput');
+    if (filterInput) filterInput.value = loc;
+}
+
+function filterByCity(cityName) {
+    const filterInput = document.getElementById('filterLocationInput');
+    if (filterInput) filterInput.value = cityName;
+    const heroInput = document.getElementById('heroLocationInput');
+    if (heroInput) heroInput.value = cityName;
+    document.getElementById('filterForm').submit();
+}
+
 // Tự động đồng bộ trạng thái khi tải trang
 document.addEventListener('DOMContentLoaded', function() {
+    const locInput = document.getElementById('heroLocationInput');
+    const locPopup = document.getElementById('heroLocationPopup');
+    if (locInput && locPopup) {
+        locInput.addEventListener('focus', function() {
+            locPopup.classList.add('show');
+        });
+
+        locInput.addEventListener('input', function() {
+            locPopup.classList.add('show');
+            const term = this.value.trim().toLowerCase();
+            document.querySelectorAll('#heroLocationList .location-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (!term || text.includes(term)) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        document.addEventListener('click', function(e) {
+            if (!locInput.contains(e.target) && !locPopup.contains(e.target)) {
+                locPopup.classList.remove('show');
+            }
+        });
+    }
+
     const minInput = document.getElementById('minPriceInput');
     const maxInput = document.getElementById('maxPriceInput');
     const minVal = minInput && minInput.value ? Number(minInput.value) : 0;
