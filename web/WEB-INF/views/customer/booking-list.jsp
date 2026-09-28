@@ -7,7 +7,7 @@
 <div class="container py-5">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h3 class="fw-bold mb-1"><i class="fa-solid fa-receipt text-primary me-2"></i>UC09: Danh sách đơn đặt phòng của tôi</h3>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-receipt text-primary me-2"></i>Đơn đặt phòng của tôi</h3>
             <p class="text-muted mb-0">Quản lý lịch sử đặt phòng, thanh toán trực tuyến, xem vé điện tử QR và thực hiện hủy phòng</p>
         </div>
         <a href="${pageContext.request.contextPath}/search" class="btn btn-outline-primary btn-sm rounded-pill px-3">
@@ -98,7 +98,7 @@
 
                                 <div class="d-flex flex-column gap-2">
                                     <c:if test="${b.bookingStatus == 'PENDING'}">
-                                        <a href="${pageContext.request.contextPath}/payment?bookingId=${b.bookingId}" class="btn btn-primary-custom btn-sm rounded-3">
+                                        <a href="${pageContext.request.contextPath}/payment/create?bookingId=${b.bookingId}" class="btn btn-primary-custom btn-sm rounded-3">
                                             <i class="fa-solid fa-credit-card me-1"></i> Thanh toán ngay
                                         </a>
                                     </c:if>

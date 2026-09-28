@@ -103,13 +103,16 @@ public class BookingDAOImpl implements BookingDAO {
             ps.setInt(1, bookingId);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    String status = rs.getString("booking_status");
+                    String status   = rs.getString("booking_status");
                     java.sql.Date checkin = rs.getDate("checkin_date");
-                    java.sql.Date today = new java.sql.Date(System.currentTimeMillis());
 
-                    // Eligible if status is PENDING or CONFIRMED and checkin date is after or on today
+                    // Compare date strings only (yyyy-MM-dd) to avoid timezone/time-of-day issues
+                    String todayStr   = java.time.LocalDate.now().toString();
+                    String checkinStr = checkin != null ? checkin.toLocalDate().toString() : "";
+
+                    // Allow cancel if PENDING or CONFIRMED and checkin >= today
                     if (("PENDING".equalsIgnoreCase(status) || "CONFIRMED".equalsIgnoreCase(status))
-                            && (checkin != null && !checkin.before(today))) {
+                            && checkinStr.compareTo(todayStr) >= 0) {
                         return true;
                     }
                 }

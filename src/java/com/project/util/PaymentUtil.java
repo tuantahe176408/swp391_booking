@@ -20,11 +20,19 @@ public class PaymentUtil {
 
     private static final Logger LOGGER = Logger.getLogger(PaymentUtil.class.getName());
 
-    // --- VNPay Config (từ application.properties hoặc environment) ---
-    private static final String VNP_TMN_CODE   = System.getenv("VNP_TMN_CODE")   != null ? System.getenv("VNP_TMN_CODE")   : "SMARTBOOK";
-    private static final String VNP_HASH_SECRET= System.getenv("VNP_HASH_SECRET") != null ? System.getenv("VNP_HASH_SECRET") : "SMARTBOOKINGSECRETKEY2026VNPAY";
-    private static final String VNP_URL        = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    private static final String VNP_API_URL    = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    // --- VNPay Config ---
+    private static final String VNP_TMN_CODE    = System.getenv("VNP_TMN_CODE")    != null ? System.getenv("VNP_TMN_CODE")    : "1JGR8UF7";
+    private static final String VNP_HASH_SECRET = System.getenv("VNP_HASH_SECRET") != null ? System.getenv("VNP_HASH_SECRET") : "JGMXDOLSTVUDGMYYQMOIPBPQAIDQMKPB";
+    private static final String VNP_URL         = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+    private static final String VNP_API_URL     = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+
+    /**
+     * Returns true when real VNPay credentials are available (env var or hardcoded sandbox).
+     */
+    public static boolean hasRealCredentials() {
+        // Hardcoded sandbox credentials are real — always use VNPay
+        return true;
+    }
 
     /**
      * Tạo URL thanh toán VNPay theo chuẩn SHA-512 HMAC
@@ -57,21 +65,28 @@ public class PaymentUtil {
             vnpParams.put("vnp_BankCode", bankCode);
         }
 
-        // Build query string & compute HMAC-SHA512
-        StringBuilder query = new StringBuilder();
+        // Build query string & hashData
+        // vnp_ReturnUrl cần đặc biệt: encode trong hashData nhưng KHÔNG double-encode trong query
+        StringBuilder query    = new StringBuilder();
         StringBuilder hashData = new StringBuilder();
         for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
             if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                hashData.append(entry.getKey()).append('=').append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
-                query.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
-                     .append('=').append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII));
-                hashData.append('&');
-                query.append('&');
+                String key = entry.getKey();
+                String val = entry.getValue();
+                // hashData: key=URLEncode(value) — VNPay 2.1.0 spec
+                hashData.append(key).append('=')
+                        .append(URLEncoder.encode(val, StandardCharsets.UTF_8))
+                        .append('&');
+                // query string: key=URLEncode(value)
+                // ReturnUrl đã là valid URL — encode toàn bộ để truyền qua query param
+                query.append(URLEncoder.encode(key, StandardCharsets.UTF_8))
+                     .append('=')
+                     .append(URLEncoder.encode(val, StandardCharsets.UTF_8))
+                     .append('&');
             }
         }
-        // Remove trailing &
         if (hashData.length() > 0) hashData.deleteCharAt(hashData.length() - 1);
-        if (query.length() > 0) query.deleteCharAt(query.length() - 1);
+        if (query.length() > 0)    query.deleteCharAt(query.length() - 1);
 
         String secureHash = hmacSHA512(VNP_HASH_SECRET, hashData.toString());
         return VNP_URL + "?" + query + "&vnp_SecureHash=" + secureHash;
@@ -95,7 +110,7 @@ public class PaymentUtil {
         for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
             if (entry.getValue() != null && !entry.getValue().isEmpty()) {
                 hashData.append(entry.getKey()).append('=')
-                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.US_ASCII))
+                        .append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8))
                         .append('&');
             }
         }
