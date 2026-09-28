@@ -103,14 +103,42 @@ public class OwnerHomestayEditController extends HttpServlet {
             return;
         }
 
-        // ── Save edit ────────────────────────────────────────────────────────
+        // ── Save: NEW or EDIT ────────────────────────────────────────────────
+        String isNewParam = request.getParameter("isNew");
+        boolean isNew = "true".equals(isNewParam);
+
+        if (isNew) {
+            // ── INSERT new homestay ──────────────────────────────────────────
+            Homestay hs = new Homestay();
+            hs.setOwnerId(currentUser.getUserId());
+            hs.setName(sanitize(request.getParameter("name")));
+            hs.setDescription(sanitize(request.getParameter("description")));
+            hs.setAddress(sanitize(request.getParameter("address")));
+            hs.setCity(sanitize(request.getParameter("city")));
+            hs.setDistrict(sanitize(request.getParameter("district")));
+            String ci = request.getParameter("checkinTime");
+            String co = request.getParameter("checkoutTime");
+            try { if (ci != null && !ci.isEmpty()) hs.setCheckinTime(Time.valueOf(ci + ":00")); } catch (Exception ignored) {}
+            try { if (co != null && !co.isEmpty()) hs.setCheckoutTime(Time.valueOf(co + ":00")); } catch (Exception ignored) {}
+
+            int newId = homestayDAO.insertHomestay(hs);
+            if (newId > 0) {
+                request.getSession().setAttribute("flash_success",
+                        "Đăng ký homestay \"" + hs.getName() + "\" thành công! Đang chờ Admin xét duyệt.");
+            } else {
+                request.getSession().setAttribute("flash_error", "Đăng ký thất bại. Vui lòng thử lại.");
+            }
+            response.sendRedirect(request.getContextPath() + "/owner/homestays");
+            return;
+        }
+
+        // ── UPDATE existing homestay ─────────────────────────────────────────
         int hsId = parseIntSafe(request.getParameter("homestayId"), 0);
         if (hsId == 0) {
             response.sendRedirect(request.getContextPath() + "/owner/homestays");
             return;
         }
 
-        // Security: ensure ownership
         Optional<Homestay> opt = homestayDAO.getHomestayById(hsId);
         if (opt.isEmpty() || opt.get().getOwnerId() != currentUser.getUserId()) {
             response.sendRedirect(request.getContextPath() + "/owner/homestays");
@@ -123,15 +151,12 @@ public class OwnerHomestayEditController extends HttpServlet {
         hs.setAddress(sanitize(request.getParameter("address")));
         hs.setCity(sanitize(request.getParameter("city")));
         hs.setDistrict(sanitize(request.getParameter("district")));
-
-        // checkin / checkout time
         String ci = request.getParameter("checkinTime");
         String co = request.getParameter("checkoutTime");
         try { if (ci != null && !ci.isEmpty()) hs.setCheckinTime(Time.valueOf(ci + ":00")); } catch (Exception ignored) {}
         try { if (co != null && !co.isEmpty()) hs.setCheckoutTime(Time.valueOf(co + ":00")); } catch (Exception ignored) {}
 
         boolean ok = homestayDAO.updateHomestay(hs);
-
         if (ok) {
             request.getSession().setAttribute("flash_success",
                     "Cập nhật thông tin homestay thành công!" +
