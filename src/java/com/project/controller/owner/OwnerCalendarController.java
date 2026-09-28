@@ -68,10 +68,20 @@ public class OwnerCalendarController extends HttpServlet {
         // Clamp month 1–12
         month = Math.max(1, Math.min(12, month));
 
-        // ── Load owner homestays ─────────────────────────────────────────────
-        List<Homestay> myHomestays = homestayDAO.getHomestaysByOwnerId(ownerId);
+        // ── Load owner homestays (only ACTIVE) ───────────────────────────────
+        List<Homestay> myHomestays = homestayDAO.getHomestaysByOwnerId(ownerId).stream()
+                .filter(h -> h.getStatus() == Homestay.Status.ACTIVE)
+                .collect(Collectors.toList());
         if (myHomestays.isEmpty()) {
             request.setAttribute("myHomestays", myHomestays);
+            request.setAttribute("roomTypes",   Collections.emptyList());
+            request.setAttribute("priceMap",    Collections.emptyMap());
+            request.setAttribute("year",        year);
+            request.setAttribute("month",       month);
+            request.setAttribute("prevYear",    year);
+            request.setAttribute("prevMonth",   month == 1 ? 12 : month - 1);
+            request.setAttribute("nextYear",    year);
+            request.setAttribute("nextMonth",   month == 12 ? 1 : month + 1);
             request.setAttribute("activeTab",  "calendar");
             request.setAttribute("pageTitle",  "Lịch & Giá phòng");
             request.setAttribute("pageBreadcrumb", "Quản lý Tài sản");
@@ -165,8 +175,10 @@ public class OwnerCalendarController extends HttpServlet {
         int month = parseIntSafe(monthP, LocalDate.now().getMonthValue());
         int homestayId = parseIntSafe(hsP, 0);
 
-        // Verify ownership
-        List<Homestay> myHomestays = homestayDAO.getHomestaysByOwnerId(currentUser.getUserId());
+        // Verify ownership and ACTIVE status
+        List<Homestay> myHomestays = homestayDAO.getHomestaysByOwnerId(currentUser.getUserId()).stream()
+                .filter(h -> h.getStatus() == Homestay.Status.ACTIVE)
+                .collect(Collectors.toList());
         boolean owned = myHomestays.stream().anyMatch(h -> h.getHomestayId() == homestayId);
         if (!owned) {
             response.sendRedirect(request.getContextPath() + "/owner/calendar");
