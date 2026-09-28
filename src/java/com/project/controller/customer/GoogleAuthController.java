@@ -30,6 +30,7 @@ public class GoogleAuthController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(GoogleAuthController.class.getName());
     private static final String STATE_SESSION_KEY = "GOOGLE_OAUTH_STATE";
+    private static final String REDIRECT_SESSION_KEY = "GOOGLE_OAUTH_REDIRECT";
 
     private UserDAO userDAO;
 
@@ -60,6 +61,11 @@ public class GoogleAuthController extends HttpServlet {
         HttpSession session = request.getSession(true);
         String state = UUID.randomUUID().toString();
         session.setAttribute(STATE_SESSION_KEY, state);
+
+        String redirect = request.getParameter("redirect");
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            session.setAttribute(REDIRECT_SESSION_KEY, redirect.trim());
+        }
 
         String authUrl = GoogleAuthUtil.buildAuthUrl(state);
         response.sendRedirect(authUrl);
@@ -120,6 +126,9 @@ public class GoogleAuthController extends HttpServlet {
             return;
         }
 
+        // Retrieve optional redirect destination before session renewal
+        String redirect = (String) session.getAttribute(REDIRECT_SESSION_KEY);
+
         // Authentication success: renew session for security
         HttpSession oldSession = request.getSession(false);
         if (oldSession != null) {
@@ -131,8 +140,8 @@ public class GoogleAuthController extends HttpServlet {
         LOGGER.log(Level.INFO, "Google OAuth successful for user: {0} (Role: {1})",
                 new Object[]{user.getEmail(), user.getRole()});
 
-        // Redirect based on role
-        redirectByRole(request, response, user);
+        // Redirect based on target or role
+        redirectAfterAuth(request, response, user, redirect);
     }
 
     /**
@@ -186,6 +195,33 @@ public class GoogleAuthController extends HttpServlet {
             return newUser;
         }
         return null;
+    }
+
+    private void redirectAfterAuth(HttpServletRequest request, HttpServletResponse response, User user, String redirect)
+            throws IOException {
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            String decodedRedirect = redirect.trim();
+            try {
+                decodedRedirect = java.net.URLDecoder.decode(decodedRedirect, "UTF-8");
+            } catch (Exception ignored) {}
+
+            if (decodedRedirect.startsWith("/") && !decodedRedirect.contains("/login") && !decodedRedirect.contains("/register") && !decodedRedirect.contains("/logout")) {
+                boolean allowed = true;
+                if (decodedRedirect.startsWith("/admin/") && user.getRole() != User.Role.ADMIN) {
+                    allowed = false;
+                } else if (decodedRedirect.startsWith("/owner/") && user.getRole() != User.Role.OWNER && user.getRole() != User.Role.ADMIN) {
+                    allowed = false;
+                } else if (decodedRedirect.startsWith("/reception/") && user.getRole() != User.Role.RECEPTIONIST && user.getRole() != User.Role.OWNER && user.getRole() != User.Role.ADMIN) {
+                    allowed = false;
+                }
+
+                if (allowed) {
+                    response.sendRedirect(request.getContextPath() + decodedRedirect);
+                    return;
+                }
+            }
+        }
+        redirectByRole(request, response, user);
     }
 
     /**
