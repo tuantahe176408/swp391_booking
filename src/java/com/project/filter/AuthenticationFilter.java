@@ -34,7 +34,18 @@ public class AuthenticationFilter implements Filter {
             if (session != null) {
                 session.invalidate();
             }
-            httpResponse.sendRedirect(httpRequest.getContextPath() + "/login?error=unauthorized");
+            String targetUri = httpRequest.getRequestURI();
+            String contextPath = httpRequest.getContextPath();
+            String relativePath = targetUri.startsWith(contextPath) ? targetUri.substring(contextPath.length()) : targetUri;
+            String queryString = httpRequest.getQueryString();
+            String fullRedirect = relativePath + (queryString != null && !queryString.trim().isEmpty() ? "?" + queryString : "");
+
+            if (fullRedirect != null && !fullRedirect.isEmpty() && !fullRedirect.contains("/login") && !fullRedirect.contains("/register") && !fullRedirect.contains("/logout")) {
+                String encodedRedirect = java.net.URLEncoder.encode(fullRedirect, "UTF-8");
+                httpResponse.sendRedirect(contextPath + "/login?redirect=" + encodedRedirect);
+            } else {
+                httpResponse.sendRedirect(contextPath + "/login");
+            }
             return;
         }
 

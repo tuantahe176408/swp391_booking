@@ -46,13 +46,21 @@ public class AuthController extends HttpServlet {
 
         if ("/login".equals(path)) {
             String error = request.getParameter("error");
-            if (error != null && !error.trim().isEmpty()) {
+            if (error != null && !error.trim().isEmpty() && !"unauthorized".equalsIgnoreCase(error.trim())) {
                 request.setAttribute("errorMessage", error.trim());
+            }
+            String redirect = request.getParameter("redirect");
+            if (redirect != null && !redirect.trim().isEmpty()) {
+                request.setAttribute("redirect", redirect.trim());
             }
             request.setAttribute("activeTab", "login");
             request.setAttribute("pageTitle", "Đăng nhập - Smart Booking Platform");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
         } else if ("/register".equals(path)) {
+            String redirect = request.getParameter("redirect");
+            if (redirect != null && !redirect.trim().isEmpty()) {
+                request.setAttribute("redirect", redirect.trim());
+            }
             request.setAttribute("activeTab", "register");
             request.setAttribute("pageTitle", "Đăng ký - Smart Booking Platform");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
@@ -78,6 +86,10 @@ public class AuthController extends HttpServlet {
         request.setAttribute("activeTab", "login");
         String email = JSoupUtil.sanitizeText(request.getParameter("email"));
         String password = request.getParameter("password");
+        String redirect = request.getParameter("redirect");
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            request.setAttribute("redirect", redirect.trim());
+        }
 
         if (email.isEmpty() || password == null || password.isEmpty()) {
             request.setAttribute("errorMessage", "Vui lòng nhập đầy đủ Email và Mật khẩu.");
@@ -110,7 +122,7 @@ public class AuthController extends HttpServlet {
                 HttpSession session = request.getSession(true);
                 session.setAttribute("currentUser", user);
 
-                redirectByRole(request, response, user);
+                redirectAfterAuth(request, response, user, redirect);
                 return;
             }
         }
@@ -128,6 +140,10 @@ public class AuthController extends HttpServlet {
         String phone = JSoupUtil.sanitizeText(request.getParameter("phone"));
         String password = request.getParameter("password");
         String confirmPassword = request.getParameter("confirmPassword");
+        String redirect = request.getParameter("redirect");
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            request.setAttribute("redirect", redirect.trim());
+        }
 
         // Preserve input fields for registration form
         request.setAttribute("regFullName", fullName);
@@ -169,11 +185,38 @@ public class AuthController extends HttpServlet {
             }
             HttpSession session = request.getSession(true);
             session.setAttribute("currentUser", newUser);
-            response.sendRedirect(request.getContextPath() + "/home?register=success");
+            redirectAfterAuth(request, response, newUser, redirect);
         } else {
             request.setAttribute("errorMessage", "Đăng ký không thành công. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
         }
+    }
+
+    private void redirectAfterAuth(HttpServletRequest request, HttpServletResponse response, User user, String redirect)
+            throws IOException {
+        if (redirect != null && !redirect.trim().isEmpty()) {
+            String decodedRedirect = redirect.trim();
+            try {
+                decodedRedirect = java.net.URLDecoder.decode(decodedRedirect, "UTF-8");
+            } catch (Exception ignored) {}
+
+            if (decodedRedirect.startsWith("/") && !decodedRedirect.contains("/login") && !decodedRedirect.contains("/register") && !decodedRedirect.contains("/logout")) {
+                boolean allowed = true;
+                if (decodedRedirect.startsWith("/admin/") && user.getRole() != User.Role.ADMIN) {
+                    allowed = false;
+                } else if (decodedRedirect.startsWith("/owner/") && user.getRole() != User.Role.OWNER && user.getRole() != User.Role.ADMIN) {
+                    allowed = false;
+                } else if (decodedRedirect.startsWith("/reception/") && user.getRole() != User.Role.RECEPTIONIST && user.getRole() != User.Role.OWNER && user.getRole() != User.Role.ADMIN) {
+                    allowed = false;
+                }
+
+                if (allowed) {
+                    response.sendRedirect(request.getContextPath() + decodedRedirect);
+                    return;
+                }
+            }
+        }
+        redirectByRole(request, response, user);
     }
 
     private void redirectByRole(HttpServletRequest request, HttpServletResponse response, User user)

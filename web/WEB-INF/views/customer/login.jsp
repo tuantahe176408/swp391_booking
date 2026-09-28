@@ -32,6 +32,9 @@
                         <!-- Login Form -->
                         <div class="tab-pane fade ${activeTab == 'register' ? '' : 'show active'}" id="login-panel" role="tabpanel">
                             <form action="${pageContext.request.contextPath}/login" method="POST">
+                                <c:if test="${not empty redirect}">
+                                    <input type="hidden" name="redirect" value="<c:out value='${redirect}'/>">
+                                </c:if>
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Địa chỉ Email</label>
                                     <input type="email" name="email" class="form-control form-control-lg" placeholder="nhapemail@example.com" required>
@@ -50,6 +53,9 @@
                         <!-- Register Form -->
                         <div class="tab-pane fade ${activeTab == 'register' ? 'show active' : ''}" id="register-panel" role="tabpanel">
                             <form action="${pageContext.request.contextPath}/register" method="POST">
+                                <c:if test="${not empty redirect}">
+                                    <input type="hidden" name="redirect" value="<c:out value='${redirect}'/>">
+                                </c:if>
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Họ và Tên</label>
                                     <input type="text" name="fullName" class="form-control form-control-lg" placeholder="Nguyễn Văn A" value="${regFullName}" required>
@@ -78,7 +84,7 @@
                     <div class="text-center mt-4">
                         <span class="text-muted small">Hoặc đăng nhập nhanh bằng</span>
                         <div class="mt-2">
-                            <a href="${pageContext.request.contextPath}/auth/google" class="btn btn-outline-danger w-100 btn-lg"><i class="fa-brands fa-google me-2"></i>Đăng nhập với Google</a>
+                            <a href="${pageContext.request.contextPath}/auth/google<c:if test='${not empty redirect}'>?redirect=<c:out value='${redirect}'/></c:if>" class="btn btn-outline-danger w-100 btn-lg"><i class="fa-brands fa-google me-2"></i>Đăng nhập với Google</a>
                         </div>
                     </div>
                 </div>
