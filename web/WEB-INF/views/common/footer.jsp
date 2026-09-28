@@ -26,8 +26,9 @@
             </div>
             <div class="col-lg-3 col-md-6">
                 <h6 class="text-white mb-3">Liên hệ & Hỗ trợ</h6>
-                <p><i class="fa-solid fa-envelope me-2"></i>support@smartbooking.com</p>
-                <p><i class="fa-solid fa-phone me-2"></i>1900 123 456</p>
+                <p><i class="fa-solid fa-location-dot me-2 text-primary"></i>FPT University, Hoa Lac Hi-tech Park, CT03</p>
+                <p><i class="fa-solid fa-envelope me-2 text-primary"></i>support@smartbooking.com</p>
+                <p><i class="fa-solid fa-phone me-2 text-primary"></i>(024) 7300 5588</p>
             </div>
         </div>
         <hr class="border-secondary my-4">
