@@ -61,7 +61,7 @@
                             <button class="btn btn-light border dropdown-toggle d-flex align-items-center gap-2" type="button" id="userMenu" data-bs-toggle="dropdown" aria-expanded="false">
                                 <c:choose>
                                     <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
-                                        <img src="${sessionScope.currentUser.avatarUrl}" class="rounded-circle" width="28" height="28" alt="Avatar">
+                                        <img src="${sessionScope.currentUser.avatarUrl}" class="rounded-circle" width="28" height="28" alt="Avatar" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
                                     </c:when>
                                     <c:otherwise>
                                         <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 28px; height: 28px; font-size: 13px;">

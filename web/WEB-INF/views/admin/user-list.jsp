@@ -44,7 +44,7 @@
                                         <div class="d-flex align-items-center gap-2">
                                             <c:choose>
                                                 <c:when test="${not empty u.avatarUrl}">
-                                                    <img src="${u.avatarUrl}" class="rounded-circle" width="32" height="32">
+                                                    <img src="${u.avatarUrl}" class="rounded-circle" width="32" height="32" alt="Avatar" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
                                                 </c:when>
                                                 <c:otherwise>
                                                     <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center fw-bold" style="width: 32px; height: 32px; font-size: 13px;">

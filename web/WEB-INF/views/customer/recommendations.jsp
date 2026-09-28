@@ -33,10 +33,10 @@
                     <div class="position-relative overflow-hidden" style="height: 200px;">
                         <c:choose>
                             <c:when test="${not empty h.primaryImageUrl}">
-                                <img src="${h.primaryImageUrl}" class="card-img-top w-100 h-100 object-fit-cover" alt="${h.name}">
+                                <img src="${h.primaryImageUrl}" class="card-img-top w-100 h-100 object-fit-cover" alt="${h.name}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                             </c:when>
                             <c:otherwise>
-                                <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80" class="card-img-top w-100 h-100 object-fit-cover" alt="${h.name}">
+                                <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="card-img-top w-100 h-100 object-fit-cover" alt="${h.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80';">
                             </c:otherwise>
                         </c:choose>
                     </div>

@@ -37,7 +37,7 @@
                         <tbody>
                             <tr>
                                 <td>
-                                    <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=120&q=80" class="rounded-3" width="60" height="40" style="object-fit: cover;">
+                                    <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="rounded-3" width="60" height="40" style="object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=120&q=80';">
                                 </td>
                                 <td><strong>Ocean Breeze Luxury Homestay</strong></td>
                                 <td>Mỹ Khê, Sơn Trà, Đà Nẵng</td>
@@ -50,7 +50,7 @@
                             </tr>
                             <tr>
                                 <td>
-                                    <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=120&q=80" class="rounded-3" width="60" height="40" style="object-fit: cover;">
+                                    <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="rounded-3" width="60" height="40" style="object-fit: cover;" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=120&q=80';">
                                 </td>
                                 <td><strong>Dalat Pine Forest Villa</strong></td>
                                 <td>Phường 10, Đà Lạt</td>

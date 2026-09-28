@@ -37,13 +37,13 @@
                 <c:choose>
                     <c:when test="${not empty homestay.images}">
                         <div class="detail-gallery mb-4">
-                            <img class="main-img" src="${homestay.images[0].imageUrl}" alt="${homestay.name}">
-                            <c:if test="${homestay.images.size() > 1}"><img class="side-img" src="${homestay.images[1].imageUrl}" alt=""></c:if>
-                            <c:if test="${homestay.images.size() > 2}"><img class="side-img" src="${homestay.images[2].imageUrl}" alt=""></c:if>
+                            <img class="main-img" src="${homestay.images[0].imageUrl}" alt="${homestay.name}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
+                            <c:if test="${homestay.images.size() > 1}"><img class="side-img" src="${homestay.images[1].imageUrl}" alt="" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';"></c:if>
+                            <c:if test="${homestay.images.size() > 2}"><img class="side-img" src="${homestay.images[2].imageUrl}" alt="" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';"></c:if>
                         </div>
                     </c:when>
                     <c:otherwise>
-                        <img src="https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80" class="w-100 rounded-3 mb-4" style="height:400px;object-fit:cover;" alt="${homestay.name}">
+                        <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="w-100 rounded-3 mb-4" style="height:400px;object-fit:cover;" alt="${homestay.name}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=1200&q=80';">
                     </c:otherwise>
                 </c:choose>
 

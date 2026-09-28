@@ -43,10 +43,10 @@
                             <div class="col-md-3">
                                 <c:choose>
                                     <c:when test="${not empty b.homestayImageUrl}">
-                                        <img src="${b.homestayImageUrl}" class="img-fluid rounded-3 object-fit-cover w-100" style="height: 150px;" alt="${b.homestayName}">
+                                        <img src="${b.homestayImageUrl}" class="img-fluid rounded-3 object-fit-cover w-100" style="height: 150px;" alt="${b.homestayName}" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                                     </c:when>
                                     <c:otherwise>
-                                        <img src="https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80" class="img-fluid rounded-3 object-fit-cover w-100" style="height: 150px;" alt="${b.homestayName}">
+                                        <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" class="img-fluid rounded-3 object-fit-cover w-100" style="height: 150px;" alt="${b.homestayName}" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=600&q=80';">
                                     </c:otherwise>
                                 </c:choose>
                             </div>

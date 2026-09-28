@@ -11,7 +11,7 @@
                     <div class="d-flex align-items-center gap-3">
                         <c:choose>
                             <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
-                                <img src="${sessionScope.currentUser.avatarUrl}" class="rounded-circle border border-2 border-white shadow-sm" width="64" height="64" alt="Avatar">
+                                <img src="${sessionScope.currentUser.avatarUrl}" class="rounded-circle border border-2 border-white shadow-sm" width="64" height="64" alt="Avatar" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
                             </c:when>
                             <c:otherwise>
                                 <div class="rounded-circle bg-white text-primary d-flex align-items-center justify-content-center fw-bold fs-3 shadow-sm" style="width: 64px; height: 64px;">
