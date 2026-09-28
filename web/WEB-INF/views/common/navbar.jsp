@@ -12,27 +12,27 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 <li class="nav-item">
-                    <a class="nav-link font-weight-bold" href="${pageContext.request.contextPath}/home">
+                    <a class="nav-link ${pageContext.request.requestURI.endsWith('/home') || pageContext.request.requestURI.endsWith('/') ? 'active' : ''}" href="${pageContext.request.contextPath}/home">
                         <i class="fa-solid fa-compass me-1"></i> Khám phá
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/search">
+                    <a class="nav-link ${pageContext.request.requestURI.contains('/search') || pageContext.request.requestURI.contains('/detail') ? 'active' : ''}" href="${pageContext.request.contextPath}/search">
                         <i class="fa-solid fa-magnifying-glass me-1"></i> Tìm phòng
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/customer/recommendations">
+                    <a class="nav-link ${pageContext.request.requestURI.contains('/recommendations') ? 'active' : ''}" href="${pageContext.request.contextPath}/customer/recommendations">
                         <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Gợi ý AI <span class="badge bg-danger ms-1">New</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/about">
+                    <a class="nav-link ${pageContext.request.requestURI.contains('/about') ? 'active' : ''}" href="${pageContext.request.contextPath}/about">
                         <i class="fa-solid fa-circle-info me-1"></i> Giới thiệu
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="${pageContext.request.contextPath}/contact">
+                    <a class="nav-link ${pageContext.request.requestURI.contains('/contact') ? 'active' : ''}" href="${pageContext.request.contextPath}/contact">
                         <i class="fa-solid fa-headset me-1"></i> Liên hệ
                     </a>
                 </li>
@@ -137,6 +137,16 @@
                         targetEl.classList.toggle('show');
                     }
                 }
+            }
+        });
+
+        // Highlight active navbar link based on window location
+        var currentPath = window.location.pathname;
+        document.querySelectorAll('.navbar-nav .nav-link').forEach(function(link) {
+            var href = link.getAttribute('href');
+            if (href && (currentPath === href || (href !== '/' && currentPath.endsWith(href)) || (href.indexOf('search') !== -1 && currentPath.indexOf('detail') !== -1))) {
+                document.querySelectorAll('.navbar-nav .nav-link').forEach(function(l) { l.classList.remove('active'); });
+                link.classList.add('active');
             }
         });
     }

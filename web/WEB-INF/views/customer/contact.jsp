@@ -154,15 +154,15 @@
                         <div class="info-icon"><i class="fa-solid fa-phone"></i></div>
                         <div>
                             <div style="font-weight:600; font-size:0.85rem; opacity:0.8; text-transform:uppercase; letter-spacing:0.5px;">Hotline 24/7</div>
-                            <div class="fw-semibold">1900 123 456</div>
+                            <div class="fw-semibold">(024) 7300 5588</div>
                         </div>
                     </div>
                     <div class="info-item">
                         <div class="info-icon"><i class="fa-solid fa-location-dot"></i></div>
                         <div>
                             <div style="font-weight:600; font-size:0.85rem; opacity:0.8; text-transform:uppercase; letter-spacing:0.5px;">Địa chỉ</div>
-                            <div class="fw-semibold">Lô E2a-7, Đường D1, TP. Hồ Chí Minh</div>
-                            <div style="opacity:0.75; font-size:0.85rem;">FPT University HCMC</div>
+                            <div class="fw-semibold">FPT University, Hoa Lac Hi-tech Park, CT03</div>
+                            <div style="opacity:0.75; font-size:0.85rem;">Đại học FPT Hà Nội</div>
                         </div>
                     </div>
                     <div class="info-item">
