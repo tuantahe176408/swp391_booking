@@ -17,6 +17,16 @@
 .search-hero { background:linear-gradient(135deg,#1a1a2e,#16213e); padding:40px 0 30px; color:#fff; }
 .rating-star { color:#f59e0b; }
 .price-tag { font-size:1.2rem; font-weight:800; color:#6366f1; }
+
+/* Smart Price Filter Styles */
+.price-preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
+.price-chip { background: #f8f9fc; color: #4b5563; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.76rem; font-weight: 600; padding: 5px 8px; text-align: center; cursor: pointer; transition: all 0.2s; user-select: none; }
+.price-chip:hover { background: #e0e7ff; color: #4338ca; border-color: #c7d2fe; transform: translateY(-1px); }
+.price-chip.active { background: #6366f1; color: #fff; border-color: #6366f1; box-shadow: 0 3px 10px rgba(99,102,241,0.3); }
+.price-range-slider { -webkit-appearance: none; appearance: none; width: 100%; height: 6px; border-radius: 5px; background: #e0e7ff; outline: none; transition: background 0.2s; }
+.price-range-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #6366f1; cursor: pointer; border: 2px solid #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.25); transition: transform 0.15s; }
+.price-range-slider::-webkit-slider-thumb:hover { transform: scale(1.2); }
+.price-badge-display { background: #f5f7ff; border: 1px dashed #6366f1; color: #4f46e5; border-radius: 10px; padding: 7px 10px; font-weight: 700; font-size: 0.85rem; text-align: center; margin-bottom: 10px; transition: all 0.2s; }
 </style>
 
 <!-- Search Hero -->
@@ -70,15 +80,52 @@
                         <a href="${pageContext.request.contextPath}/search" class="text-muted small">Xóa bộ lọc</a>
                     </div>
 
-                    <!-- Khoảng giá -->
+                    <!-- Khoảng giá Thông minh (Smart Price Filter) -->
                     <div class="mb-4">
-                        <div class="filter-section-title">Khoảng giá / đêm</div>
-                        <div class="row g-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="filter-section-title mb-0"><i class="fa-solid fa-coins text-warning me-1"></i> Khoảng giá / đêm</div>
+                            <button type="button" class="btn btn-link p-0 text-muted small text-decoration-none" onclick="resetPriceFilter()" style="font-size: 0.75rem;">Mặc định</button>
+                        </div>
+
+                        <!-- Live Display Badge -->
+                        <div class="price-badge-display" id="priceDisplayBadge">
+                            <i class="fa-solid fa-tag me-1 text-primary"></i> <span id="priceRangeLabel">Tất cả mức giá</span>
+                        </div>
+
+                        <!-- Quick Price Chips -->
+                        <div class="price-preset-grid">
+                            <div class="price-chip" data-min="" data-max="" onclick="applyPricePreset(this, null, null)">Tất cả</div>
+                            <div class="price-chip" data-min="0" data-max="500000" onclick="applyPricePreset(this, 0, 500000)">&lt; 500k</div>
+                            <div class="price-chip" data-min="500000" data-max="1000000" onclick="applyPricePreset(this, 500000, 1000000)">500k - 1tr</div>
+                            <div class="price-chip" data-min="1000000" data-max="2500000" onclick="applyPricePreset(this, 1000000, 2500000)">1tr - 2.5tr</div>
+                            <div class="price-chip" data-min="2500000" data-max="5000000" onclick="applyPricePreset(this, 2500000, 5000000)">2.5tr - 5tr</div>
+                            <div class="price-chip" data-min="5000000" data-max="" onclick="applyPricePreset(this, 5000000, null)">&gt; 5 triệu</div>
+                        </div>
+
+                        <!-- Price Slider for Max Price -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between text-muted small mb-1" style="font-size:0.75rem;">
+                                <span>Kéo chọn mức trần:</span>
+                                <span class="fw-bold text-primary" id="sliderValueLabel">10.000.000₫</span>
+                            </div>
+                            <input type="range" class="price-range-slider" id="priceMaxSlider" min="500000" max="10000000" step="100000" value="10000000" oninput="onSliderChange(this.value)">
+                        </div>
+
+                        <!-- Min / Max input boxes with VND prefix -->
+                        <div class="row g-2 align-items-center">
                             <div class="col-6">
-                                <input type="number" name="minPrice" class="form-control form-control-sm" placeholder="Từ" value="${searchMinPrice}">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted px-1" style="font-size:0.75rem;">Từ</span>
+                                    <input type="number" id="minPriceInput" name="minPrice" class="form-control form-control-sm" placeholder="0" value="${searchMinPrice}" oninput="syncFromInputs()">
+                                    <span class="input-group-text bg-light text-muted px-1" style="font-size:0.75rem;">₫</span>
+                                </div>
                             </div>
                             <div class="col-6">
-                                <input type="number" name="maxPrice" class="form-control form-control-sm" placeholder="Đến" value="${searchMaxPrice}">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text bg-light text-muted px-1" style="font-size:0.75rem;">Đến</span>
+                                    <input type="number" id="maxPriceInput" name="maxPrice" class="form-control form-control-sm" placeholder="10000000" value="${searchMaxPrice}" oninput="syncFromInputs()">
+                                    <span class="input-group-text bg-light text-muted px-1" style="font-size:0.75rem;">₫</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -86,10 +133,11 @@
                     <!-- Tiện ích -->
                     <c:if test="${not empty allAmenities}">
                         <div class="mb-4">
-                            <div class="filter-section-title">Tiện ích</div>
+                            <div class="filter-section-title"><i class="fa-solid fa-sparkles text-primary me-1"></i> Tiện ích nổi bật</div>
                             <c:forEach var="a" items="${allAmenities}">
                                 <div class="form-check mb-1">
-                                    <input class="form-check-input" type="checkbox" name="amenities" value="${a.amenityId}" id="am${a.amenityId}">
+                                    <input class="form-check-input" type="checkbox" name="amenities" value="${a.amenityId}" id="am${a.amenityId}"
+                                           <c:if test="${not empty selectedAmenities && selectedAmenities.contains(a.amenityId)}">checked</c:if>>
                                     <label class="form-check-label small" for="am${a.amenityId}">${a.name}</label>
                                 </div>
                             </c:forEach>
@@ -219,6 +267,117 @@ function applySortBy(val) {
     url.searchParams.set('page', '1');
     window.location.href = url.toString();
 }
+
+function formatCurrency(val) {
+    if (!val || isNaN(val) || val <= 0) return '0₫';
+    return new Intl.NumberFormat('vi-VN').format(val) + '₫';
+}
+
+function updatePriceBadge(min, max) {
+    const label = document.getElementById('priceRangeLabel');
+    if (!label) return;
+
+    if ((!min || min <= 0) && (!max || max <= 0 || max >= 10000000)) {
+        label.textContent = 'Tất cả mức giá';
+    } else if (min > 0 && (!max || max <= 0 || max >= 10000000)) {
+        label.textContent = 'Từ ' + formatCurrency(min) + ' trở lên';
+    } else if ((!min || min <= 0) && max > 0) {
+        label.textContent = 'Dưới ' + formatCurrency(max);
+    } else {
+        label.textContent = formatCurrency(min) + ' — ' + formatCurrency(max);
+    }
+}
+
+function applyPricePreset(chip, min, max) {
+    document.querySelectorAll('.price-chip').forEach(c => c.classList.remove('active'));
+    if (chip) chip.classList.add('active');
+
+    const minInput = document.getElementById('minPriceInput');
+    const maxInput = document.getElementById('maxPriceInput');
+    const slider = document.getElementById('priceMaxSlider');
+    const sliderLabel = document.getElementById('sliderValueLabel');
+
+    minInput.value = (min !== null && min !== undefined) ? min : '';
+    maxInput.value = (max !== null && max !== undefined) ? max : '';
+
+    if (max && max <= 10000000) {
+        slider.value = max;
+        sliderLabel.textContent = formatCurrency(max);
+    } else {
+        slider.value = 10000000;
+        sliderLabel.textContent = '10.000.000₫+';
+    }
+
+    updatePriceBadge(min, max);
+}
+
+function onSliderChange(val) {
+    document.querySelectorAll('.price-chip').forEach(c => c.classList.remove('active'));
+    const maxInput = document.getElementById('maxPriceInput');
+    const sliderLabel = document.getElementById('sliderValueLabel');
+    const minInput = document.getElementById('minPriceInput');
+
+    maxInput.value = val;
+    sliderLabel.textContent = formatCurrency(val);
+    updatePriceBadge(Number(minInput.value), Number(val));
+}
+
+function syncFromInputs() {
+    document.querySelectorAll('.price-chip').forEach(c => c.classList.remove('active'));
+    const minVal = Number(document.getElementById('minPriceInput').value) || 0;
+    const maxVal = Number(document.getElementById('maxPriceInput').value) || 0;
+    const slider = document.getElementById('priceMaxSlider');
+    const sliderLabel = document.getElementById('sliderValueLabel');
+
+    if (maxVal > 0 && maxVal <= 10000000) {
+        slider.value = maxVal;
+        sliderLabel.textContent = formatCurrency(maxVal);
+    } else {
+        slider.value = 10000000;
+        sliderLabel.textContent = 'Tối đa';
+    }
+
+    updatePriceBadge(minVal, maxVal);
+}
+
+function resetPriceFilter() {
+    applyPricePreset(document.querySelector('.price-chip[data-min=""][data-max=""]'), null, null);
+}
+
+// Tự động đồng bộ trạng thái khi tải trang
+document.addEventListener('DOMContentLoaded', function() {
+    const minInput = document.getElementById('minPriceInput');
+    const maxInput = document.getElementById('maxPriceInput');
+    const minVal = minInput && minInput.value ? Number(minInput.value) : 0;
+    const maxVal = maxInput && maxInput.value ? Number(maxInput.value) : 0;
+
+    let matched = false;
+    document.querySelectorAll('.price-chip').forEach(c => {
+        const cMin = c.getAttribute('data-min');
+        const cMax = c.getAttribute('data-max');
+        const chipMin = cMin ? Number(cMin) : 0;
+        const chipMax = cMax ? Number(cMax) : 0;
+
+        if (chipMin === minVal && chipMax === maxVal) {
+            c.classList.add('active');
+            matched = true;
+        }
+    });
+
+    if (!matched && !minVal && !maxVal) {
+        const allChip = document.querySelector('.price-chip[data-min=""][data-max=""]');
+        if (allChip) allChip.classList.add('active');
+    }
+
+    if (maxVal > 0) {
+        const slider = document.getElementById('priceMaxSlider');
+        const sliderLabel = document.getElementById('sliderValueLabel');
+        if (slider) slider.value = Math.min(maxVal, 10000000);
+        if (sliderLabel) sliderLabel.textContent = formatCurrency(maxVal);
+    }
+
+    updatePriceBadge(minVal, maxVal);
+});
 </script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
