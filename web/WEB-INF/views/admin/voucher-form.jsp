@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-ticket text-danger me-2"></i>UC26: Chiến dịch Marketing & Mã giảm giá (Vouchers)</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-ticket text-danger me-2"></i>Chiến dịch Marketing & Mã giảm giá</h4>
                         <p class="text-muted mb-0">Tạo mã khuyến mãi áp dụng toàn sàn do hệ thống phát hành và gửi email thông báo qua `EmailUtil`</p>
                     </div>
                     <button class="btn btn-danger btn-sm rounded-pill fw-semibold"><i class="fa-solid fa-plus me-1"></i> Tạo Mã Voucher Mới</button>

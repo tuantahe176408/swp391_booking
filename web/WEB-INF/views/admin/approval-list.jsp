@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-square-check text-danger me-2"></i>UC23: Duyệt Đăng ký Cơ sở Homestay</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-square-check text-danger me-2"></i>Duyệt Đăng ký Cơ sở Homestay</h4>
                         <p class="text-muted mb-0">Thẩm định giấy phép pháp lý, ảnh HD và thông tin homestay trước khi xuất bản lên sàn</p>
                     </div>
                 </div>

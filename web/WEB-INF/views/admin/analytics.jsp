@@ -16,7 +16,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-chart-line text-danger me-2"></i>UC25: Báo cáo Tài chính & Doanh thu Hoa hồng toàn sàn (GMV)</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-chart-line text-danger me-2"></i>Báo cáo Tài chính & Doanh thu toàn sàn</h4>
                         <p class="text-muted mb-0">Thống kê tổng giá trị giao dịch, lợi nhuận hoa hồng sàn và xuất file Excel đối soát (`PoiReportUtil`)</p>
                     </div>
                     <button class="btn btn-outline-success btn-sm rounded-pill fw-semibold">
