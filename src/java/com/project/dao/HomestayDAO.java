@@ -4,6 +4,7 @@ import com.project.model.Amenity;
 import com.project.model.Homestay;
 import com.project.model.HomestayImage;
 import com.project.model.Review;
+import com.project.model.RoomType;
 
 import java.util.List;
 import java.util.Optional;
@@ -26,6 +27,8 @@ public interface HomestayDAO {
     Optional<Homestay> getHomestayById(int homestayId);
 
     List<HomestayImage> getHomestayImages(int homestayId);
+
+    List<RoomType> getRoomTypesByHomestayId(int homestayId);
 
     List<Amenity> getHomestayAmenities(int homestayId);
 
