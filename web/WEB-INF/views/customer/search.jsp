@@ -25,19 +25,19 @@
         <form action="${pageContext.request.contextPath}/search" method="GET" id="mainSearchForm">
             <div class="row g-2 align-items-end">
                 <div class="col-md-4">
-                    <label class="form-label text-white-50 small">Địa điểm</label>
-                    <input type="text" name="location" class="form-control rounded-3" placeholder="Đà Lạt, Nha Trang..." value="${searchLocation}">
+                    <label class="form-label text-white small fw-semibold"><i class="fa-solid fa-location-dot me-1 text-primary"></i> Địa điểm</label>
+                    <input type="text" name="location" class="form-control rounded-3" placeholder="Đà Lạt, Nha Trang, Hội An..." value="${searchLocation}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label text-white-50 small">Nhận phòng</label>
+                    <label class="form-label text-white small fw-semibold"><i class="fa-regular fa-calendar me-1 text-primary"></i> Nhận phòng</label>
                     <input type="date" name="checkin" class="form-control rounded-3" value="${searchCheckin}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label text-white-50 small">Trả phòng</label>
+                    <label class="form-label text-white small fw-semibold"><i class="fa-regular fa-calendar-check me-1 text-primary"></i> Trả phòng</label>
                     <input type="date" name="checkout" class="form-control rounded-3" value="${searchCheckout}">
                 </div>
                 <div class="col-md-2">
-                    <label class="form-label text-white-50 small">Số khách</label>
+                    <label class="form-label text-white small fw-semibold"><i class="fa-solid fa-users me-1 text-primary"></i> Số khách</label>
                     <select name="guests" class="form-select rounded-3">
                         <c:forEach var="i" begin="1" end="10">
                             <option value="${i}" ${searchGuests == i ? 'selected' : ''}>${i} Khách</option>
