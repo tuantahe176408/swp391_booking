@@ -17,7 +17,7 @@ import java.util.Optional;
  * Controller: Chi tiết Homestay (UC03 - UC07)
  * Package: com.project.controller.customer
  */
-@WebServlet(name = "HomestayDetailController", urlPatterns = {"/homestay/detail"})
+@WebServlet(name = "HomestayDetailController", urlPatterns = {"/homestay/detail", "/detail"})
 public class HomestayDetailController extends HttpServlet {
 
     private HomestayDAO homestayDAO;

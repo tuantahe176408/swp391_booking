@@ -5,6 +5,7 @@ import com.project.model.Amenity;
 import com.project.model.Homestay;
 import com.project.model.HomestayImage;
 import com.project.model.Review;
+import com.project.model.RoomType;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -221,6 +222,7 @@ public class HomestayDAOImpl implements HomestayDAO {
                     BigDecimal mp = rs.getBigDecimal("min_price");
                     h.setMinPrice(mp != null ? mp : BigDecimal.ZERO);
                     h.setImages(getHomestayImages(homestayId));
+                    h.setRoomTypes(getRoomTypesByHomestayId(homestayId));
                     h.setAmenityNames(getAmenityNames(conn, homestayId));
                     h.setReviews(getReviewsByHomestayId(homestayId));
                     return Optional.of(h);
@@ -230,6 +232,36 @@ public class HomestayDAOImpl implements HomestayDAO {
             LOGGER.log(Level.SEVERE, "Error in getHomestayById for id: " + homestayId, e);
         }
         return Optional.empty();
+    }
+
+    @Override
+    public List<RoomType> getRoomTypesByHomestayId(int homestayId) {
+        List<RoomType> list = new ArrayList<>();
+        String sql = "SELECT room_type_id, homestay_id, name, description, base_price, max_occupancy, bed_count, room_size_sqm " +
+                     "FROM room_types WHERE homestay_id = ? ORDER BY base_price ASC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, homestayId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    RoomType rt = new RoomType();
+                    rt.setRoomTypeId(rs.getInt("room_type_id"));
+                    rt.setHomestayId(rs.getInt("homestay_id"));
+                    rt.setName(rs.getString("name"));
+                    rt.setDescription(rs.getString("description"));
+                    rt.setBasePrice(rs.getBigDecimal("base_price"));
+                    rt.setMaxOccupancy(rs.getInt("max_occupancy"));
+                    rt.setBedCount(rs.getInt("bed_count"));
+                    rt.setRoomSizeSqm(rs.getBigDecimal("room_size_sqm"));
+                    list.add(rt);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getRoomTypesByHomestayId for id: " + homestayId, e);
+        }
+        return list;
     }
 
     @Override
