@@ -85,29 +85,6 @@
         transform: translateY(-5px);
         box-shadow: 0 20px 50px rgba(0,0,0,0.08);
     }
-    .team-card {
-        background: #fff;
-        border-radius: 20px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.06);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .team-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 20px 60px rgba(99,102,241,0.15);
-    }
-    .team-avatar {
-        width: 80px;
-        height: 80px;
-        border-radius: 50%;
-        font-size: 2rem;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 1rem;
-        color: #fff;
-    }
     .section-badge {
         display: inline-flex;
         align-items: center;
@@ -133,17 +110,6 @@
         backdrop-filter: blur(10px);
         border: 1px solid rgba(255,255,255,0.12);
         border-radius: 20px;
-    }
-    .tech-badge {
-        background: rgba(99,102,241,0.1);
-        border: 1px solid rgba(99,102,241,0.2);
-        color: #6366f1;
-        border-radius: 8px;
-        padding: 0.4rem 0.9rem;
-        font-size: 0.82rem;
-        font-weight: 600;
-        display: inline-block;
-        margin: 4px;
     }
     @keyframes float {
         0%, 100% { transform: translateY(0); }
@@ -230,7 +196,7 @@
                         <i class="fa-solid fa-credit-card"></i>
                     </div>
                     <h5 class="fw-bold mb-2">Thanh toán Cổng Trực tuyến</h5>
-                    <p class="text-muted mb-0">Tích hợp VNPay & MoMo với xác thực SHA-256 HMAC, giao dịch an toàn và tức thì.</p>
+                    <p class="text-muted mb-0">Tích hợp VNPay & MoMo, giao dịch an toàn, tức thì và hoàn toàn minh bạch.</p>
                 </div>
             </div>
             <div class="col-md-4">
@@ -256,8 +222,8 @@
                     <div class="feature-icon" style="background: rgba(6,182,212,0.1); color: #06b6d4;">
                         <i class="fa-solid fa-chart-line"></i>
                     </div>
-                    <h5 class="fw-bold mb-2">Dashboard Analytics</h5>
-                    <p class="text-muted mb-0">Báo cáo doanh thu trực quan bằng Chart.js, xuất Excel với Apache POI cho chủ nhà.</p>
+                    <h5 class="fw-bold mb-2">Báo cáo Doanh thu</h5>
+                    <p class="text-muted mb-0">Chủ nhà theo dõi doanh thu, tỉ lệ lấp đầy phòng và hiệu quả kinh doanh theo thời gian thực.</p>
                 </div>
             </div>
             <div class="col-md-4">
@@ -265,8 +231,8 @@
                     <div class="feature-icon" style="background: rgba(139,92,246,0.1); color: #8b5cf6;">
                         <i class="fa-brands fa-google"></i>
                     </div>
-                    <h5 class="fw-bold mb-2">Đăng nhập Google OAuth2</h5>
-                    <p class="text-muted mb-0">Đăng nhập nhanh bằng tài khoản Google, bảo mật mật khẩu bằng BCrypt chuẩn.</p>
+                    <h5 class="fw-bold mb-2">Đăng nhập Nhanh chóng</h5>
+                    <p class="text-muted mb-0">Đăng nhập bằng tài khoản Google chỉ một cú nhấp — tiện lợi, nhanh gọn và an toàn.</p>
                 </div>
             </div>
         </div>
@@ -289,16 +255,16 @@
                 </p>
                 <div class="d-flex gap-4 mt-4 flex-wrap">
                     <div>
-                        <div class="fw-bold text-white fs-4">2024</div>
-                        <div style="color: rgba(255,255,255,0.6); font-size:0.85rem;">Năm thành lập</div>
+                        <div class="fw-bold text-white fs-4">5.000+</div>
+                        <div style="color: rgba(255,255,255,0.6); font-size:0.85rem;">Chỗ ở đã đăng ký</div>
                     </div>
                     <div>
-                        <div class="fw-bold text-white fs-4">SWP391</div>
-                        <div style="color: rgba(255,255,255,0.6); font-size:0.85rem;">Dự án FPT University</div>
+                        <div class="fw-bold text-white fs-4">63</div>
+                        <div style="color: rgba(255,255,255,0.6); font-size:0.85rem;">Tỉnh thành phủ sóng</div>
                     </div>
                     <div>
-                        <div class="fw-bold text-white fs-4">5 TV</div>
-                        <div style="color: rgba(255,255,255,0.6); font-size:0.85rem;">Thành viên nhóm</div>
+                        <div class="fw-bold text-white fs-4">50K+</div>
+                        <div style="color: rgba(255,255,255,0.6); font-size:0.85rem;">Khách hàng tin dùng</div>
                     </div>
                 </div>
             </div>
@@ -307,110 +273,31 @@
                     <div class="col-6">
                         <div class="card p-3">
                             <i class="fa-solid fa-shield-halved text-primary mb-2 fs-4"></i>
-                            <h6 class="text-white mb-1">Bảo mật cao</h6>
-                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">BCrypt + CSRF Filter + JSoup Anti-XSS</p>
+                            <h6 class="text-white mb-1">Giao dịch an toàn</h6>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">Mã hóa & xác thực đa lớp bảo vệ mọi giao dịch</p>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="card p-3">
                             <i class="fa-solid fa-bolt text-warning mb-2 fs-4"></i>
-                            <h6 class="text-white mb-1">Hiệu năng cao</h6>
-                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">HikariCP Connection Pool</p>
+                            <h6 class="text-white mb-1">Đặt phòng tức thì</h6>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">Xác nhận ngay lập tức, không chờ đợi</p>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="card p-3">
                             <i class="fa-solid fa-envelope text-info mb-2 fs-4"></i>
-                            <h6 class="text-white mb-1">Thông báo Email</h6>
-                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">JavaMail OTP & E-Ticket tự động</p>
+                            <h6 class="text-white mb-1">Hỗ trợ 24/7</h6>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">Đội ngũ hỗ trợ luôn sẵn sàng giải quyết mọi vấn đề</p>
                         </div>
                     </div>
                     <div class="col-6">
                         <div class="card p-3">
-                            <i class="fa-solid fa-image text-success mb-2 fs-4"></i>
-                            <h6 class="text-white mb-1">Hình ảnh HD</h6>
-                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">Cloudinary API tốc độ cao</p>
+                            <i class="fa-solid fa-tag text-success mb-2 fs-4"></i>
+                            <h6 class="text-white mb-1">Giá tốt nhất</h6>
+                            <p class="mb-0" style="color: rgba(255,255,255,0.6); font-size:0.82rem;">Cam kết giá tốt nhất, không phí ẩn</p>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section>
-
-<!-- ── Tech Stack ────────────────────────────────────────────── -->
-<section class="py-5 bg-light">
-    <div class="container text-center">
-        <span class="section-badge"><i class="fa-solid fa-code"></i> Công nghệ</span>
-        <h2 class="fw-bold mb-2">Stack Công nghệ</h2>
-        <p class="text-muted mb-4">Xây dựng trên nền tảng Java Enterprise vững chắc với kiến trúc MVC chuẩn</p>
-        <div class="d-flex flex-wrap justify-content-center gap-2">
-            <span class="tech-badge"><i class="fa-brands fa-java me-1"></i> Java 17</span>
-            <span class="tech-badge">JSP / Servlet 4.0</span>
-            <span class="tech-badge">Apache Tomcat 9</span>
-            <span class="tech-badge">MySQL 8.0</span>
-            <span class="tech-badge">HikariCP</span>
-            <span class="tech-badge">BCrypt</span>
-            <span class="tech-badge">VNPay / MoMo</span>
-            <span class="tech-badge">Cloudinary API</span>
-            <span class="tech-badge">JavaMail API</span>
-            <span class="tech-badge">Apache POI</span>
-            <span class="tech-badge">Chart.js</span>
-            <span class="tech-badge"><i class="fa-brands fa-google me-1"></i> OAuth2</span>
-            <span class="tech-badge">OCR API</span>
-            <span class="tech-badge">JSoup Anti-XSS</span>
-            <span class="tech-badge">NetBeans IDE</span>
-        </div>
-    </div>
-</section>
-
-<!-- ── Team Section ──────────────────────────────────────────── -->
-<section class="py-5">
-    <div class="container">
-        <div class="text-center mb-5">
-            <span class="section-badge"><i class="fa-solid fa-people-group"></i> Nhóm phát triển</span>
-            <h2 class="fw-bold fs-1">Đội ngũ SWP391 — Fall 2026</h2>
-            <p class="text-muted">5 thành viên — 26 Use Cases — 5 Actor Roles</p>
-        </div>
-        <div class="row g-4 justify-content-center">
-            <div class="col-6 col-md-4 col-lg-2-5">
-                <div class="team-card text-center p-4">
-                    <div class="team-avatar" style="background: linear-gradient(135deg,#6366f1,#8b5cf6);">T</div>
-                    <h6 class="fw-bold mb-1">Tuấn (TV1)</h6>
-                    <span class="badge bg-primary-subtle text-primary mb-2">UC12 – UC16</span>
-                    <p class="text-muted mb-0" style="font-size:0.8rem;">Search, Detail, Booking, Payment, Review</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2-5">
-                <div class="team-card text-center p-4">
-                    <div class="team-avatar" style="background: linear-gradient(135deg,#10b981,#059669);">S</div>
-                    <h6 class="fw-bold mb-1">Sang (TV2)</h6>
-                    <span class="badge bg-success-subtle text-success mb-2">UC07 – UC11</span>
-                    <p class="text-muted mb-0" style="font-size:0.8rem;">Owner Homestay, Calendar, Analytics</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2-5">
-                <div class="team-card text-center p-4">
-                    <div class="team-avatar" style="background: linear-gradient(135deg,#f59e0b,#d97706);">B</div>
-                    <h6 class="fw-bold mb-1">Bình (TV3)</h6>
-                    <span class="badge bg-warning-subtle text-warning mb-2">UC01 – UC06</span>
-                    <p class="text-muted mb-0" style="font-size:0.8rem;">Auth, Profile, Wishlist, AI Feed</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2-5">
-                <div class="team-card text-center p-4">
-                    <div class="team-avatar" style="background: linear-gradient(135deg,#ef4444,#dc2626);">K</div>
-                    <h6 class="fw-bold mb-1">Khoa (TV4)</h6>
-                    <span class="badge bg-danger-subtle text-danger mb-2">UC17 – UC21</span>
-                    <p class="text-muted mb-0" style="font-size:0.8rem;">Reception, Check-in OCR, Room Matrix</p>
-                </div>
-            </div>
-            <div class="col-6 col-md-4 col-lg-2-5">
-                <div class="team-card text-center p-4">
-                    <div class="team-avatar" style="background: linear-gradient(135deg,#06b6d4,#0891b2);">T</div>
-                    <h6 class="fw-bold mb-1">Thanh (TV5)</h6>
-                    <span class="badge bg-info-subtle text-info mb-2">UC22 – UC26</span>
-                    <p class="text-muted mb-0" style="font-size:0.8rem;">Admin, Approval, Voucher, Config</p>
                 </div>
             </div>
         </div>
