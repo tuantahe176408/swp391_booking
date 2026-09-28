@@ -489,4 +489,47 @@ public class HomestayDAOImpl implements HomestayDAO {
         }
         return names;
     }
+
+    // ── UC17/UC20: Owner homestay list ───────────────────────────────────────
+
+    @Override
+    public List<Homestay> getHomestaysByOwnerId(int ownerId) {
+        List<Homestay> list = new ArrayList<>();
+        String sql = "SELECT h.homestay_id, h.owner_id, h.name, h.description, h.address, h.city, " +
+                     "h.district, h.latitude, h.longitude, h.status, h.checkin_time, h.checkout_time, " +
+                     "h.rating_avg, h.review_count, " +
+                     "(SELECT hi.image_url FROM homestay_images hi WHERE hi.homestay_id = h.homestay_id " +
+                     " ORDER BY hi.is_primary DESC, hi.display_order ASC LIMIT 1) AS primary_image, " +
+                     "(SELECT MIN(rt.base_price) FROM room_types rt WHERE rt.homestay_id = h.homestay_id) AS min_price " +
+                     "FROM homestays h WHERE h.owner_id = ? ORDER BY h.name ASC";
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setInt(1, ownerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Homestay h = new Homestay();
+                    h.setHomestayId(rs.getInt("homestay_id"));
+                    h.setOwnerId(rs.getInt("owner_id"));
+                    h.setName(rs.getString("name"));
+                    h.setDescription(rs.getString("description"));
+                    h.setAddress(rs.getString("address"));
+                    h.setCity(rs.getString("city"));
+                    h.setDistrict(rs.getString("district"));
+                    String statusStr = rs.getString("status");
+                    if (statusStr != null) {
+                        try { h.setStatus(Homestay.Status.valueOf(statusStr)); } catch (IllegalArgumentException ignored) {}
+                    }
+                    h.setRatingAvg(rs.getBigDecimal("rating_avg"));
+                    h.setReviewCount(rs.getInt("review_count"));
+                    h.setPrimaryImageUrl(rs.getString("primary_image"));
+                    list.add(h);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getHomestaysByOwnerId for ownerId=" + ownerId, e);
+        }
+        return list;
+    }
 }

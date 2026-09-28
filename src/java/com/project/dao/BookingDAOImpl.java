@@ -200,6 +200,99 @@ public class BookingDAOImpl implements BookingDAO {
         return false;
     }
 
+    // ── UC20: Owner booking queries ──────────────────────────────────────────
+
+    @Override
+    public List<Booking> getBookingsByOwner(int ownerId, Integer homestayId, String status,
+                                             String fromDate, String toDate,
+                                             int offset, int limit) {
+        List<Booking> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        sql.append("WHERE h.owner_id = ? ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(ownerId);
+
+        if (homestayId != null && homestayId > 0) {
+            sql.append("AND b.homestay_id = ? ");
+            params.add(homestayId);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND b.booking_status = ? ");
+            params.add(status.trim().toUpperCase());
+        }
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND b.checkin_date >= ? ");
+            params.add(fromDate.trim());
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND b.checkin_date <= ? ");
+            params.add(toDate.trim());
+        }
+        sql.append("ORDER BY b.created_at DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapBooking(rs));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getBookingsByOwner for ownerId=" + ownerId, e);
+        }
+        return list;
+    }
+
+    @Override
+    public int countBookingsByOwner(int ownerId, Integer homestayId, String status,
+                                     String fromDate, String toDate) {
+        StringBuilder sql = new StringBuilder(
+                "SELECT COUNT(*) FROM bookings b " +
+                "LEFT JOIN homestays h ON b.homestay_id = h.homestay_id " +
+                "WHERE h.owner_id = ? ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(ownerId);
+
+        if (homestayId != null && homestayId > 0) {
+            sql.append("AND b.homestay_id = ? ");
+            params.add(homestayId);
+        }
+        if (status != null && !status.trim().isEmpty()) {
+            sql.append("AND b.booking_status = ? ");
+            params.add(status.trim().toUpperCase());
+        }
+        if (fromDate != null && !fromDate.trim().isEmpty()) {
+            sql.append("AND b.checkin_date >= ? ");
+            params.add(fromDate.trim());
+        }
+        if (toDate != null && !toDate.trim().isEmpty()) {
+            sql.append("AND b.checkin_date <= ? ");
+            params.add(toDate.trim());
+        }
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in countBookingsByOwner for ownerId=" + ownerId, e);
+        }
+        return 0;
+    }
+
     private Booking mapBooking(ResultSet rs) throws SQLException {
         Booking b = new Booking();
         b.setBookingId(rs.getInt("booking_id"));
