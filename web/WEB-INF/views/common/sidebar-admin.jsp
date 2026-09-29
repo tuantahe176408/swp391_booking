@@ -12,19 +12,19 @@
     </div>
     <div class="nav flex-column nav-pills gap-1">
         <a class="nav-link ${activeTab == 'users' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/users">
-            <i class="fa-solid fa-users-gear me-2"></i> UC22: Quản lý Người dùng
+            <i class="fa-solid fa-users-gear me-2"></i> Quản lý Người dùng
         </a>
         <a class="nav-link ${activeTab == 'approvals' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/approvals">
-            <i class="fa-solid fa-square-check me-2"></i> UC23: Duyệt Đăng ký Homestay
+            <i class="fa-solid fa-square-check me-2"></i> Duyệt Homestay
         </a>
         <a class="nav-link ${activeTab == 'config' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/config">
-            <i class="fa-solid fa-sliders me-2"></i> UC24: Cấu hình System & AI
+            <i class="fa-solid fa-sliders me-2"></i> Cấu hình Hệ thống
         </a>
         <a class="nav-link ${activeTab == 'analytics' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/analytics">
-            <i class="fa-solid fa-chart-line me-2"></i> UC25: Phân tích Tài chính
+            <i class="fa-solid fa-chart-line me-2"></i> Phân tích Tài chính
         </a>
         <a class="nav-link ${activeTab == 'vouchers' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/vouchers">
-            <i class="fa-solid fa-ticket me-2"></i> UC26: Chiến dịch Vouchers
+            <i class="fa-solid fa-ticket me-2"></i> Chiến dịch Vouchers
         </a>
         <a class="nav-link ${activeTab == 'tests' ? 'active bg-danger text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/admin/tests">
             <i class="fa-solid fa-vial-circle-check me-2"></i> Kiểm thử Tích hợp (Tests)

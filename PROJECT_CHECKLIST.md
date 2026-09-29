@@ -80,27 +80,55 @@
 - [x] Xóa Homestay khỏi danh sách yêu thích (`Wishlist.java`)
 
 #### Nhóm 10: Chủ Homestay - Quản lý Danh sách Homestay (Khoa - UC17)
-- [x] Bảng điều khiển danh sách Homestay thuộc quyền sở hữu (`OwnerHomestayController.java`, `owner-homestays.jsp`)
-- [x] Form thêm Homestay mới (Tên, Địa chỉ, Tiện ích, Mô tả) (`homestay-form.jsp`)
-- [x] Cập nhật thông tin Homestay hiện có (`OwnerHomestayController.java`)
-- [x] Xóa Homestay khi không còn hoạt động (`OwnerHomestayController.java`)
+- [x] Bảng điều khiển danh sách Homestay thuộc quyền sở hữu — **thật từ DB** (`OwnerHomestayController.java`, `homestay-form.jsp`)
+- [x] Stats cards: tổng cơ sở, đang hoạt động, chờ duyệt, tổng phòng từ DB
+- [x] Filter tab client-side theo status (Tất cả / Hoạt động / Chờ duyệt / Từ chối / Tạm ngừng)
+- [x] Alert cảnh báo khi có cơ sở bị từ chối kèm lý do inline
+- [x] Form đăng ký Homestay mới → INSERT DB → status PENDING_APPROVAL (`OwnerHomestayEditController.java`, `homestay-edit.jsp`)
+- [x] Form chỉnh sửa Homestay (tên, mô tả, địa chỉ, giờ check-in/out) → UPDATE DB
+- [x] Tự động reset REJECTED → PENDING_APPROVAL khi owner lưu lại
+- [x] Tạm ngừng / Kích hoạt lại cơ sở (ACTIVE ↔ INACTIVE) với confirm dialog
+- [x] Ẩn action Quản lý phòng & Lịch giá cho cơ sở chưa được duyệt
+- [x] Flash message sau mỗi thao tác (thành công / thất bại)
+- [x] Seed data: 3 homestay PENDING/REJECTED/INACTIVE cho owner nguyenvana (`seed_owner_homestays.sql`)
 
 ---
 
 ### Sheet 2: Đặt phòng, Lễ tân, Quản trị nâng cao & Thanh toán (40 Tasks)
 
 #### Nhóm 11: Chủ Homestay - Quản lý Phòng & Lịch Giá (Khoa - UC18, UC19)
-- [x] Danh sách các phòng thuộc Homestay (`Room.java`)
-- [x] Thêm loại phòng mới và thiết lập giá cơ bản (`RoomType.java`)
-- [x] Cập nhật trạng thái phòng (Trống, Đang ở, Bảo trì) (`RoomDAOImpl.java`)
-- [x] Xóa phòng khỏi hệ thống (`RoomDAOImpl.java`)
-- [x] Xem Lịch đặt phòng trực quan (`OwnerCalendarController.java`, `calendar.jsp`)
-- [x] Cập nhật giá phòng linh hoạt theo mùa/cuối tuần (`OwnerCalendarController.java`)
+- [x] Trang Quản lý Loại phòng & Phòng vật lý — **thật từ DB** (`OwnerRoomController.java`, `rooms.jsp`)
+- [x] Thêm / Sửa / Xóa loại phòng (tên, giá, sức chứa, số giường, diện tích) với ownership check
+- [x] Chặn xóa loại phòng khi còn booking active
+- [x] Thêm / Xóa phòng vật lý (số phòng tự động uppercase)
+- [x] Room cards bắt mắt: màu header theo status, icon đặc trưng mỗi trạng thái
+- [x] Đổi trạng thái phòng AVAILABLE ↔ MAINTENANCE ↔ DIRTY qua dropdown inline
+- [x] Phòng OCCUPIED: khóa toàn bộ action (do booking system quản lý)
+- [x] Accordion expand/collapse per room type, stopPropagation chính xác
+- [x] Stats: loại phòng / trống / có khách / tổng phòng từ DB (`fn:length`)
+- [x] Fix Room model & RoomDAOImpl khớp schema (bỏ homestay_id, notes không có trong DB)
+- [x] Fix Room.Status enum thêm DIRTY khớp DB ENUM
+- [x] Xem Lịch đặt phòng trực quan — **thật từ DB** (`OwnerCalendarController.java`, `calendar.jsp`)
+- [x] Calendar render đúng offset thứ trong tuần, CSS Grid 7 cột
+- [x] Homestay & Room type selector tabs pill style gradient
+- [x] Day modal: 3 loại điều chỉnh (hệ số % / giá cố định / khóa phòng)
+- [x] Bulk apply: chọn nhiều ngày + quick-select T7/CN, apply cho nhiều loại phòng
+- [x] Prev/Next month navigation, giữ homestayId
+- [x] Logic phân biệt giá thật (mult ≠ 1.0) vs giá gốc bằng `isRealPriceRule()`
+- [x] Seed dynamic_prices tháng 9–10/2026 (`seed_dynamic_prices.sql`)
+- [x] Model DynamicPrice + CalendarDAO/Impl (upsert, delete, bulkUpsert)
 
-#### Nhóm 12: Chủ Homestay - Quản lý Dịch vụ Bổ sung & Nhân viên (Khoa - UC20, UC21)
+#### Nhóm 12: Chủ Homestay - Quản lý Dịch vụ Bổ sung, Đơn đặt phòng & Nhân viên (Khoa - UC20, UC21)
 - [x] Danh sách dịch vụ đi kèm (Đưa đón, Thuê xe, Ăn sáng...) (`Addon.java`, `AddonDAO.java`, `AddonDAOImpl.java`, `OwnerAddonController.java`, `addons.jsp`)
 - [x] Thêm/Sửa/Xóa Dịch vụ bổ sung của Homestay (`OwnerAddonController.java`)
 - [x] Quản lý tài khoản Lễ tân / Nhân viên phục vụ (`OwnerStaffController.java`, `staff-list.jsp`)
+- [x] **[MỚI]** Trang Đơn đặt phòng — **thật từ DB** (`OwnerBookingController.java`, `booking-list.jsp`)
+- [x] Filter theo cơ sở, trạng thái, khoảng ngày check-in với pagination
+- [x] BookingDAO mở rộng: `getBookingsByOwner()` + `countBookingsByOwner()` với dynamic WHERE
+- [x] **[MỚI]** Trang Doanh thu & Thống kê — KPI cards, charts (analytics.jsp)
+- [x] Filter theo homestay + tháng cập nhật KPI + chart realtime (JS mock data)
+- [x] Switch chart Đường/Cột, Donut kênh đặt phòng
+- [x] Bảng đơn đặt phòng gần đây với link "Xem tất cả" → `/owner/bookings`
 
 #### Nhóm 13: Lễ tân - Check-in & Quản lý Phòng (Tuấn - UC12, UC13)
 - [x] Tìm kiếm đơn đặt phòng theo Mã Booking hoặc SĐT khách (`ReceptionCheckinController.java`, `checkin.jsp`)
@@ -162,9 +190,45 @@
 
 ## 🔑 Tài Khoản Thử Nghiệm Mặc Định (Seed Test Data)
 
-| Phân quyền (Role) | Email đăng nhập | Mật khẩu mặc định | Ghi chú |
+| Phân quyền (Role) | Email đăng nhập | Mật khẩu | Ghi chú |
 | :--- | :--- | :--- | :--- |
-| **Quản trị viên (ADMIN)** | `admin@smartbooking.com` | `Admin@123456` | Toàn quyền kiểm duyệt, phân tích, voucher |
-| **Chủ nhà (OWNER)** | `owner@smartbooking.com` | `Owner@123456` | Quản lý Homestay, phòng, giá và lịch |
-| **Lễ tân (RECEPTIONIST)** | `reception@smartbooking.com` | `Reception@123` | Check-in, Room Matrix, buồng phòng |
-| **Khách hàng (CUSTOMER)** | `customer@smartbooking.com` | `Customer@123` | Tìm kiếm, đặt phòng, thanh toán trực tuyến |
+| **Admin** | `admin@smartbooking.com` | `Admin@123` | Toàn quyền kiểm duyệt, phân tích, voucher |
+| **Owner** | `nguyenvana.owner@gmail.com` | `Admin@123` | Đà Lạt — 2 ACTIVE + 3 test (PENDING/REJECTED/INACTIVE) |
+| **Owner** | `tranminhb.owner@gmail.com` | `Admin@123` | Hội An — 2 homestay ACTIVE |
+| **Owner** | `lethicam.owner@gmail.com` | `Admin@123` | Phú Quốc — 2 homestay ACTIVE |
+| **Owner** | `phamquocd.owner@gmail.com` | `Admin@123` | Hà Nội — 2 homestay ACTIVE |
+| **Owner** | `hoangmine.owner@gmail.com` | `Admin@123` | Nha Trang — 2 homestay ACTIVE |
+| **Customer** | `khanh.nguyen.customer@gmail.com` | `Admin@123` | Có lịch sử đặt phòng |
+| **Customer** | `linh.tran.customer@gmail.com` | `Admin@123` | Có lịch sử đặt phòng |
+| **Customer** | `duc.pham.customer@gmail.com` | `Admin@123` | LOCAL auth |
+
+> ⚠️ Password hash trong seed: `$2a$12$LQv3c1yqBWVHxkd0LlHdEOuPiXL4Z9TqBHC3Ot5OqJQ.PmZeaVM2` = `Admin@123`
+
+---
+
+## 🎨 UI/UX Owner Dashboard — Đã Triển Khai
+
+### Layout & Common Fragments
+- [x] `owner-shell` layout: dark sidebar 260px fixed + `owner-main` scrollable
+- [x] `sidebar-owner.jsp`: brand, profile pill, nav groups, footer links
+- [x] `owner-topbar.jsp`: breadcrumb 2 cấp, heading, notification bell, user dropdown
+- [x] CSS BEM `.owner-sidebar__*`, `.owner-topbar__*`, `.owner-content`, `.owner-card`
+- [x] Responsive collapse sidebar < 992px
+- [x] Ẩn customer navbar & footer khi ở owner pages (`body.owner-page`)
+- [x] Dropdown user hoạt động (custom JS, không dùng Bootstrap JS)
+
+### Trang Giới thiệu (About)
+- [x] Bỏ section Tech Stack & Team thành viên
+- [x] Thay bằng nội dung business: cam kết, stats thật, features
+
+### Owner Pages Status
+| Trang | URL | Dữ liệu | Ghi chú |
+|---|---|---|---|
+| Cơ sở Homestay | `/owner/homestays` | ✅ Thật | CRUD đầy đủ |
+| Chỉnh sửa Homestay | `/owner/homestays/edit` | ✅ Thật | INSERT + UPDATE |
+| Quản lý Phòng | `/owner/rooms` | ✅ Thật | Room type + physical rooms |
+| Lịch & Giá | `/owner/calendar` | ✅ Thật | Dynamic pricing từ DB |
+| Đơn đặt phòng | `/owner/bookings` | ✅ Thật | Filter + pagination |
+| Doanh thu | `/owner/analytics` | ⚠️ Mock JS | KPI + chart = mock data |
+| Dịch vụ bổ sung | `/owner/addons` | ⚠️ Mock | Chưa connect DB |
+| Nhân viên Lễ tân | `/owner/staffs` | ⚠️ Mock | Chưa connect DB |
