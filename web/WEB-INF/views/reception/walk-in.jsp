@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-person-walking-luggage text-info me-2"></i>UC13: Đặt phòng tại quầy (Walk-in Desk)</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-person-walking-luggage text-info me-2"></i>Đặt phòng tại quầy (Walk-in)</h4>
                         <p class="text-muted mb-0">Tạo đơn đặt chỗ và nhận phòng trực tiếp cho khách không qua đặt trước online</p>
                     </div>
                 </div>
