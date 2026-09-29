@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-sliders text-danger me-2"></i>UC24: Cấu hình System & AI Model Monitoring</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-sliders text-danger me-2"></i>Cấu hình Hệ thống</h4>
                         <p class="text-muted mb-0">Thiết lập tỷ lệ phí hoa hồng sàn, thời gian tạm giữ phòng và giám sát mô hình AI Recommendation</p>
                     </div>
                 </div>

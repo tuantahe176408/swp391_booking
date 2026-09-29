@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-users-gear text-danger me-2"></i>UC22: Quản lý Người dùng & Phân quyền RBAC</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-users-gear text-danger me-2"></i>Quản lý Người dùng & Phân quyền</h4>
                         <p class="text-muted mb-0">Quản lý toàn bộ tài khoản (Customer, Receptionist, Owner, Admin) và thực hiện Khóa / Mở khóa</p>
                     </div>
                     <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 fs-6">
