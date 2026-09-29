@@ -66,9 +66,26 @@
 
         // Global Date Picker Constraints: Không cho chọn ngày quá khứ & tự động sync checkin/checkout
         function applyDateRestrictions() {
-            const todayStr = new Date().toISOString().split('T')[0];
+            const now = new Date();
+
+            // Nếu đã qua giờ check-in (14:00) thì không cho chọn hôm nay nữa → min = ngày mai
+            // Lấy giờ check-in từ data-checkin-hour trên input (nếu có), mặc định 14
+            function getMinCheckinDate(inputEl) {
+                var checkinHour = parseInt(inputEl.dataset.checkinHour || '14', 10);
+                var minDate = new Date();
+                if (now.getHours() >= checkinHour) {
+                    minDate.setDate(minDate.getDate() + 1); // đã qua giờ check-in → sang ngày mai
+                }
+                return minDate.toISOString().split('T')[0];
+            }
+
+            const todayStr = now.toISOString().split('T')[0];
+            const tomorrowStr = (function() {
+                var d = new Date(); d.setDate(d.getDate() + 1);
+                return d.toISOString().split('T')[0];
+            })();
             
-            // Giới hạn tất cả input date không được chọn quá khứ (trừ khi có thuộc tính data-allow-past)
+            // Giới hạn tất cả input date không được chọn quá khứ
             document.querySelectorAll('input[type="date"]').forEach(function(input) {
                 if (!input.dataset.allowPast && !input.getAttribute('min')) {
                     input.setAttribute('min', todayStr);
@@ -78,7 +95,13 @@
             // Đồng bộ cặp checkin và checkout
             const checkins = document.querySelectorAll('input[name="checkin"], #checkinInput, #searchCheckin, #homeCheckin');
             checkins.forEach(function(ci) {
-                ci.setAttribute('min', todayStr);
+                var minCheckin = getMinCheckinDate(ci);
+                ci.setAttribute('min', minCheckin);
+
+                // Nếu giá trị hiện tại nhỏ hơn min → reset về min
+                if (!ci.value || ci.value < minCheckin) {
+                    ci.value = minCheckin;
+                }
                 
                 const form = ci.closest('form');
                 const co = form ? form.querySelector('input[name="checkout"], #checkoutInput, #searchCheckout, #homeCheckout') : null;

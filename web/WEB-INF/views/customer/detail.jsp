@@ -402,18 +402,24 @@ document.addEventListener('DOMContentLoaded', function() {
     tomorrow.setDate(tomorrow.getDate() + 1);
     const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
+    // Lấy giờ check-in từ homestay (hiển thị trên trang, ví dụ "14:00:00" → 14)
+    // Nếu đã qua giờ check-in hôm nay → min = ngày mai
+    var checkinHourStr = '${not empty homestay.checkinTime ? homestay.checkinTime : "14:00:00"}';
+    var checkinHour = parseInt(checkinHourStr.split(':')[0], 10) || 14;
+    var minCheckinStr = (today.getHours() >= checkinHour) ? tomorrowStr : todayStr;
+
     const checkinInput = document.getElementById('checkinInput');
     const checkoutInput = document.getElementById('checkoutInput');
 
     if (checkinInput) {
-        checkinInput.min = todayStr;
-        if (!checkinInput.value || checkinInput.value < todayStr) {
-            checkinInput.value = todayStr;
+        checkinInput.min = minCheckinStr;
+        if (!checkinInput.value || checkinInput.value < minCheckinStr) {
+            checkinInput.value = minCheckinStr;
         }
     }
 
     if (checkoutInput) {
-        const currentCheckin = (checkinInput && checkinInput.value && checkinInput.value >= todayStr) ? checkinInput.value : todayStr;
+        const currentCheckin = (checkinInput && checkinInput.value && checkinInput.value >= minCheckinStr) ? checkinInput.value : minCheckinStr;
         const d = new Date(currentCheckin);
         d.setDate(d.getDate() + 1);
         const minCheckoutStr = d.toISOString().split('T')[0];
