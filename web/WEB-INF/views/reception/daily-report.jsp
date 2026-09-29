@@ -15,7 +15,7 @@
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
-                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-broom text-info me-2"></i>UC16: Khai báo Tạm trú & Trạng thái Buồng phòng</h4>
+                        <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-broom text-info me-2"></i>Khai báo Tạm trú & Trạng thái Buồng phòng</h4>
                         <p class="text-muted mb-0">Danh sách khách lưu trú theo ngày và phân công lịch làm vệ sinh phòng</p>
                     </div>
                     <button class="btn btn-outline-success btn-sm rounded-pill fw-semibold">
