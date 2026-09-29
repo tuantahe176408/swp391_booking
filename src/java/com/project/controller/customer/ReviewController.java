@@ -153,7 +153,7 @@ public class ReviewController extends HttpServlet {
             saved = reviewDAO.updateReview(review);
             if (saved) {
                 request.getSession().setAttribute("sessionSuccessMessage",
-                        "Đánh giá của bạn cho " + booking.getHomestayName() + " đã được cập nhật! ✏️");
+                        "Đánh giá của bạn cho " + booking.getHomestayName() + " đã được cập nhật!");
             } else {
                 request.getSession().setAttribute("sessionErrorMessage",
                         "Không thể cập nhật đánh giá. Vui lòng thử lại.");
