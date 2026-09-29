@@ -147,7 +147,7 @@
                         <div class="info-icon"><i class="fa-solid fa-envelope"></i></div>
                         <div>
                             <div style="font-weight:600; font-size:0.85rem; opacity:0.8; text-transform:uppercase; letter-spacing:0.5px;">Email hỗ trợ</div>
-                            <div class="fw-semibold">support@smartbooking.vn</div>
+                            <div class="fw-semibold">smartbookingg@gmail.com</div>
                         </div>
                     </div>
                     <div class="info-item">

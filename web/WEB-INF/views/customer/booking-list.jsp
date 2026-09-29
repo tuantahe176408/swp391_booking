@@ -17,7 +17,7 @@
 
     <!-- Feedback Alerts -->
     <c:if test="${not empty sessionScope.sessionSuccessMessage}">
-        <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
+        <div class="alert alert-success alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert" id="alertSuccess">
             <i class="fa-solid fa-circle-check me-2"></i> ${sessionScope.sessionSuccessMessage}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -25,12 +25,23 @@
     </c:if>
 
     <c:if test="${not empty sessionScope.sessionErrorMessage}">
-        <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show rounded-4 mb-4 shadow-sm" role="alert" id="alertError">
             <i class="fa-solid fa-circle-exclamation me-2"></i> ${sessionScope.sessionErrorMessage}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
         <c:remove var="sessionErrorMessage" scope="session"/>
     </c:if>
+
+    <script>
+        ['alertSuccess', 'alertError'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (!el) return;
+            setTimeout(function() {
+                el.classList.remove('show');
+                setTimeout(function() { el.remove(); }, 300);
+            }, 5000);
+        });
+    </script>
 
     <!-- Booking List -->
     <c:choose>
