@@ -9,7 +9,7 @@
         <div class="row align-items-center">
             <div class="col-lg-8">
                 <span class="badge bg-white fw-bold mb-3 px-3 py-2 shadow-sm rounded-pill" style="font-size: 0.85rem; color: #4338ca !important;">
-                    <i class="fa-solid fa-wand-magic-sparkles me-1" style="color: #4f46e5;"></i> UC05: AI Collaborative Filtering
+                    <i class="fa-solid fa-wand-magic-sparkles me-1" style="color: #4f46e5;"></i> Gợi ý AI Cá nhân hóa
                 </span>
                 <h2 class="fw-bold text-white mb-2" style="font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
                     Gợi Ý Thông Minh Cho ${sessionScope.currentUser.fullName}

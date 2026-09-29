@@ -7,7 +7,7 @@
 <div class="container py-5">
     <div class="d-flex align-items-center justify-content-between mb-4">
         <div>
-            <h3 class="fw-bold mb-1"><i class="fa-solid fa-heart text-danger me-2"></i>Danh sách Homestay Yêu thích (UC06)</h3>
+            <h3 class="fw-bold mb-1"><i class="fa-solid fa-heart text-danger me-2"></i>Homestay Yêu thích</h3>
             <p class="text-muted mb-0">Các chỗ nghỉ bạn đã lưu lại để chuẩn bị cho kỳ nghỉ sắp tới</p>
         </div>
         <a href="${pageContext.request.contextPath}/search" class="btn btn-outline-primary rounded-pill btn-sm">
