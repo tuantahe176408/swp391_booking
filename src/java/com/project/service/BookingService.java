@@ -36,9 +36,10 @@ public class BookingService {
             conn = DBContext.getConnection();
             conn.setAutoCommit(false);
 
-            // 1. Tạo booking code
+            // 1. Tạo booking code (unique dựa trên timestamp nano)
             String bookingCode = generateBookingCode();
             booking.setBookingCode(bookingCode);
+            LOGGER.info("Creating booking with code: " + bookingCode);
 
             // 2. Insert booking
             String sqlBooking = "INSERT INTO bookings (booking_code, customer_id, homestay_id, room_type_id, " +
@@ -76,7 +77,7 @@ public class BookingService {
 
             // 3. Insert booking addons
             if (addonIds != null && !addonIds.isEmpty()) {
-                String sqlAddon = "INSERT INTO booking_addons (booking_id, addon_id, quantity, unit_price, subtotal) " +
+                String sqlAddon = "INSERT INTO booking_addons (booking_id, addon_id, quantity, unit_price, total_price) " +
                         "SELECT ?, addon_id, 1, price, price FROM addons WHERE addon_id = ?";
                 try (PreparedStatement ps2 = conn.prepareStatement(sqlAddon)) {
                     for (int addonId : addonIds) {
@@ -92,7 +93,7 @@ public class BookingService {
             return newBookingId;
 
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in createBooking - rolling back", e);
+            LOGGER.log(Level.SEVERE, "Error in createBooking - rolling back. SQLState=" + e.getSQLState() + ", Code=" + e.getErrorCode() + ", Msg=" + e.getMessage(), e);
             try { if (conn != null) conn.rollback(); } catch (SQLException ex) { LOGGER.log(Level.SEVERE, "Rollback failed", ex); }
             return -1;
         } finally {
@@ -101,6 +102,8 @@ public class BookingService {
     }
 
     private String generateBookingCode() {
-        return "BK-" + String.format("%06d", (int)(Math.random() * 999999));
+        String date = java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String seq  = String.format("%04d", (int)(System.nanoTime() % 9999) + 1);
+        return "BK-" + date + "-" + seq;
     }
 }

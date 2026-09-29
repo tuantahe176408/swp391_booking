@@ -229,7 +229,16 @@ public class BookingController extends HttpServlet {
                 // Redirect sang payment
                 response.sendRedirect(request.getContextPath() + "/payment/create?bookingId=" + newBookingId);
             } else {
-                request.setAttribute("errorMsg", "Đặt phòng thất bại. Phòng có thể đã hết trống. Vui lòng thử lại.");
+                // Reload necessary data before forwarding back to checkout
+                Optional<Homestay> optH2 = homestayDAO.getHomestayById(homestayId);
+                List<Addon> addons2 = addonDAO.getAddonsByHomestayId(homestayId);
+                request.setAttribute("homestay",          optH2.orElse(null));
+                request.setAttribute("selectedRoomType",  rt);
+                request.setAttribute("addons",            addons2);
+                request.setAttribute("checkin",           checkin);
+                request.setAttribute("checkout",          checkout);
+                request.setAttribute("totalNights",       totalNights);
+                request.setAttribute("errorMsg", "Đặt phòng thất bại. Vui lòng thử lại.");
                 request.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(request, response);
             }
 
