@@ -43,7 +43,7 @@
 
                     <form action="${pageContext.request.contextPath}/customer/profile" method="POST">
                         <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
-                            <i class="fa-solid fa-user-pen text-primary me-2"></i>UC02: Thông tin cá nhân & Sở thích
+                            <i class="fa-solid fa-user-pen text-primary me-2"></i>Thông tin cá nhân & Sở thích
                         </h5>
 
                         <div class="row g-3">
