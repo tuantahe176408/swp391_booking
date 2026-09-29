@@ -50,6 +50,14 @@ public class AuthenticationFilter implements Filter {
         }
 
         String uri = httpRequest.getRequestURI();
+
+        if (currentUser.isMustChangePassword()) {
+            if (!uri.contains("/force-change-password") && !uri.contains("/logout")) {
+                httpResponse.sendRedirect(httpRequest.getContextPath() + "/force-change-password");
+                return;
+            }
+        }
+
         User.Role role = currentUser.getRole();
 
         if (uri.contains("/admin/") && role != User.Role.ADMIN) {

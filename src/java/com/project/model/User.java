@@ -32,6 +32,7 @@ public class User implements Serializable {
     private boolean emailVerified;
     private int failedLoginAttempts;
     private Timestamp lockoutUntil;
+    private boolean mustChangePassword;
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
@@ -40,6 +41,7 @@ public class User implements Serializable {
         this.authProvider = AuthProvider.LOCAL;
         this.active = true;
         this.emailVerified = false;
+        this.mustChangePassword = false;
     }
 
     public int getUserId() {
@@ -144,6 +146,14 @@ public class User implements Serializable {
 
     public void setLockoutUntil(Timestamp lockoutUntil) {
         this.lockoutUntil = lockoutUntil;
+    }
+
+    public boolean isMustChangePassword() {
+        return mustChangePassword;
+    }
+
+    public void setMustChangePassword(boolean mustChangePassword) {
+        this.mustChangePassword = mustChangePassword;
     }
 
     public Timestamp getCreatedAt() {
