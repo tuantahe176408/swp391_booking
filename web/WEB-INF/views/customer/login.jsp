@@ -17,6 +17,12 @@
                             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                         </div>
                     </c:if>
+                    <c:if test="${not empty successMessage}">
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            <i class="fa-solid fa-circle-check me-2"></i>${successMessage}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    </c:if>
 
                     <!-- Tabs for Login / Register -->
                     <ul class="nav nav-pills nav-justified mb-4" id="authTabs" role="tablist">
@@ -37,12 +43,12 @@
                                 </c:if>
                                 <div class="mb-3">
                                     <label class="form-label font-weight-semibold">Địa chỉ Email</label>
-                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="nhapemail@example.com" required>
+                                    <input type="email" name="email" class="form-control form-control-lg" placeholder="nhapemail@example.com" value="<c:out value='${param.email}'/>" required>
                                 </div>
                                 <div class="mb-3">
                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                         <label class="form-label font-weight-semibold mb-0">Mật khẩu</label>
-                                        <a href="#" class="text-decoration-none small text-primary">Quên mật khẩu?</a>
+                                        <a href="${pageContext.request.contextPath}/forgot-password" class="text-decoration-none small text-primary fw-semibold">Quên mật khẩu?</a>
                                     </div>
                                     <input type="password" name="password" class="form-control form-control-lg" placeholder="••••••••" required>
                                 </div>

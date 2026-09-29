@@ -89,35 +89,83 @@ public class UserDAOImpl implements UserDAO {
         return false;
     }
 
+    private static volatile boolean columnMigrationAttempted = false;
+
+    private static void ensureMustChangePasswordColumnExists(Connection conn) {
+        if (columnMigrationAttempted) {
+            return;
+        }
+        synchronized (UserDAOImpl.class) {
+            if (columnMigrationAttempted) {
+                return;
+            }
+            try (Statement st = conn.createStatement()) {
+                st.executeUpdate("ALTER TABLE users ADD COLUMN must_change_password BOOLEAN NOT NULL DEFAULT FALSE");
+            } catch (SQLException ignored) {
+                // Column might already exist or server version specific
+            }
+            columnMigrationAttempted = true;
+        }
+    }
+
     @Override
     public boolean insertUser(User user) {
-        String sql = "INSERT INTO users (email, password_hash, full_name, phone_number, avatar_url, role, auth_provider, google_id, is_active, is_email_verified) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (Connection conn = DBContext.getConnection()) {
+            ensureMustChangePasswordColumnExists(conn);
+            String sql = "INSERT INTO users (email, password_hash, full_name, phone_number, avatar_url, role, auth_provider, google_id, is_active, is_email_verified, must_change_password) " +
+                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, user.getEmail());
+                ps.setString(2, user.getPasswordHash());
+                ps.setString(3, user.getFullName());
+                ps.setString(4, user.getPhoneNumber());
+                ps.setString(5, user.getAvatarUrl());
+                ps.setString(6, user.getRole().name());
+                ps.setString(7, user.getAuthProvider().name());
+                ps.setString(8, user.getGoogleId());
+                ps.setBoolean(9, user.isActive());
+                ps.setBoolean(10, user.isEmailVerified());
+                ps.setBoolean(11, user.isMustChangePassword());
 
-            ps.setString(1, user.getEmail());
-            ps.setString(2, user.getPasswordHash());
-            ps.setString(3, user.getFullName());
-            ps.setString(4, user.getPhoneNumber());
-            ps.setString(5, user.getAvatarUrl());
-            ps.setString(6, user.getRole().name());
-            ps.setString(7, user.getAuthProvider().name());
-            ps.setString(8, user.getGoogleId());
-            ps.setBoolean(9, user.isActive());
-            ps.setBoolean(10, user.isEmailVerified());
-
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows > 0) {
-                try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
-                    if (generatedKeys.next()) {
-                        user.setUserId(generatedKeys.getInt(1));
+                int affectedRows = ps.executeUpdate();
+                if (affectedRows > 0) {
+                    try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            user.setUserId(generatedKeys.getInt(1));
+                        }
                     }
+                    return true;
                 }
-                return true;
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in insertUser for email: " + user.getEmail(), e);
+            LOGGER.log(Level.WARNING, "Error in insertUser. Trying fallback without must_change_password for email: " + user.getEmail(), e);
+            String fallbackSql = "INSERT INTO users (email, password_hash, full_name, phone_number, avatar_url, role, auth_provider, google_id, is_active, is_email_verified) " +
+                                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (Connection conn = DBContext.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(fallbackSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, user.getEmail());
+                ps.setString(2, user.getPasswordHash());
+                ps.setString(3, user.getFullName());
+                ps.setString(4, user.getPhoneNumber());
+                ps.setString(5, user.getAvatarUrl());
+                ps.setString(6, user.getRole().name());
+                ps.setString(7, user.getAuthProvider().name());
+                ps.setString(8, user.getGoogleId());
+                ps.setBoolean(9, user.isActive());
+                ps.setBoolean(10, user.isEmailVerified());
+
+                int affectedRows = ps.executeUpdate();
+                if (affectedRows > 0) {
+                    try (ResultSet generatedKeys = ps.getGeneratedKeys()) {
+                        if (generatedKeys.next()) {
+                            user.setUserId(generatedKeys.getInt(1));
+                        }
+                    }
+                    return true;
+                }
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Fatal error in fallback insertUser for email: " + user.getEmail(), ex);
+            }
         }
         return false;
     }
@@ -143,15 +191,47 @@ public class UserDAOImpl implements UserDAO {
 
     @Override
     public boolean updatePassword(int userId, String newPasswordHash) {
-        String sql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
-        try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
+        return updatePassword(userId, newPasswordHash, false);
+    }
 
-            ps.setString(1, newPasswordHash);
-            ps.setInt(2, userId);
-            return ps.executeUpdate() > 0;
+    @Override
+    public boolean updatePassword(int userId, String newPasswordHash, boolean mustChangePassword) {
+        try (Connection conn = DBContext.getConnection()) {
+            ensureMustChangePasswordColumnExists(conn);
+            String sql = "UPDATE users SET password_hash = ?, must_change_password = ? WHERE user_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setString(1, newPasswordHash);
+                ps.setBoolean(2, mustChangePassword);
+                ps.setInt(3, userId);
+                return ps.executeUpdate() > 0;
+            }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in updatePassword for userId: " + userId, e);
+            LOGGER.log(Level.WARNING, "Error in updatePassword with must_change_password for userId: " + userId + ". Falling back to basic password update.", e);
+            String fallbackSql = "UPDATE users SET password_hash = ? WHERE user_id = ?";
+            try (Connection conn = DBContext.getConnection();
+                 PreparedStatement ps = conn.prepareStatement(fallbackSql)) {
+                ps.setString(1, newPasswordHash);
+                ps.setInt(2, userId);
+                return ps.executeUpdate() > 0;
+            } catch (SQLException ex) {
+                LOGGER.log(Level.SEVERE, "Fatal error in fallback updatePassword for userId: " + userId, ex);
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean setMustChangePassword(int userId, boolean mustChangePassword) {
+        try (Connection conn = DBContext.getConnection()) {
+            ensureMustChangePasswordColumnExists(conn);
+            String sql = "UPDATE users SET must_change_password = ? WHERE user_id = ?";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.setBoolean(1, mustChangePassword);
+                ps.setInt(2, userId);
+                return ps.executeUpdate() > 0;
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in setMustChangePassword for userId: " + userId, e);
         }
         return false;
     }
@@ -222,6 +302,11 @@ public class UserDAOImpl implements UserDAO {
         user.setEmailVerified(rs.getBoolean("is_email_verified"));
         user.setFailedLoginAttempts(rs.getInt("failed_login_attempts"));
         user.setLockoutUntil(rs.getTimestamp("lockout_until"));
+        try {
+            user.setMustChangePassword(rs.getBoolean("must_change_password"));
+        } catch (SQLException ignored) {
+            user.setMustChangePassword(false);
+        }
         user.setCreatedAt(rs.getTimestamp("created_at"));
         user.setUpdatedAt(rs.getTimestamp("updated_at"));
         return user;

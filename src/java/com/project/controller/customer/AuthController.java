@@ -19,7 +19,7 @@ import java.util.Optional;
  * Controller: Customer Authentication (Login, Register, Logout) (UC01)
  * Package: com.project.controller.customer
  */
-@WebServlet(name = "AuthController", urlPatterns = {"/login", "/register", "/logout"})
+@WebServlet(name = "AuthController", urlPatterns = {"/login", "/register", "/logout", "/forgot-password", "/force-change-password"})
 public class AuthController extends HttpServlet {
 
     private UserDAO userDAO;
@@ -41,6 +41,31 @@ public class AuthController extends HttpServlet {
                 session.invalidate();
             }
             response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
+        if ("/forgot-password".equals(path)) {
+            request.setAttribute("pageTitle", "Quên mật khẩu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgot-password.jsp").forward(request, response);
+            return;
+        }
+
+        if ("/force-change-password".equals(path)) {
+            HttpSession session = request.getSession(false);
+            User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+
+            if (currentUser == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+
+            if (!currentUser.isMustChangePassword()) {
+                redirectByRole(request, response, currentUser);
+                return;
+            }
+
+            request.setAttribute("pageTitle", "Đổi mật khẩu lần đầu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/force-change-password.jsp").forward(request, response);
             return;
         }
 
@@ -77,6 +102,10 @@ public class AuthController extends HttpServlet {
             handleLogin(request, response);
         } else if ("/register".equals(path)) {
             handleRegister(request, response);
+        } else if ("/forgot-password".equals(path)) {
+            handleForgotPassword(request, response);
+        } else if ("/force-change-password".equals(path)) {
+            handleForceChangePassword(request, response);
         }
     }
 
@@ -121,6 +150,12 @@ public class AuthController extends HttpServlet {
                 }
                 HttpSession session = request.getSession(true);
                 session.setAttribute("currentUser", user);
+
+                // If user logged in using temporary password, force change password immediately
+                if (user.isMustChangePassword()) {
+                    response.sendRedirect(request.getContextPath() + "/force-change-password");
+                    return;
+                }
 
                 redirectAfterAuth(request, response, user, redirect);
                 return;
@@ -240,5 +275,108 @@ public class AuthController extends HttpServlet {
             }
         }
         response.sendRedirect(redirectUrl);
+    }
+
+    private void handleForgotPassword(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String email = JSoupUtil.sanitizeText(request.getParameter("email"));
+        request.setAttribute("email", email);
+
+        if (email == null || email.trim().isEmpty()) {
+            request.setAttribute("errorMessage", "Vui lòng nhập địa chỉ Email.");
+            request.setAttribute("pageTitle", "Quên mật khẩu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgot-password.jsp").forward(request, response);
+            return;
+        }
+
+        Optional<User> userOpt = userDAO.findByEmail(email.trim());
+        if (!userOpt.isPresent()) {
+            request.setAttribute("errorMessage", "Địa chỉ email không tồn tại trong hệ thống.");
+            request.setAttribute("pageTitle", "Quên mật khẩu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgot-password.jsp").forward(request, response);
+            return;
+        }
+
+        User user = userOpt.get();
+        if (!user.isActive()) {
+            request.setAttribute("errorMessage", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Quản trị viên.");
+            request.setAttribute("pageTitle", "Quên mật khẩu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgot-password.jsp").forward(request, response);
+            return;
+        }
+
+        if (user.getAuthProvider() == User.AuthProvider.GOOGLE && (user.getPasswordHash() == null || user.getPasswordHash().trim().isEmpty())) {
+            request.setAttribute("errorMessage", "Tài khoản này được đăng ký bằng Google. Vui lòng sử dụng tính năng Đăng nhập với Google.");
+            request.setAttribute("pageTitle", "Quên mật khẩu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/forgot-password.jsp").forward(request, response);
+            return;
+        }
+
+        String tempPassword = PasswordUtil.generateRandomPassword(10);
+        String newHash = PasswordUtil.hashPassword(tempPassword);
+
+        boolean updated = userDAO.updatePassword(user.getUserId(), newHash, true);
+        if (updated) {
+            com.project.util.EmailUtil.sendForgotPasswordEmail(user.getEmail(), user.getFullName(), tempPassword);
+            request.setAttribute("successMessage", "Mật khẩu tạm thời đã được gửi thành công đến email: " + user.getEmail() + ". Vui lòng kiểm tra hòm thư và sử dụng mật khẩu này để đăng nhập.");
+            request.setAttribute("tempPasswordSent", true);
+            request.setAttribute("generatedTempPassword", tempPassword);
+        } else {
+            request.setAttribute("errorMessage", "Có lỗi xảy ra khi tạo mật khẩu mới. Vui lòng thử lại sau.");
+        }
+
+        request.setAttribute("pageTitle", "Quên mật khẩu - Smart Booking Platform");
+        request.getRequestDispatcher("/WEB-INF/views/customer/forgot-password.jsp").forward(request, response);
+    }
+
+    private void handleForceChangePassword(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        HttpSession session = request.getSession(false);
+        User currentUser = (session != null) ? (User) session.getAttribute("currentUser") : null;
+
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String newPassword = request.getParameter("newPassword");
+        String confirmPassword = request.getParameter("confirmPassword");
+
+        if (newPassword == null || newPassword.trim().isEmpty() || confirmPassword == null || confirmPassword.trim().isEmpty()) {
+            request.setAttribute("errorMessage", "Vui lòng nhập đầy đủ mật khẩu mới và xác nhận mật khẩu.");
+            request.setAttribute("pageTitle", "Đổi mật khẩu lần đầu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/force-change-password.jsp").forward(request, response);
+            return;
+        }
+
+        if (newPassword.length() < 6) {
+            request.setAttribute("errorMessage", "Mật khẩu mới phải có tối thiểu 6 ký tự.");
+            request.setAttribute("pageTitle", "Đổi mật khẩu lần đầu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/force-change-password.jsp").forward(request, response);
+            return;
+        }
+
+        if (!newPassword.equals(confirmPassword)) {
+            request.setAttribute("errorMessage", "Mật khẩu xác nhận không trùng khớp.");
+            request.setAttribute("pageTitle", "Đổi mật khẩu lần đầu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/force-change-password.jsp").forward(request, response);
+            return;
+        }
+
+        String newHash = PasswordUtil.hashPassword(newPassword);
+        boolean updated = userDAO.updatePassword(currentUser.getUserId(), newHash, false);
+
+        if (updated) {
+            currentUser.setPasswordHash(newHash);
+            currentUser.setMustChangePassword(false);
+            session.setAttribute("currentUser", currentUser);
+            redirectAfterAuth(request, response, currentUser, null);
+        } else {
+            request.setAttribute("errorMessage", "Đổi mật khẩu thất bại. Vui lòng thử lại sau.");
+            request.setAttribute("pageTitle", "Đổi mật khẩu lần đầu - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/force-change-password.jsp").forward(request, response);
+        }
     }
 }

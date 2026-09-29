@@ -61,6 +61,7 @@ CREATE TABLE users (
     is_email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     failed_login_attempts INT NOT NULL DEFAULT 0,
     lockout_until DATETIME NULL COMMENT 'Lockout account after 5 failed attempts',
+    must_change_password BOOLEAN NOT NULL DEFAULT FALSE COMMENT 'Force password change on first login after reset',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_user_email (email),

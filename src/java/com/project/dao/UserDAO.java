@@ -24,6 +24,10 @@ public interface UserDAO {
 
     boolean updatePassword(int userId, String newPasswordHash);
 
+    boolean updatePassword(int userId, String newPasswordHash, boolean mustChangePassword);
+
+    boolean setMustChangePassword(int userId, boolean mustChangePassword);
+
     boolean updateLockStatus(int userId, boolean isActive);
 
     List<User> findAll(int offset, int limit);
