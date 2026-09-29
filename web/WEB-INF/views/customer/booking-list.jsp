@@ -119,6 +119,25 @@
                                             Hủy đặt phòng
                                         </button>
                                     </c:if>
+
+                                    <%-- UC10: "Viết đánh giá" — chỉ hiện cho CHECKED_OUT chưa review --%>
+                                    <c:if test="${b.bookingStatus == 'CHECKED_OUT' and not reviewedBookingIds.contains(b.bookingId)}">
+                                        <a href="${pageContext.request.contextPath}/customer/review?bookingId=${b.bookingId}"
+                                           class="btn btn-warning btn-sm rounded-3 fw-semibold">
+                                            <i class="fa-solid fa-star me-1"></i> Viết đánh giá
+                                        </a>
+                                    </c:if>
+
+                                    <%-- UC10: Đã đánh giá → badge + nút Sửa --%>
+                                    <c:if test="${b.bookingStatus == 'CHECKED_OUT' and reviewedBookingIds.contains(b.bookingId)}">
+                                        <span class="badge bg-success-subtle text-success border border-success px-2 py-1">
+                                            <i class="fa-solid fa-circle-check me-1"></i> Đã đánh giá
+                                        </span>
+                                        <a href="${pageContext.request.contextPath}/customer/review?bookingId=${b.bookingId}"
+                                           class="btn btn-outline-primary btn-sm rounded-3">
+                                            <i class="fa-solid fa-pen-to-square me-1"></i> Sửa đánh giá
+                                        </a>
+                                    </c:if>
                                 </div>
                             </div>
                         </div>

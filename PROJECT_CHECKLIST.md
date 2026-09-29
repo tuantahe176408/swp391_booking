@@ -56,8 +56,12 @@
 - [x] Validate thông tin cập nhật hợp lệ (`DBContext.java`)
 - [x] Làm mới dữ liệu Session sau khi cập nhật Profile (`GoogleAuthConfig.java`)
 
-#### Nhóm 6: Đổi mật khẩu (Khoa - UC02)
+#### Nhóm 6: Đổi mật khẩu & Quên mật khẩu (Bình - UC02)
 - [x] Đổi mật khẩu với xác thực mật khẩu cũ và mã hóa BCrypt (`PasswordUtil.java`)
+- [x] **[MỚI]** Quên mật khẩu — gửi OTP qua Email (`EmailUtil.java`, `user_otps` table)
+- [x] Xác thực OTP 6 số, hết hạn sau 10 phút
+- [x] Đặt mật khẩu mới, hash BCrypt, update DB
+- [x] Redirect về login với flash success sau khi reset thành công
 
 #### Nhóm 7: Admin - Quản lý Người dùng (Thành - UC22)
 - [x] Danh sách người dùng (ID, Tên, Email, SĐT, Role, Status) (`AdminUserController.java`)
@@ -185,6 +189,26 @@
 - [x] Test tự động luồng Đặt phòng thông suốt (`IntegrationTestController.java`)
 - [x] Test tự động phát hiện xung đột trùng lặp phòng (`integration-tests.jsp`)
 - [x] Test tự động chữ ký bảo mật Cổng thanh toán (`PROJECT_CHECKLIST.md`)
+
+#### Nhóm 23: Khách hàng - Đánh giá & Xếp hạng Homestay (Sáng - UC10) ✨ **[MỚI]**
+- [x] Interface, DAO, Controller đánh giá từ đầu (`ReviewDAO.java`, `ReviewDAOImpl.java`, `ReviewController.java`)
+- [x] Form đánh giá 4 tiêu chí (Vệ sinh, Dịch vụ, Vị trí, Giá trị) với star widget JS-driven (`review-form.jsp`)
+- [x] Tính điểm tổng thể tự động = trung bình 4 tiêu chí (làm tròn 2 chữ số thập phân)
+- [x] Sanitize nội dung comment chống XSS bằng JSoup (`JSoupUtil.sanitizeText`)
+- [x] INSERT review + UPDATE `rating_avg` / `review_count` trên `homestays` trong cùng 1 transaction
+- [x] Guard chống duplicate: 1 booking chỉ được review 1 lần (UNIQUE constraint DB + `hasReviewed()` check)
+- [x] Chỉ cho phép đánh giá booking có status `CHECKED_OUT` (validate cả GET lẫn POST)
+- [x] **Edit review**: customer có thể sửa đánh giá đã gửi — `updateReview()` transaction + recalc rating_avg
+- [x] Form tự detect create vs edit mode dựa theo `reviewId` (`editMode`, tiêu đề động, nút "Gửi" / "Lưu thay đổi")
+- [x] Nút **⭐ Viết đánh giá** trong booking-list cho CHECKED_OUT chưa review
+- [x] Nút **✏️ Sửa đánh giá** + badge **✅ Đã đánh giá** trong booking-list cho đã review
+- [x] Section review đầy đủ trong booking-detail: 4 tiêu chí dạng grid, điểm tổng, comment, phản hồi owner
+- [x] Nút **Sửa đánh giá** trong booking-detail (outline-primary)
+- [x] Section "Đánh giá từ khách hàng" trên trang detail homestay: header tổng quan điểm + từng review card
+- [x] Render half-star (⯨) chính xác bằng JSTL math (`ratingOverall mod 1 >= 0.3`)
+- [x] Load-more "Xem thêm đánh giá": hiển thị 5 review đầu, bấm load thêm 5 mỗi lần, fade-in animation
+- [x] web.xml: bảo vệ `/customer/review` bằng `AuthenticationFilter`
+- [x] Seed data test UC10: 3 booking CHECKED_OUT chưa review (`seed_review_test.sql`)
 
 ---
 
