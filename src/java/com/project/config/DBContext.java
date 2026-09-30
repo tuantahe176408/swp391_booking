@@ -16,7 +16,7 @@ public class DBContext {
     private static final Logger LOGGER = Logger.getLogger(DBContext.class.getName());
 
     // ── Connection Parameters ─────────────────────────────────────────────────
-    // Priority: environment variable > db.properties on classpath > hardcoded default
+    // Priority: environment variable > application.properties on classpath > hardcoded default
     private static final String DB_HOST;
     private static final String DB_PORT;
     private static final String DB_NAME;
@@ -35,10 +35,10 @@ public class DBContext {
         String pass = System.getenv("DB_PASS");
         String ssl  = System.getenv("DB_SSL");
 
-        // 2. Fall back to db.properties on classpath
+        // 2. Fall back to application.properties on classpath
         if (host == null || user == null) {
             try (java.io.InputStream is = DBContext.class.getClassLoader()
-                    .getResourceAsStream("db.properties")) {
+                    .getResourceAsStream("application.properties")) {
                 if (is != null) {
                     java.util.Properties p = new java.util.Properties();
                     p.load(is);
@@ -77,7 +77,7 @@ public class DBContext {
      * Obtains a SQL Connection using JDBC DriverManager.
      * Always close Connection objects in a try-with-resources block.
      *
-     * SSL is controlled by the DB_SSL env var (or db.properties):
+     * SSL is controlled by the DB_SSL env var (or application.properties):
      *   DB_SSL=false  → local dev (default)
      *   DB_SSL=true   → cloud databases (TiDB Serverless, PlanetScale, Railway…)
      */

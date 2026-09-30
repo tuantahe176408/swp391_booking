@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  build-deploy.xml - Standalone WAR build for swp391_booking.
+  Produces dist/swp391_booking.war identical in content to the NetBeans build,
+  but without requiring the NetBeans IDE CopyLibs Ant task.
+  Usage: ant -f build-deploy.xml -Dj2ee.server.home=/opt/tomcat9
+-->
+<project name="swp391_booking-deploy" default="dist" basedir=".">
+
+    <property name="j2ee.server.home" value="/opt/tomcat9"/>
+    <property name="src.dir"          value="src/java"/>
+    <property name="web.dir"          value="web"/>
+    <property name="lib.dir"          value="${web.dir}/WEB-INF/lib"/>
+    <property name="build.dir"        value="build/web"/>
+    <property name="classes.dir"      value="${build.dir}/WEB-INF/classes"/>
+    <property name="dist.dir"         value="dist"/>
+    <property name="dist.war"         value="${dist.dir}/swp391_booking.war"/>
+    <property name="javac.source"     value="17"/>
+    <property name="javac.target"     value="17"/>
+
+    <!-- Compile classpath: project libs (incl. servlet-api, mysql connector) + Tomcat libs -->
+    <path id="compile.classpath">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${j2ee.server.home}/lib">
+            <include name="*.jar"/>
+        </fileset>
+        <fileset dir="${j2ee.server.home}/bin">
+            <include name="tomcat-juli.jar"/>
+        </fileset>
+    </path>
+
+    <target name="clean">
+        <delete dir="build"/>
+        <delete dir="${dist.dir}"/>
+    </target>
+
+    <target name="compile">
+        <mkdir dir="${classes.dir}"/>
+        <javac srcdir="${src.dir}"
+               destdir="${classes.dir}"
+               source="${javac.source}"
+               target="${javac.target}"
+               encoding="UTF-8"
+               includeantruntime="false"
+               debug="true">
+            <classpath refid="compile.classpath"/>
+        </javac>
+    </target>
+
+    <target name="copy-web" depends="compile">
+        <!-- Copy the entire web/ tree (JSPs, assets, WEB-INF/lib, web.xml) into build/web -->
+        <copy todir="${build.dir}">
+            <fileset dir="${web.dir}"/>
+        </copy>
+    </target>
+
+    <target name="dist" depends="copy-web" description="Build the WAR">
+        <mkdir dir="${dist.dir}"/>
+        <jar destfile="${dist.war}" basedir="${build.dir}"/>
+        <echo message="WAR built at ${dist.war}"/>
+    </target>
+</project>

@@ -1,0 +1,29 @@
+# ====================================================================
+# SMART BOOKING PLATFORM - APPLICATION CONFIGURATION TEMPLATE
+# Hướng dẫn: Copy file này thành src/java/application.properties và điền thông tin thực tế
+# ====================================================================
+
+# ── 1. Database Configuration (MySQL) ──────────────────────────────
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=smart_booking_db
+DB_USER=root
+DB_PASS=123456
+DB_SSL=false
+
+# ── 2. Cloudinary Configuration (Upload Ảnh) ───────────────────────
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
+
+# ── 3. Mail / SMTP Configuration (JavaMail API) ────────────────────
+mail.smtp.host=smtp.gmail.com
+mail.smtp.port=587
+mail.sender.email=your_email@gmail.com
+mail.sender.password=your_gmail_app_password
+mail.sender.name=Smart Booking Platform
+
+# ── 4. Google OAuth 2.0 (Social Login) ─────────────────────────────
+google.client.id=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
+google.client.secret=YOUR_GOOGLE_CLIENT_SECRET
+google.redirect.uri=http://localhost:8080/auth/google/callback

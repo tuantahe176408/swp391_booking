@@ -77,7 +77,7 @@ public class EmailUtil {
                 return false;
             }
         } else {
-            LOGGER.warning("[SMTP CHƯA CẤU HÌNH] Vui lòng cập nhật tài khoản và mật khẩu ứng dụng Gmail (16 ký tự) trong file 'mail.properties' để gửi email thực tế.");
+            LOGGER.warning("[SMTP CHƯA CẤU HÌNH] Vui lòng cập nhật tài khoản và mật khẩu ứng dụng Gmail (16 ký tự) trong file 'application.properties' để gửi email thực tế.");
             return true;
         }
     }
