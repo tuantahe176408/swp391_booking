@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 /**
  * Mail / SMTP Configuration Manager
- * Reads credentials from Classpath, System Properties, Environment Variables, or mail.properties
+ * Reads credentials from Classpath, System Properties, Environment Variables, or application.properties
  * Package: com.project.config
  */
 public class MailConfig {
@@ -25,11 +25,11 @@ public class MailConfig {
         PROPS.clear();
 
         String[] candidatePaths = new String[]{
-            "mail.properties",
-            "src/java/mail.properties",
-            "build/web/WEB-INF/classes/mail.properties",
-            "web/WEB-INF/mail.properties",
-            "../mail.properties"
+            "application.properties",
+            "src/java/application.properties",
+            "build/web/WEB-INF/classes/application.properties",
+            "web/WEB-INF/application.properties",
+            "../application.properties"
         };
 
         boolean configuredFileLoaded = false;
@@ -49,20 +49,20 @@ public class MailConfig {
                         PROPS.putAll(p);
                     }
                 } catch (Exception e) {
-                    LOGGER.log(Level.WARNING, "Failed reading mail.properties from " + path, e);
+                    LOGGER.log(Level.WARNING, "Failed reading mail config from " + path, e);
                 }
             }
         }
 
         if (!configuredFileLoaded) {
-            try (InputStream is = MailConfig.class.getClassLoader().getResourceAsStream("mail.properties")) {
+            try (InputStream is = MailConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
                 if (is != null) {
                     Properties cpProps = new Properties();
                     cpProps.load(is);
                     String email = cpProps.getProperty("mail.sender.email");
                     if (email != null && !email.contains("your_email") && !email.trim().isEmpty()) {
                         PROPS.putAll(cpProps);
-                        LOGGER.info("Mail configuration loaded from classpath (mail.properties).");
+                        LOGGER.info("Mail configuration loaded from classpath (application.properties).");
                     }
                 }
             } catch (Exception ignored) {}

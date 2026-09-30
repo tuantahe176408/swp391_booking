@@ -19,7 +19,7 @@ import java.util.logging.Logger;
  *
  * Config (priority order):
  *  1. Environment variables: CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET
- *  2. src/java/cloudinary.properties on classpath (same keys)
+ *  2. src/java/application.properties on classpath (same keys)
  *
  * Usage:
  *   String url = CloudinaryUtil.uploadImage(part.getInputStream(), part.getSubmittedFileName(), "homestays");
@@ -41,16 +41,16 @@ public class CloudinaryUtil {
 
         if (name == null || key == null || sec == null) {
             try (InputStream is = CloudinaryUtil.class.getClassLoader()
-                    .getResourceAsStream("cloudinary.properties")) {
+                    .getResourceAsStream("application.properties")) {
                 if (is != null) {
                     Properties p = new Properties();
                     p.load(is);
-                    if (name == null) name = p.getProperty("CLOUDINARY_CLOUD_NAME", "");
-                    if (key  == null) key  = p.getProperty("CLOUDINARY_API_KEY",    "");
-                    if (sec  == null) sec  = p.getProperty("CLOUDINARY_API_SECRET", "");
+                    if (name == null) name = p.getProperty("CLOUDINARY_CLOUD_NAME");
+                    if (key  == null) key  = p.getProperty("CLOUDINARY_API_KEY");
+                    if (sec  == null) sec  = p.getProperty("CLOUDINARY_API_SECRET");
                 }
             } catch (IOException e) {
-                LOGGER.log(Level.WARNING, "cloudinary.properties not found on classpath", e);
+                LOGGER.log(Level.WARNING, "application.properties not found on classpath", e);
             }
         }
 
@@ -60,7 +60,7 @@ public class CloudinaryUtil {
 
         if (CLOUD_NAME.isEmpty() || API_KEY.isEmpty() || API_SECRET.isEmpty()) {
             LOGGER.warning("[CloudinaryUtil] Credentials not configured — " +
-                           "set env vars or edit src/java/cloudinary.properties");
+                           "set env vars or edit src/java/application.properties");
         } else {
             LOGGER.info("[CloudinaryUtil] Loaded credentials for cloud: " + CLOUD_NAME);
         }

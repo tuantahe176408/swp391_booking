@@ -9,7 +9,7 @@ import java.util.logging.Logger;
 
 /**
  * Google OAuth 2.0 Configuration Constants
- * Reads credentials securely from Classpath, Environment Variables, System Properties, or local oauth.properties
+ * Reads credentials securely from Classpath, Environment Variables, System Properties, or local application.properties
  * Package: com.project.config
  */
 public class GoogleAuthConfig {
@@ -20,36 +20,31 @@ public class GoogleAuthConfig {
     static {
         boolean loaded = false;
 
-        // 1. Try loading from Classpath (e.g. WEB-INF/classes/oauth.properties)
-        try (InputStream is = GoogleAuthConfig.class.getClassLoader().getResourceAsStream("oauth.properties")) {
+        // 1. Try loading from Classpath (e.g. WEB-INF/classes/application.properties)
+        try (InputStream is = GoogleAuthConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
             if (is != null) {
-                PROPS.load(is);
-                loaded = true;
-                LOGGER.info("Google OAuth configuration loaded successfully from classpath (oauth.properties).");
+                Properties p = new Properties();
+                p.load(is);
+                String clientId = p.getProperty("google.client.id");
+                if (clientId != null && !clientId.contains("YOUR_GOOGLE_CLIENT_ID") && !clientId.trim().isEmpty()) {
+                    PROPS.putAll(p);
+                    loaded = true;
+                    LOGGER.info("Google OAuth configuration loaded successfully from classpath (application.properties).");
+                } else if (PROPS.isEmpty() && !p.isEmpty()) {
+                    PROPS.putAll(p);
+                }
             }
         } catch (Exception e) {
-            LOGGER.log(Level.FINE, "Could not load oauth.properties from classLoader", e);
-        }
-
-        if (!loaded) {
-            try (InputStream is = GoogleAuthConfig.class.getResourceAsStream("/oauth.properties")) {
-                if (is != null) {
-                    PROPS.load(is);
-                    loaded = true;
-                    LOGGER.info("Google OAuth configuration loaded from context stream (/oauth.properties).");
-                }
-            } catch (Exception e) {
-                LOGGER.log(Level.FINE, "Could not load /oauth.properties", e);
-            }
+            LOGGER.log(Level.FINE, "Could not load application.properties from classLoader", e);
         }
 
         // 2. Try loading from filesystem locations
         if (!loaded) {
             String[] candidatePaths = new String[]{
-                "oauth.properties",
-                "src/java/oauth.properties",
-                "web/WEB-INF/oauth.properties",
-                "../oauth.properties"
+                "application.properties",
+                "src/java/application.properties",
+                "web/WEB-INF/application.properties",
+                "../application.properties"
             };
 
             for (String path : candidatePaths) {
@@ -61,7 +56,7 @@ public class GoogleAuthConfig {
                         LOGGER.log(Level.INFO, "Google OAuth configuration loaded from file: {0}", file.getAbsolutePath());
                         break;
                     } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Failed reading oauth.properties from " + path, e);
+                        LOGGER.log(Level.WARNING, "Failed reading config from " + path, e);
                     }
                 }
             }

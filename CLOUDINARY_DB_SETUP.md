@@ -4,17 +4,19 @@
 
 | File | Loại | Mô tả |
 |---|---|---|
-| `src/java/cloudinary.properties` | Tạo mới | Credentials Cloudinary (gitignored) |
-| `src/java/db.properties` | Tạo mới | Credentials DB cloud (gitignored) |
-| `src/java/com/project/util/CloudinaryUtil.java` | Tạo mới | Upload/delete ảnh — pure Java HTTP, 0 JAR mới |
-| `src/java/com/project/config/DBContext.java` | Sửa | Hỗ trợ SSL + đọc db.properties |
+| `src/java/application.properties` | Tạo mới | Cấu hình tập trung toàn bộ (DB, Cloudinary, Mail, OAuth) - gitignored |
+| `application.properties.example` | Tạo mới | File template mẫu đẩy lên Git |
+| `src/java/com/project/util/CloudinaryUtil.java` | Sửa | Nạp credentials từ application.properties |
+| `src/java/com/project/config/DBContext.java` | Sửa | Hỗ trợ SSL + đọc application.properties |
+| `src/java/com/project/config/MailConfig.java` | Sửa | Đọc SMTP từ application.properties |
+| `src/java/com/project/config/GoogleAuthConfig.java` | Sửa | Đọc Google OAuth từ application.properties |
 | `src/java/com/project/dao/HomestayDAO.java` | Sửa | + 4 methods write cho homestay_images |
 | `src/java/com/project/dao/HomestayDAOImpl.java` | Sửa | Implement 4 methods: insert/delete/setPrimary/getById |
 | `src/java/com/project/controller/owner/OwnerHomestayEditController.java` | Sửa | `@MultipartConfig`, upload ảnh homestay, delete/set-primary |
 | `src/java/com/project/controller/customer/ProfileController.java` | Sửa | `@MultipartConfig`, upload avatar |
 | `web/WEB-INF/views/owner/homestay-edit.jsp` | Sửa | Image gallery + upload form + preview JS |
 | `web/WEB-INF/views/customer/profile.jsp` | Sửa | File upload + live preview + URL fallback |
-| `.gitignore` | Sửa | Thêm `cloudinary.properties`, `db.properties` |
+| `.gitignore` | Sửa | Thêm `application.properties`, bỏ qua các file properties bảo mật |
 
 ---
 

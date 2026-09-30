@@ -51,9 +51,17 @@ src/main/
 web/META-INF/context.xml
 
 # Local secrets & credentials
+application.properties
+src/java/application.properties
+!application.properties.example
 oauth.properties
-#cloudinary.properties
-#db.properties
+src/java/oauth.properties
+cloudinary.properties
+src/java/cloudinary.properties
+db.properties
+src/java/db.properties
+mail.properties
+src/java/mail.properties
 *.env
 .env.*
 config.local.properties
