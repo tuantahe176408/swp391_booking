@@ -4,8 +4,11 @@ import com.project.dao.BookingDAO;
 import com.project.dao.BookingDAOImpl;
 import com.project.dao.PaymentDAO;
 import com.project.dao.PaymentDAOImpl;
+import com.project.dao.ReviewDAO;
+import com.project.dao.ReviewDAOImpl;
 import com.project.model.Booking;
 import com.project.model.Payment;
+import com.project.model.Review;
 import com.project.model.User;
 import com.project.util.EmailUtil;
 import com.project.util.JSoupUtil;
@@ -19,6 +22,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Controller: Manage Customer Bookings & E-Tickets (UC09)
@@ -29,11 +33,13 @@ public class CustomerBookingController extends HttpServlet {
 
     private BookingDAO bookingDAO;
     private PaymentDAO paymentDAO;
+    private ReviewDAO reviewDAO;
 
     @Override
     public void init() throws ServletException {
         this.bookingDAO = new BookingDAOImpl();
         this.paymentDAO = new PaymentDAOImpl();
+        this.reviewDAO  = new ReviewDAOImpl();
     }
 
     @Override
@@ -83,7 +89,13 @@ public class CustomerBookingController extends HttpServlet {
 
         List<Booking> bookingList = bookingDAO.getBookingsByCustomerId(currentUser.getUserId());
 
+        // UC10: Pass set of already-reviewed booking IDs so the JSP can
+        // conditionally show the "Viết đánh giá" button only for un-reviewed
+        // CHECKED_OUT bookings.
+        Set<Integer> reviewedBookingIds = reviewDAO.getReviewedBookingIdsByCustomer(currentUser.getUserId());
+
         request.setAttribute("bookingList", bookingList);
+        request.setAttribute("reviewedBookingIds", reviewedBookingIds);
         request.setAttribute("activeTab", "bookings");
         request.setAttribute("pageTitle", "Đơn đặt phòng của tôi - Smart Booking Platform");
         request.getRequestDispatcher("/WEB-INF/views/customer/booking-list.jsp").forward(request, response);
@@ -116,6 +128,11 @@ public class CustomerBookingController extends HttpServlet {
             }
 
             List<Payment> payments = paymentDAO.getPaymentsByBookingId(bookingId);
+
+            // UC10: Load existing review for this booking (if any) for display
+            Optional<Review> reviewOpt = reviewDAO.getReviewByBookingId(bookingId);
+            reviewOpt.ifPresent(r -> request.setAttribute("review", r));
+
             request.setAttribute("booking", booking);
             request.setAttribute("payments", payments);
             request.setAttribute("pageTitle", "Chi tiết đơn đặt #" + booking.getBookingCode());

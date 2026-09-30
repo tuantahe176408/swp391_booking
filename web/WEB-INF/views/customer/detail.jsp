@@ -151,21 +151,92 @@
                 <!-- Reviews -->
                 <c:if test="${not empty homestay.reviews}">
                     <div class="mb-4">
-                        <h5 class="fw-bold mb-3">Đánh giá từ khách hàng</h5>
-                        <c:forEach var="rv" items="${homestay.reviews}" end="4">
-                            <div class="d-flex gap-3 mb-4">
-                                <div class="review-avatar">${rv.reviewerName != null ? rv.reviewerName.substring(0,1).toUpperCase() : 'K'}</div>
-                                <div>
-                                    <div class="fw-semibold">${rv.reviewerName}</div>
-                                    <div class="text-warning small mb-1">
-                                        <c:forEach begin="1" end="${rv.rating}"><i class="fa-solid fa-star"></i></c:forEach>
-                                        <span class="text-muted ms-1">${rv.createdAt}</span>
+                        <hr class="my-4">
+
+                        <%-- Header: tổng quan điểm --%>
+                        <div class="d-flex align-items-center gap-3 mb-4">
+                            <div class="text-center px-3 py-2 rounded-4 bg-warning-subtle border border-warning-subtle" style="min-width:80px;">
+                                <div class="fs-2 fw-bold text-warning lh-1">${homestay.ratingAvg}</div>
+                                <div class="text-muted small mt-1">/ 5.0</div>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">Đánh giá từ khách hàng</h5>
+                                <div class="text-warning mb-1">
+                                    <c:set var="hFullStars" value="${homestay.ratingAvg - (homestay.ratingAvg mod 1)}"/>
+                                    <c:set var="hHasHalf"   value="${(homestay.ratingAvg mod 1) >= 0.3}"/>
+                                    <c:forEach begin="1" end="${hFullStars}"><i class="fa-solid fa-star"></i></c:forEach>
+                                    <c:if test="${hHasHalf}"><i class="fa-solid fa-star-half-stroke"></i></c:if>
+                                </div>
+                                <span class="text-muted small">${homestay.reviewCount} đánh giá từ khách thực tế</span>
+                            </div>
+                        </div>
+
+                        <%-- Individual review cards — tất cả render server-side,
+                             ẩn từ index 5 trở đi, JS sẽ show dần khi bấm "Xem thêm" --%>
+                        <c:forEach var="rv" items="${homestay.reviews}" varStatus="rvStatus">
+                            <div class="review-card d-flex gap-3 mb-3 p-3 rounded-4 border bg-light"
+                                 <c:if test="${rvStatus.index >= 5}">style="display:none;"</c:if>>
+                                <div class="review-avatar flex-shrink-0">${not empty rv.customerName ? rv.customerName.substring(0,1).toUpperCase() : 'K'}</div>
+                                <div class="flex-grow-1 min-width-0">
+                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
+                                        <span class="fw-semibold">${rv.customerName}</span>
+                                        <span class="text-muted small"><fmt:formatDate value="${rv.createdAt}" pattern="dd/MM/yyyy"/></span>
                                     </div>
-                                    <p class="text-muted small mb-0">${rv.comment}</p>
+                                    <div class="text-warning small mb-2">
+                                        <c:set var="fullStars" value="${rv.ratingOverall - (rv.ratingOverall mod 1)}"/>
+                                        <c:set var="hasHalf"   value="${(rv.ratingOverall mod 1) >= 0.3}"/>
+                                        <c:forEach begin="1" end="${fullStars}"><i class="fa-solid fa-star"></i></c:forEach>
+                                        <c:if test="${hasHalf}"><i class="fa-solid fa-star-half-stroke"></i></c:if>
+                                        <span class="text-muted ms-1 fw-normal">${rv.ratingOverall}</span>
+                                    </div>
+                                    <p class="text-secondary small mb-0 lh-base">${rv.comment}</p>
                                 </div>
                             </div>
                         </c:forEach>
+
+                        <%-- Load-more button (ẩn nếu ≤ 5 review) --%>
+                        <c:if test="${homestay.reviewCount > 5}">
+                            <div class="text-center mt-3" id="reviewLoadMoreWrap">
+                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm"
+                                        id="reviewLoadMoreBtn" onclick="loadMoreReviews()">
+                                    <i class="fa-solid fa-chevron-down me-1"></i>
+                                    Xem thêm đánh giá
+                                    <span class="badge bg-secondary ms-1" id="reviewRemaining">
+                                        ${homestay.reviewCount - 5}
+                                    </span>
+                                </button>
+                            </div>
+                        </c:if>
                     </div>
+
+                    <script>
+                    (function () {
+                        var BATCH      = 5;
+                        var visible    = 5;
+                        var allCards   = document.querySelectorAll('.review-card');
+                        var total      = allCards.length;
+                        var wrap       = document.getElementById('reviewLoadMoreWrap');
+                        var badge      = document.getElementById('reviewRemaining');
+
+                        window.loadMoreReviews = function () {
+                            var limit = Math.min(visible + BATCH, total);
+                            for (var i = visible; i < limit; i++) {
+                                allCards[i].style.display = '';
+                                // Fade-in nhẹ
+                                allCards[i].style.opacity = '0';
+                                allCards[i].style.transition = 'opacity .25s';
+                                (function(el){ setTimeout(function(){ el.style.opacity = '1'; }, 20); })(allCards[i]);
+                            }
+                            visible = limit;
+
+                            if (visible >= total) {
+                                if (wrap) wrap.style.display = 'none';
+                            } else {
+                                if (badge) badge.textContent = total - visible;
+                            }
+                        };
+                    }());
+                    </script>
                 </c:if>
             </div>
 

@@ -95,6 +95,110 @@
                 </div>
             </div>
 
+            <!-- UC10: Review Section -->
+            <c:if test="${booking.bookingStatus == 'CHECKED_OUT'}">
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5 class="fw-bold mb-0">
+                                <i class="fa-solid fa-star me-2 text-warning"></i>Đánh giá của bạn
+                            </h5>
+                            <%-- Create button: only when no review yet --%>
+                            <c:if test="${empty review}">
+                                <a href="${pageContext.request.contextPath}/customer/review?bookingId=${booking.bookingId}"
+                                   class="btn btn-warning btn-sm rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> Viết đánh giá
+                                </a>
+                            </c:if>
+                            <%-- Edit button: only when review already exists --%>
+                            <c:if test="${not empty review}">
+                                <a href="${pageContext.request.contextPath}/customer/review?bookingId=${booking.bookingId}"
+                                   class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                                    <i class="fa-solid fa-pen-to-square me-1"></i> Sửa đánh giá
+                                </a>
+                            </c:if>
+                        </div>
+
+                        <c:choose>
+                            <%-- ── Đã có review: hiển thị đầy đủ ── --%>
+                            <c:when test="${not empty review}">
+                                <%-- Dimension ratings grid --%>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-2 bg-light rounded-3 text-center">
+                                            <div class="text-muted small mb-1">Vệ sinh</div>
+                                            <div class="fw-bold text-warning">${review.ratingCleanliness} <i class="fa-solid fa-star small"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-2 bg-light rounded-3 text-center">
+                                            <div class="text-muted small mb-1">Dịch vụ</div>
+                                            <div class="fw-bold text-warning">${review.ratingService} <i class="fa-solid fa-star small"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-2 bg-light rounded-3 text-center">
+                                            <div class="text-muted small mb-1">Vị trí</div>
+                                            <div class="fw-bold text-warning">${review.ratingLocation} <i class="fa-solid fa-star small"></i></div>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-3">
+                                        <div class="p-2 bg-light rounded-3 text-center">
+                                            <div class="text-muted small mb-1">Giá trị</div>
+                                            <div class="fw-bold text-warning">${review.ratingValue} <i class="fa-solid fa-star small"></i></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <%-- Overall score --%>
+                                <div class="d-flex align-items-center gap-3 mb-3 p-3 rounded-3" style="background:#fffbeb;">
+                                    <div class="display-6 fw-bold text-warning">${review.ratingOverall}</div>
+                                    <div>
+                                        <div class="text-warning mb-1">
+                                            <c:set var="rvFull" value="${review.ratingOverall - (review.ratingOverall mod 1)}"/>
+                                            <c:set var="rvHalf" value="${(review.ratingOverall mod 1) >= 0.3}"/>
+                                            <c:forEach begin="1" end="${rvFull}"><i class="fa-solid fa-star"></i></c:forEach>
+                                            <c:if test="${rvHalf}"><i class="fa-solid fa-star-half-stroke"></i></c:if>
+                                        </div>
+                                        <small class="text-muted">
+                                            Gửi lúc <fmt:formatDate value="${review.createdAt}" pattern="dd/MM/yyyy HH:mm"/>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <%-- Comment --%>
+                                <blockquote class="blockquote bg-light rounded-3 p-3 mb-3 border-start border-warning border-3">
+                                    <p class="mb-0 text-secondary fst-italic">"${review.comment}"</p>
+                                </blockquote>
+
+                                <%-- Owner reply (if exists) --%>
+                                <c:if test="${not empty review.ownerReply}">
+                                    <div class="p-3 rounded-3 border" style="background:#f0fdf4;">
+                                        <div class="d-flex align-items-center gap-2 mb-2">
+                                            <i class="fa-solid fa-house-user text-success"></i>
+                                            <span class="fw-semibold text-success small">Phản hồi từ Chủ nhà</span>
+                                            <small class="text-muted ms-auto">
+                                                <fmt:formatDate value="${review.ownerRepliedAt}" pattern="dd/MM/yyyy"/>
+                                            </small>
+                                        </div>
+                                        <p class="mb-0 text-secondary small">${review.ownerReply}</p>
+                                    </div>
+                                </c:if>
+                            </c:when>
+
+                            <%-- ── Chưa có review ── --%>
+                            <c:otherwise>
+                                <div class="text-center py-3 text-muted">
+                                    <i class="fa-regular fa-star fa-2x mb-2 d-block text-warning"></i>
+                                    <p class="mb-1">Bạn chưa gửi đánh giá cho kỳ lưu trú này.</p>
+                                    <small>Đánh giá giúp các du khách khác lựa chọn tốt hơn và hỗ trợ chủ nhà cải thiện dịch vụ.</small>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </div>
+                </div>
+            </c:if>
+
             <!-- Payment History -->
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
                 <div class="card-body p-4">
