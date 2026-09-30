@@ -1,27 +1,80 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
-<div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
-    <div class="d-flex align-items-center gap-3 pb-3 border-bottom mb-3">
-        <div class="rounded-circle bg-info-subtle text-info p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
-            <i class="fa-solid fa-concierge-bell fs-4"></i>
+<aside class="owner-sidebar reception-sidebar">
+    <!-- Brand -->
+    <div class="owner-sidebar__brand">
+        <div class="owner-sidebar__brand-icon" style="background:rgba(8,145,178,.25); color:#67e8f9;">
+            <i class="fa-solid fa-concierge-bell"></i>
         </div>
-        <div>
-            <h6 class="fw-bold mb-0 text-dark">Bàn Lễ Tân</h6>
-            <small class="text-muted">Đón tiếp & Quản lý Phòng</small>
+        <div class="owner-sidebar__brand-text">
+            <span class="owner-sidebar__brand-title">Bàn Lễ Tân</span>
+            <span class="owner-sidebar__brand-sub">Smart Booking Platform</span>
         </div>
     </div>
-    <div class="nav flex-column nav-pills gap-1">
-        <a class="nav-link ${activeTab == 'checkin' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/checkin">
-            <i class="fa-solid fa-passport me-2"></i> Check-in / Out & Scan OCR
+
+    <!-- Profile -->
+    <div class="owner-sidebar__profile">
+        <c:choose>
+            <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
+                <img src="${sessionScope.currentUser.avatarUrl}"
+                     class="owner-sidebar__avatar" alt="Avatar"
+                     onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
+            </c:when>
+            <c:otherwise>
+                <div class="owner-sidebar__avatar-fallback" style="background:#0891b2;">
+                    ${not empty sessionScope.currentUser ? sessionScope.currentUser.fullName.substring(0,1).toUpperCase() : 'R'}
+                </div>
+            </c:otherwise>
+        </c:choose>
+        <div class="owner-sidebar__profile-info">
+            <span class="owner-sidebar__profile-name">
+                ${not empty sessionScope.currentUser ? sessionScope.currentUser.fullName : 'Lễ Tân'}
+            </span>
+            <span class="owner-sidebar__profile-role">
+                <i class="fa-solid fa-circle-check me-1" style="color:#34d399;font-size:.65rem;"></i>Lễ tân xác minh
+            </span>
+        </div>
+    </div>
+
+    <!-- Nav -->
+    <nav class="owner-sidebar__nav">
+        <div class="owner-sidebar__group-label">Đón tiếp &amp; Quản lý Phòng</div>
+
+        <a class="owner-sidebar__link ${activeTab == 'checkin' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/reception/checkin">
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-passport"></i></span>
+            <span class="owner-sidebar__link-text">Check-in / Out &amp; Scan OCR</span>
+            <c:if test="${activeTab == 'checkin'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
-        <a class="nav-link ${activeTab == 'matrix' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/matrix">
-            <i class="fa-solid fa-table-cells me-2"></i> Ma trận Trạng thái Phòng
+
+        <a class="owner-sidebar__link ${activeTab == 'matrix' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/reception/matrix">
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-table-cells"></i></span>
+            <span class="owner-sidebar__link-text">Ma trận Trạng thái Phòng</span>
+            <c:if test="${activeTab == 'matrix'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
-        <a class="nav-link ${activeTab == 'walkin' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/walk-in">
-            <i class="fa-solid fa-person-walking-luggage me-2"></i> Đặt phòng Khách Vãng lai
+
+        <a class="owner-sidebar__link ${activeTab == 'walkin' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/reception/walk-in">
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-person-walking-luggage"></i></span>
+            <span class="owner-sidebar__link-text">Đặt phòng Khách Vãng lai</span>
+            <c:if test="${activeTab == 'walkin'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
-        <a class="nav-link ${activeTab == 'housekeeping' ? 'active bg-info text-white' : 'text-dark'}" href="${pageContext.request.contextPath}/reception/daily-report">
-            <i class="fa-solid fa-broom me-2"></i> Báo cáo Tạm trú & Dọn dẹp
+
+        <div class="owner-sidebar__group-label">Báo cáo &amp; Vệ sinh</div>
+
+        <a class="owner-sidebar__link ${activeTab == 'housekeeping' || activeTab == 'report' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/reception/daily-report">
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-broom"></i></span>
+            <span class="owner-sidebar__link-text">Báo cáo Tạm trú &amp; Dọn dẹp</span>
+            <c:if test="${activeTab == 'housekeeping' || activeTab == 'report'}"><span class="owner-sidebar__link-dot"></span></c:if>
+        </a>
+    </nav>
+
+    <!-- Footer -->
+    <div class="owner-sidebar__footer">
+        <a href="${pageContext.request.contextPath}/logout" class="owner-sidebar__logout-link">
+            <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
         </a>
     </div>
-</div>
+</aside>

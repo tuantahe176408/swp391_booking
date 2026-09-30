@@ -1,4 +1,5 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <footer>
     <div class="container">
         <div class="row gy-4">
@@ -16,24 +17,50 @@
                     <li><a href="${pageContext.request.contextPath}/contact">Liên hệ hỗ trợ</a></li>
                 </ul>
             </div>
+
+            <%-- Cột "Dành cho Đối tác": hiển thị link theo role, tránh 403 --%>
             <div class="col-lg-3 col-md-6">
                 <h6 class="text-white mb-3">Dành cho Đối tác</h6>
                 <ul class="list-unstyled">
-                    <li><a href="${pageContext.request.contextPath}/owner/homestays">Đăng tin cho thuê</a></li>
-                    <li><a href="${pageContext.request.contextPath}/owner/calendar">Quản lý lịch & giá</a></li>
-                    <li><a href="${pageContext.request.contextPath}/reception/checkin">Giao diện Lễ tân</a></li>
+
+                    <%-- OWNER: quản lý homestay, lịch & giá, đơn đặt, phân tích --%>
+                    <c:if test="${sessionScope.currentUser.role == 'OWNER' or sessionScope.currentUser.role == 'ADMIN'}">
+                        <li><a href="${pageContext.request.contextPath}/owner/homestays">Quản lý Homestay</a></li>
+                        <li><a href="${pageContext.request.contextPath}/owner/calendar">Lịch &amp; Giá</a></li>
+                        <li><a href="${pageContext.request.contextPath}/owner/bookings">Đơn đặt phòng</a></li>
+                        <li><a href="${pageContext.request.contextPath}/owner/analytics">Doanh thu &amp; Thống kê</a></li>
+                    </c:if>
+
+                    <%-- RECEPTIONIST: giao diện lễ tân, ma trận phòng --%>
+                    <c:if test="${sessionScope.currentUser.role == 'RECEPTIONIST' or sessionScope.currentUser.role == 'ADMIN'}">
+                        <li><a href="${pageContext.request.contextPath}/reception/checkin">Giao diện Lễ tân</a></li>
+                        <li><a href="${pageContext.request.contextPath}/reception/room-matrix">Ma trận phòng</a></li>
+                    </c:if>
+
+                    <%-- ADMIN: quản trị hệ thống --%>
+                    <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
+                        <li><a href="${pageContext.request.contextPath}/admin/users">Quản trị hệ thống</a></li>
+                    </c:if>
+
+                    <%-- Khách hàng / chưa đăng nhập: CTA trở thành đối tác --%>
+                    <c:if test="${empty sessionScope.currentUser or sessionScope.currentUser.role == 'CUSTOMER'}">
+                        <li class="mb-2" style="opacity:.75; font-size:.85rem;">Bạn muốn đăng tin cho thuê?</li>
+                        <li><a href="${pageContext.request.contextPath}/contact">Liên hệ trở thành Đối tác</a></li>
+                    </c:if>
+
                 </ul>
             </div>
+
             <div class="col-lg-3 col-md-6">
                 <h6 class="text-white mb-3">Liên hệ & Hỗ trợ</h6>
                 <p><i class="fa-solid fa-location-dot me-2 text-primary"></i>FPT University, Hoa Lac Hi-tech Park, CT03</p>
-                <p><i class="fa-solid fa-envelope me-2 text-primary"></i>support@smartbooking.com</p>
+                <p><i class="fa-solid fa-envelope me-2 text-primary"></i>smartbookingg@gmail.com</p>
                 <p><i class="fa-solid fa-phone me-2 text-primary"></i>(024) 7300 5588</p>
             </div>
         </div>
         <hr class="border-secondary my-4">
         <div class="text-center">
-            <p class="mb-0">&copy; 2026 Smart Booking Platform. All rights reserved. (SWP391 JSP/Servlet NetBeans MVC Architecture)</p>
+            <p class="mb-0">&copy; 2026 Smart Booking Platform. All rights reserved.</p>
         </div>
     </div>
 </footer>

@@ -113,11 +113,8 @@
 
     </nav>
 
-    <!-- Footer: Back to Site -->
+    <!-- Footer: Logout only — link chuyển trang gom vào user dropdown topbar -->
     <div class="owner-sidebar__footer">
-        <a href="${pageContext.request.contextPath}/home" class="owner-sidebar__back-link">
-            <i class="fa-solid fa-arrow-left me-2"></i>Về trang khách hàng
-        </a>
         <a href="${pageContext.request.contextPath}/logout" class="owner-sidebar__logout-link">
             <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
         </a>
