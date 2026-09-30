@@ -41,7 +41,9 @@
                         </div>
                     </c:if>
 
-                    <form action="${pageContext.request.contextPath}/customer/profile" method="POST">
+                    <%-- enctype="multipart/form-data" required for avatar file upload --%>
+                    <form action="${pageContext.request.contextPath}/customer/profile"
+                          method="POST" enctype="multipart/form-data" id="profileForm">
                         <h5 class="fw-bold text-dark border-bottom pb-2 mb-4">
                             <i class="fa-solid fa-user-pen text-primary me-2"></i>Thông tin cá nhân & Sở thích
                         </h5>
@@ -59,9 +61,46 @@
                                 <label class="form-label fw-semibold">Email liên hệ (Cố định)</label>
                                 <input type="email" class="form-control rounded-3 bg-light" value="${sessionScope.currentUser.email}" readonly>
                             </div>
+
+                            <%-- ── Avatar Upload ──────────────────────────────────────── --%>
                             <div class="col-md-12">
-                                <label class="form-label fw-semibold">Ảnh đại diện (URL / Cloudinary)</label>
-                                <input type="url" name="avatarUrl" class="form-control rounded-3" value="${sessionScope.currentUser.avatarUrl}" placeholder="https://res.cloudinary.com/...">
+                                <label class="form-label fw-semibold">
+                                    <i class="fa-regular fa-image me-1"></i>Ảnh đại diện
+                                </label>
+                                <div class="d-flex align-items-center gap-3 p-3 rounded-3 border bg-light">
+                                    <%-- Live preview (updates via JS when file is chosen) --%>
+                                    <c:choose>
+                                        <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
+                                            <img id="avatarPreview"
+                                                 src="${sessionScope.currentUser.avatarUrl}"
+                                                 class="rounded-circle border shadow-sm object-fit-cover"
+                                                 width="72" height="72" alt="Preview"
+                                                 onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
+                                        </c:when>
+                                        <c:otherwise>
+                                            <img id="avatarPreview"
+                                                 src="${pageContext.request.contextPath}/assets/images/default-avatar.svg"
+                                                 class="rounded-circle border shadow-sm object-fit-cover"
+                                                 width="72" height="72" alt="Preview">
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <div class="flex-grow-1">
+                                        <%-- File upload input --%>
+                                        <label class="btn btn-outline-primary btn-sm mb-1" for="avatarFile">
+                                            <i class="fa-solid fa-upload me-1"></i>Chọn ảnh từ máy
+                                        </label>
+                                        <input type="file" id="avatarFile" name="avatarFile"
+                                               accept="image/jpeg,image/png,image/gif,image/webp"
+                                               class="d-none" onchange="previewAvatar(this)">
+                                        <div class="form-text mb-2">JPG, PNG, GIF, WebP — tối đa 5 MB. Tự động tải lên Cloudinary.</div>
+
+                                        <%-- Optional: keep URL fallback (paste Cloudinary URL manually) --%>
+                                        <input type="url" name="avatarUrl" id="avatarUrl"
+                                               class="form-control form-control-sm rounded-3"
+                                               value="${sessionScope.currentUser.avatarUrl}"
+                                               placeholder="Hoặc dán URL ảnh trực tiếp…">
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="col-12 mt-4">
@@ -143,5 +182,33 @@
         </div>
     </div>
 </div>
+
+<script>
+/**
+ * Live preview: when user picks a file, show it immediately in the preview img.
+ * Also clears the URL text field so the server knows to use the uploaded file.
+ */
+function previewAvatar(input) {
+    if (!input.files || !input.files[0]) return;
+    var file = input.files[0];
+    if (!file.type.startsWith('image/')) {
+        alert('Vui lòng chọn file ảnh (JPG, PNG, GIF, WebP).');
+        input.value = '';
+        return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File ảnh không được vượt quá 5 MB.');
+        input.value = '';
+        return;
+    }
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        document.getElementById('avatarPreview').src = e.target.result;
+        // Clear URL field so server uses the uploaded file instead
+        document.getElementById('avatarUrl').value = '';
+    };
+    reader.readAsDataURL(file);
+}
+</script>
 
 <jsp:include page="../common/footer.jsp"/>
