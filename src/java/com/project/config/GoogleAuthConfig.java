@@ -18,46 +18,42 @@ public class GoogleAuthConfig {
     private static final Properties PROPS = new Properties();
 
     static {
+        loadProperties();
+    }
+
+    public static synchronized void loadProperties() {
+        PROPS.clear();
         boolean loaded = false;
 
         // 1. Try loading from Classpath (e.g. WEB-INF/classes/application.properties)
         try (InputStream is = GoogleAuthConfig.class.getClassLoader().getResourceAsStream("application.properties")) {
             if (is != null) {
-                Properties p = new Properties();
-                p.load(is);
-                String clientId = p.getProperty("google.client.id");
-                if (clientId != null && !clientId.contains("YOUR_GOOGLE_CLIENT_ID") && !clientId.trim().isEmpty()) {
-                    PROPS.putAll(p);
-                    loaded = true;
-                    LOGGER.info("Google OAuth configuration loaded successfully from classpath (application.properties).");
-                } else if (PROPS.isEmpty() && !p.isEmpty()) {
-                    PROPS.putAll(p);
-                }
+                PROPS.load(is);
+                loaded = true;
             }
         } catch (Exception e) {
             LOGGER.log(Level.FINE, "Could not load application.properties from classLoader", e);
         }
 
         // 2. Try loading from filesystem locations
-        if (!loaded) {
-            String[] candidatePaths = new String[]{
-                "application.properties",
-                "src/java/application.properties",
-                "web/WEB-INF/application.properties",
-                "../application.properties"
-            };
+        String[] candidatePaths = new String[]{
+            "application.properties",
+            "src/java/application.properties",
+            "web/WEB-INF/application.properties",
+            "../application.properties"
+        };
 
-            for (String path : candidatePaths) {
-                File file = new File(path);
-                if (file.exists() && file.isFile()) {
-                    try (InputStream is = new FileInputStream(file)) {
-                        PROPS.load(is);
-                        loaded = true;
-                        LOGGER.log(Level.INFO, "Google OAuth configuration loaded from file: {0}", file.getAbsolutePath());
-                        break;
-                    } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, "Failed reading config from " + path, e);
-                    }
+        for (String path : candidatePaths) {
+            File file = new File(path);
+            if (file.exists() && file.isFile()) {
+                try (InputStream is = new FileInputStream(file)) {
+                    Properties p = new Properties();
+                    p.load(is);
+                    PROPS.putAll(p);
+                    loaded = true;
+                    break;
+                } catch (Exception e) {
+                    LOGGER.log(Level.FINE, "Failed reading config from " + path, e);
                 }
             }
         }
@@ -72,6 +68,7 @@ public class GoogleAuthConfig {
         if (sysProp != null && !sysProp.trim().isEmpty()) {
             return sysProp.trim();
         }
+        loadProperties();
         String fileProp = PROPS.getProperty(propKey);
         if (fileProp != null && !fileProp.trim().isEmpty()) {
             return fileProp.trim();
@@ -94,8 +91,20 @@ public class GoogleAuthConfig {
     public static final String GOOGLE_REDIRECT_URI = getSetting(
             "GOOGLE_REDIRECT_URI",
             "google.redirect.uri",
-            "http://localhost:8080/auth/google/callback"
+            "http://localhost:8080/swp391_booking/auth/google/callback"
     );
+
+    public static String getClientId() {
+        return getSetting("GOOGLE_CLIENT_ID", "google.client.id", GOOGLE_CLIENT_ID);
+    }
+
+    public static String getClientSecret() {
+        return getSetting("GOOGLE_CLIENT_SECRET", "google.client.secret", GOOGLE_CLIENT_SECRET);
+    }
+
+    public static String getRedirectUri() {
+        return getSetting("GOOGLE_REDIRECT_URI", "google.redirect.uri", GOOGLE_REDIRECT_URI);
+    }
 
     public static final String GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
     public static final String GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";

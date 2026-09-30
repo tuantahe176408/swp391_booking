@@ -26,4 +26,4 @@ mail.sender.name=Smart Booking Platform
 # ── 4. Google OAuth 2.0 (Social Login) ─────────────────────────────
 google.client.id=YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com
 google.client.secret=YOUR_GOOGLE_CLIENT_SECRET
-google.redirect.uri=http://localhost:8080/auth/google/callback
+google.redirect.uri=http://localhost:8080/swp391_booking/auth/google/callback
