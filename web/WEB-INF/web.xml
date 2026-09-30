@@ -30,6 +30,7 @@
         <url-pattern>/admin/*</url-pattern>
         <url-pattern>/owner/*</url-pattern>
         <url-pattern>/reception/*</url-pattern>
+        <url-pattern>/profile</url-pattern>
         <url-pattern>/customer/profile</url-pattern>
         <url-pattern>/customer/bookings</url-pattern>
         <url-pattern>/customer/recommendations</url-pattern>

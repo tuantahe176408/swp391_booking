@@ -32,7 +32,12 @@
         </h1>
     </div>
 
-    <div class="owner-topbar__right">
+    <div class="owner-topbar__right d-flex align-items-center gap-2">
+        <!-- Quick Switch to Guest / Home View -->
+        <a href="${pageContext.request.contextPath}/home" class="btn btn-sm btn-outline-primary rounded-pill px-3 py-1.5 fw-semibold d-none d-md-inline-flex align-items-center gap-1.5" title="Xem giao diện khách du lịch trên sàn">
+            <i class="fa-solid fa-house"></i> Trang Khách Hàng
+        </a>
+
         <!-- User dropdown -->
         <div class="owner-topbar__user-menu dropdown">
             <button class="owner-topbar__user-btn dropdown-toggle" type="button"
@@ -61,20 +66,20 @@
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>
                 <li>
-                    <a class="dropdown-item" href="${pageContext.request.contextPath}/customer/profile">
+                    <a class="dropdown-item" href="${pageContext.request.contextPath}/profile">
                         <i class="fa-regular fa-user me-2 text-muted"></i>Hồ sơ cá nhân
                     </a>
                 </li>
                 <li>
                     <a class="dropdown-item" href="${pageContext.request.contextPath}/owner/homestays">
-                        <i class="fa-solid fa-building-user me-2 text-primary"></i>Cơ sở của tôi
+                        <i class="fa-solid fa-house-user me-2 text-primary"></i>Cơ sở của tôi
                     </a>
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>
                 <%-- Chuyển sang giao diện khách hàng (browse/book như customer bình thường) --%>
                 <li>
                     <a class="dropdown-item" href="${pageContext.request.contextPath}/home">
-                        <i class="fa-solid fa-compass me-2 text-success"></i>Khám phá Homestay
+                        <i class="fa-solid fa-house me-2 text-primary"></i>Trang Khách Hàng
                     </a>
                 </li>
                 <li><hr class="dropdown-divider my-1"></li>

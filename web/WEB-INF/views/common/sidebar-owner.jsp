@@ -13,7 +13,7 @@
     </div>
 
     <!-- Owner Profile Pill -->
-    <div class="owner-sidebar__profile">
+    <a href="${pageContext.request.contextPath}/profile" class="owner-sidebar__profile text-decoration-none" title="Xem hồ sơ cá nhân">
         <c:choose>
             <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
                 <img src="${sessionScope.currentUser.avatarUrl}"
@@ -35,7 +35,7 @@
                 <i class="fa-solid fa-circle-check me-1" style="color:#34d399;font-size:.65rem;"></i>Chủ nhà xác minh
             </span>
         </div>
-    </div>
+    </a>
 
     <!-- Nav Groups -->
     <nav class="owner-sidebar__nav">
@@ -113,8 +113,11 @@
 
     </nav>
 
-    <!-- Footer: Logout only — link chuyển trang gom vào user dropdown topbar -->
-    <div class="owner-sidebar__footer">
+    <!-- Footer: Home & Logout links -->
+    <div class="owner-sidebar__footer d-flex flex-column gap-2">
+        <a href="${pageContext.request.contextPath}/home" class="owner-sidebar__logout-link" style="color:#93c5fd;" title="Xem giao diện khách du lịch">
+            <i class="fa-solid fa-house me-2"></i>Trang Khách Hàng
+        </a>
         <a href="${pageContext.request.contextPath}/logout" class="owner-sidebar__logout-link">
             <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
         </a>

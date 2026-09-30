@@ -7,13 +7,13 @@
             <i class="fa-solid fa-concierge-bell"></i>
         </div>
         <div class="owner-sidebar__brand-text">
-            <span class="owner-sidebar__brand-title">Bàn Lễ Tân</span>
+            <span class="owner-sidebar__brand-title">Portal Lễ Tân</span>
             <span class="owner-sidebar__brand-sub">Smart Booking Platform</span>
         </div>
     </div>
 
     <!-- Profile -->
-    <div class="owner-sidebar__profile">
+    <a href="${pageContext.request.contextPath}/profile" class="owner-sidebar__profile text-decoration-none" title="Xem hồ sơ cá nhân">
         <c:choose>
             <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
                 <img src="${sessionScope.currentUser.avatarUrl}"
@@ -34,7 +34,7 @@
                 <i class="fa-solid fa-circle-check me-1" style="color:#34d399;font-size:.65rem;"></i>Lễ tân xác minh
             </span>
         </div>
-    </div>
+    </a>
 
     <!-- Nav -->
     <nav class="owner-sidebar__nav">
@@ -72,7 +72,10 @@
     </nav>
 
     <!-- Footer -->
-    <div class="owner-sidebar__footer">
+    <div class="owner-sidebar__footer d-flex flex-column gap-2">
+        <a href="${pageContext.request.contextPath}/home" class="owner-sidebar__logout-link" style="color:#67e8f9;" title="Xem giao diện khách du lịch">
+            <i class="fa-solid fa-house me-2"></i>Trang Khách Hàng
+        </a>
         <a href="${pageContext.request.contextPath}/logout" class="owner-sidebar__logout-link">
             <i class="fa-solid fa-right-from-bracket me-2"></i>Đăng xuất
         </a>

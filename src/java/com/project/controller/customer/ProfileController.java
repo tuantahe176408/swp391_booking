@@ -32,7 +32,7 @@ import java.util.logging.Logger;
  *
  * Package: com.project.controller.customer
  */
-@WebServlet(name = "ProfileController", urlPatterns = {"/customer/profile"})
+@WebServlet(name = "ProfileController", urlPatterns = {"/profile", "/customer/profile"})
 @MultipartConfig(
     fileSizeThreshold = 512 * 1024,       // 512 KB buffer before disk
     maxFileSize       = 5 * 1024 * 1024,  // 5 MB per avatar
