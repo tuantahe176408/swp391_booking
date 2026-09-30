@@ -1,6 +1,7 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c"   uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
+<%@ taglib prefix="fn"  uri="http://java.sun.com/jsp/jstl/functions" %>
 <jsp:include page="../common/header.jsp"/>
 
 <div class="owner-shell">
@@ -58,8 +59,10 @@
 
             <!-- Edit Form -->
             <div class="owner-card">
+                <%-- enctype="multipart/form-data" enables image file uploads alongside text fields --%>
                 <form method="post"
                       action="${pageContext.request.contextPath}/owner/homestays/edit"
+                      enctype="multipart/form-data"
                       novalidate id="homestayEditForm">
                     <input type="hidden" name="isNew"      value="${isNew}">
                     <input type="hidden" name="homestayId" value="${homestay.homestayId}">
@@ -178,6 +181,116 @@
 
                     </div><%-- /row --%>
 
+                    <%-- ═══════════════════════════════════════════════════════
+                         IMAGE MANAGEMENT — Upload to Cloudinary
+                         New images: attach files below (uploaded on Save)
+                         Existing images: delete / set as primary via action buttons
+                    ═══════════════════════════════════════════════════════ --%>
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-3">
+                            <i class="fa-regular fa-images text-primary me-2"></i>Ảnh Homestay
+                            <span class="text-muted fw-normal" style="font-size:.8rem;">(Lưu trên Cloudinary · Tối đa 6 ảnh, mỗi ảnh ≤ 10 MB)</span>
+                        </h6>
+
+                        <%-- ── Upload new images ── --%>
+                        <div class="mb-3">
+                            <label class="form-label" style="font-size:.85rem;font-weight:600;">
+                                Thêm ảnh mới
+                            </label>
+                            <input type="file" name="images" id="imageUploadInput"
+                                   accept="image/jpeg,image/png,image/gif,image/webp"
+                                   multiple
+                                   class="form-control"
+                                   onchange="previewNewImages(this)">
+                            <div class="form-text">JPG, PNG, GIF, WebP. Chọn nhiều file cùng lúc. Ảnh đầu tiên sẽ tự động là ảnh đại diện nếu chưa có.</div>
+                        </div>
+
+                        <%-- ── New-image preview strip (populated by JS) ── --%>
+                        <div id="newImagePreview" class="d-flex flex-wrap gap-2 mb-3"></div>
+
+                        <%-- ── Existing images (edit page only) ── --%>
+                        <c:if test="${not isNew}">
+                            <c:choose>
+                                <c:when test="${not empty images}">
+                                    <p class="fw-semibold mb-2" style="font-size:.85rem;">
+                                        Ảnh hiện có (${fn:length(images)} ảnh):
+                                    </p>
+                                    <div class="row g-2">
+                                        <c:forEach var="img" items="${images}" varStatus="loop">
+                                            <div class="col-6 col-sm-4 col-md-3 col-lg-2" id="imgCard_${img.imageId}">
+                                                <div class="position-relative rounded-3 overflow-hidden border
+                                                            ${img.primary ? 'border-2 border-primary shadow' : 'border-light'}">
+                                                    <img src="${img.imageUrl}"
+                                                         class="w-100 object-fit-cover"
+                                                         style="height:110px;"
+                                                         alt="Ảnh ${loop.index + 1}"
+                                                         onerror="this.src='${pageContext.request.contextPath}/assets/images/placeholder.jpg'">
+
+                                                    <%-- Primary badge --%>
+                                                    <c:if test="${img.primary}">
+                                                        <span class="position-absolute top-0 start-0 badge bg-primary m-1"
+                                                              style="font-size:.65rem;">
+                                                            <i class="fa-solid fa-star me-1"></i>Chính
+                                                        </span>
+                                                    </c:if>
+
+                                                    <%-- Action buttons overlay --%>
+                                                    <div class="position-absolute bottom-0 start-0 end-0 d-flex gap-1 p-1"
+                                                         style="background:rgba(0,0,0,.45);">
+
+                                                        <%-- Set primary (hidden if already primary) --%>
+                                                        <c:if test="${not img.primary}">
+                                                            <form method="post"
+                                                                  action="${pageContext.request.contextPath}/owner/homestays/set-primary"
+                                                                  class="d-inline">
+                                                                <input type="hidden" name="imageId"    value="${img.imageId}">
+                                                                <input type="hidden" name="homestayId" value="${homestay.homestayId}">
+                                                                <button type="submit"
+                                                                        class="btn btn-warning btn-sm p-0 px-1"
+                                                                        style="font-size:.7rem;"
+                                                                        title="Đặt làm ảnh đại diện">
+                                                                    <i class="fa-regular fa-star"></i>
+                                                                </button>
+                                                            </form>
+                                                        </c:if>
+
+                                                        <%-- Delete --%>
+                                                        <form method="post"
+                                                              action="${pageContext.request.contextPath}/owner/homestays/delete-image"
+                                                              class="d-inline ms-auto"
+                                                              onsubmit="return confirm('Xóa ảnh này?\nThao tác không thể hoàn tác.');">
+                                                            <input type="hidden" name="imageId"    value="${img.imageId}">
+                                                            <input type="hidden" name="homestayId" value="${homestay.homestayId}">
+                                                            <button type="submit"
+                                                                    class="btn btn-danger btn-sm p-0 px-1"
+                                                                    style="font-size:.7rem;"
+                                                                    title="Xóa ảnh">
+                                                                <i class="fa-solid fa-trash-can"></i>
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </div>
+                                </c:when>
+                                <c:otherwise>
+                                    <p class="text-muted" style="font-size:.85rem;">
+                                        <i class="fa-regular fa-image me-1"></i>
+                                        Homestay này chưa có ảnh. Thêm ảnh bên trên và nhấn Lưu.
+                                    </p>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:if>
+
+                        <c:if test="${isNew}">
+                            <p class="text-muted" style="font-size:.83rem;">
+                                <i class="fa-solid fa-circle-info me-1"></i>
+                                Ảnh sẽ được tải lên Cloudinary ngay khi bạn nhấn <strong>Lưu thay đổi</strong>.
+                            </p>
+                        </c:if>
+                    </div><%-- /image management --%>
+
                     <!-- Form actions -->
                     <div class="d-flex gap-3 mt-4 pt-3 border-top align-items-center flex-wrap">
                         <button type="submit" class="btn btn-primary-custom px-5">
@@ -210,6 +323,47 @@ document.getElementById('homestayEditForm').addEventListener('submit', function(
         alert('Vui lòng điền đầy đủ Tên homestay, Địa chỉ và Thành phố.');
     }
 });
+
+/**
+ * Show thumbnail previews for files chosen in the new-image input.
+ */
+function previewNewImages(input) {
+    var container = document.getElementById('newImagePreview');
+    container.innerHTML = '';
+    if (!input.files) return;
+
+    var MAX_MB = 10;
+    Array.from(input.files).forEach(function(file, idx) {
+        if (!file.type.startsWith('image/')) return;
+        if (file.size > MAX_MB * 1024 * 1024) {
+            var warn = document.createElement('div');
+            warn.className = 'text-danger small';
+            warn.textContent = file.name + ' vượt quá ' + MAX_MB + ' MB, sẽ bị bỏ qua.';
+            container.appendChild(warn);
+            return;
+        }
+        var wrapper = document.createElement('div');
+        wrapper.className = 'position-relative';
+        wrapper.style.cssText = 'width:90px;height:90px;';
+
+        var img = document.createElement('img');
+        img.className = 'w-100 h-100 object-fit-cover rounded-3 border';
+        img.alt = 'Preview ' + (idx + 1);
+
+        var badge = document.createElement('span');
+        badge.className = 'position-absolute bottom-0 start-0 badge bg-dark m-1';
+        badge.style.fontSize = '.6rem';
+        badge.textContent = idx === 0 ? '★ Chính' : '#' + (idx + 1);
+
+        var reader = new FileReader();
+        reader.onload = function(e) { img.src = e.target.result; };
+        reader.readAsDataURL(file);
+
+        wrapper.appendChild(img);
+        wrapper.appendChild(badge);
+        container.appendChild(wrapper);
+    });
+}
 </script>
 
 <jsp:include page="../common/footer.jsp"/>
