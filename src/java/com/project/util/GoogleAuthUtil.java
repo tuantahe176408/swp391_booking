@@ -39,8 +39,8 @@ public class GoogleAuthUtil {
      */
     public static String buildAuthUrl(String state) {
         return GoogleAuthConfig.GOOGLE_AUTH_URL + "?"
-                + "client_id=" + URLEncoder.encode(GoogleAuthConfig.GOOGLE_CLIENT_ID, StandardCharsets.UTF_8)
-                + "&redirect_uri=" + URLEncoder.encode(GoogleAuthConfig.GOOGLE_REDIRECT_URI, StandardCharsets.UTF_8)
+                + "client_id=" + URLEncoder.encode(GoogleAuthConfig.getClientId(), StandardCharsets.UTF_8)
+                + "&redirect_uri=" + URLEncoder.encode(GoogleAuthConfig.getRedirectUri(), StandardCharsets.UTF_8)
                 + "&response_type=code"
                 + "&scope=" + URLEncoder.encode(GoogleAuthConfig.GOOGLE_SCOPE, StandardCharsets.UTF_8)
                 + "&state=" + URLEncoder.encode(state, StandardCharsets.UTF_8)
@@ -57,9 +57,9 @@ public class GoogleAuthUtil {
     public static String getAccessToken(String code) {
         try {
             String requestBody = "code=" + URLEncoder.encode(code, StandardCharsets.UTF_8)
-                    + "&client_id=" + URLEncoder.encode(GoogleAuthConfig.GOOGLE_CLIENT_ID, StandardCharsets.UTF_8)
-                    + "&client_secret=" + URLEncoder.encode(GoogleAuthConfig.GOOGLE_CLIENT_SECRET, StandardCharsets.UTF_8)
-                    + "&redirect_uri=" + URLEncoder.encode(GoogleAuthConfig.GOOGLE_REDIRECT_URI, StandardCharsets.UTF_8)
+                    + "&client_id=" + URLEncoder.encode(GoogleAuthConfig.getClientId(), StandardCharsets.UTF_8)
+                    + "&client_secret=" + URLEncoder.encode(GoogleAuthConfig.getClientSecret(), StandardCharsets.UTF_8)
+                    + "&redirect_uri=" + URLEncoder.encode(GoogleAuthConfig.getRedirectUri(), StandardCharsets.UTF_8)
                     + "&grant_type=authorization_code";
 
             HttpRequest request = HttpRequest.newBuilder()
