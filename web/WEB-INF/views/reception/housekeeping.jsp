@@ -1,15 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="pageTitle"      value="Quản lý Buồng phòng &amp; Dọn dẹp" scope="request"/>
+<c:set var="pageBreadcrumb" value="Báo cáo &amp; Vệ sinh"               scope="request"/>
+<jsp:include page="../common/header.jsp"/>
 
-<jsp:include page="/WEB-INF/views/common/header.jsp" />
-<jsp:include page="/WEB-INF/views/common/navbar.jsp" />
-
-<div class="container-fluid px-4 py-4">
-    <div class="row">
-        <div class="col-lg-3">
-            <jsp:include page="../common/sidebar-reception.jsp" />
-        </div>
-        <div class="col-lg-9">
+<div class="owner-shell">
+    <jsp:include page="../common/sidebar-reception.jsp"/>
+    <div class="owner-main">
+        <jsp:include page="../common/reception-topbar.jsp"/>
+        <div class="owner-content">
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
