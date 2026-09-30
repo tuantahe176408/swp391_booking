@@ -728,6 +728,7 @@ public class HomestayDAOImpl implements HomestayDAO {
                      "LEFT JOIN rooms r ON r.room_type_id = rt.room_type_id " +
                      "WHERE rt.homestay_id=? AND h.owner_id=? " +
                      "GROUP BY rt.room_type_id ORDER BY rt.name ASC";
+
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, homestayId);
@@ -753,5 +754,102 @@ public class HomestayDAOImpl implements HomestayDAO {
             LOGGER.log(Level.SEVERE, "Error in getRoomTypesWithCountByHomestayId", e);
         }
         return list;
+    }
+
+    // ── Homestay Image Management (UC17 — Cloudinary) ─────────────────────────
+
+    @Override
+    public int insertHomestayImage(int homestayId, String imageUrl, boolean isPrimary, int displayOrder) {
+        String sql = "INSERT INTO homestay_images (homestay_id, image_url, is_primary, display_order) " +
+                     "VALUES (?, ?, ?, ?)";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            ps.setInt(1, homestayId);
+            ps.setString(2, imageUrl);
+            ps.setBoolean(3, isPrimary);
+            ps.setInt(4, displayOrder);
+            ps.executeUpdate();
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) return keys.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in insertHomestayImage for homestayId=" + homestayId, e);
+        }
+        return -1;
+    }
+
+    @Override
+    public boolean deleteHomestayImage(int imageId, int homestayId, int ownerId) {
+        // Security: verify the homestay belongs to ownerId via JOIN before deleting
+        String sql = "DELETE hi FROM homestay_images hi " +
+                     "INNER JOIN homestays h ON hi.homestay_id = h.homestay_id " +
+                     "WHERE hi.image_id = ? AND hi.homestay_id = ? AND h.owner_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, imageId);
+            ps.setInt(2, homestayId);
+            ps.setInt(3, ownerId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in deleteHomestayImage id=" + imageId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public boolean setPrimaryHomestayImage(int imageId, int homestayId, int ownerId) {
+        // Two-step in one transaction: unset all → set the target
+        String unsetSql = "UPDATE homestay_images SET is_primary = 0 WHERE homestay_id = ?";
+        String setSql   = "UPDATE homestay_images hi " +
+                          "INNER JOIN homestays h ON hi.homestay_id = h.homestay_id " +
+                          "SET hi.is_primary = 1 " +
+                          "WHERE hi.image_id = ? AND hi.homestay_id = ? AND h.owner_id = ?";
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement ps1 = conn.prepareStatement(unsetSql);
+                 PreparedStatement ps2 = conn.prepareStatement(setSql)) {
+                ps1.setInt(1, homestayId);
+                ps1.executeUpdate();
+                ps2.setInt(1, imageId);
+                ps2.setInt(2, homestayId);
+                ps2.setInt(3, ownerId);
+                boolean ok = ps2.executeUpdate() > 0;
+                conn.commit();
+                return ok;
+            } catch (SQLException ex) {
+                conn.rollback();
+                throw ex;
+            } finally {
+                conn.setAutoCommit(true);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in setPrimaryHomestayImage id=" + imageId, e);
+            return false;
+        }
+    }
+
+    @Override
+    public Optional<HomestayImage> getHomestayImageById(int imageId) {
+        String sql = "SELECT image_id, homestay_id, image_url, is_primary, display_order, created_at " +
+                     "FROM homestay_images WHERE image_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, imageId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    HomestayImage img = new HomestayImage();
+                    img.setImageId(rs.getInt("image_id"));
+                    img.setHomestayId(rs.getInt("homestay_id"));
+                    img.setImageUrl(rs.getString("image_url"));
+                    img.setPrimary(rs.getBoolean("is_primary"));
+                    img.setDisplayOrder(rs.getInt("display_order"));
+                    img.setCreatedAt(rs.getTimestamp("created_at"));
+                    return Optional.of(img);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getHomestayImageById id=" + imageId, e);
+        }
+        return Optional.empty();
     }
 }

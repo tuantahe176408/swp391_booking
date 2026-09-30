@@ -89,4 +89,31 @@ public interface HomestayDAO {
      * Verifies ownership. Returns empty list if not owned by ownerId.
      */
     List<RoomType> getRoomTypesWithCountByHomestayId(int homestayId, int ownerId);
+
+    // ── Homestay Image Management (UC17 — Cloudinary) ─────────────────────────
+
+    /**
+     * Insert a new image record for a homestay.
+     * @return generated image_id, or -1 on failure
+     */
+    int insertHomestayImage(int homestayId, String imageUrl, boolean isPrimary, int displayOrder);
+
+    /**
+     * Delete a specific image by imageId.
+     * Security: verifies the homestay belongs to ownerId before deleting.
+     * @return true if a row was deleted
+     */
+    boolean deleteHomestayImage(int imageId, int homestayId, int ownerId);
+
+    /**
+     * Set one image as primary; clears is_primary on all others for the same homestay.
+     * Security: verifies ownership via ownerId.
+     * @return true if the target image was updated
+     */
+    boolean setPrimaryHomestayImage(int imageId, int homestayId, int ownerId);
+
+    /**
+     * Get a single HomestayImage by its ID (used for Cloudinary delete before DB delete).
+     */
+    Optional<HomestayImage> getHomestayImageById(int imageId);
 }
