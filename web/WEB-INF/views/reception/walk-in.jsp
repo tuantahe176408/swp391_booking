@@ -1,17 +1,14 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<c:set var="pageTitle"      value="Đặt phòng Khách Vãng lai"       scope="request"/>
+<c:set var="pageBreadcrumb" value="Đón tiếp &amp; Quản lý Phòng"   scope="request"/>
 <jsp:include page="../common/header.jsp"/>
-<jsp:include page="../common/navbar.jsp"/>
 
-<div class="container-fluid px-4 py-4">
-    <div class="row">
-        <!-- Sidebar Navigation -->
-        <div class="col-lg-3">
-            <jsp:include page="../common/sidebar-reception.jsp"/>
-        </div>
-
-        <!-- Main Content Area -->
-        <div class="col-lg-9">
+<div class="owner-shell">
+    <jsp:include page="../common/sidebar-reception.jsp"/>
+    <div class="owner-main">
+        <jsp:include page="../common/reception-topbar.jsp"/>
+        <div class="owner-content">
             <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
                 <div class="d-flex align-items-center justify-content-between mb-4 border-bottom pb-3">
                     <div>
