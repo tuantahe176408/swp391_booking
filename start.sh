@@ -26,6 +26,32 @@ port_listening(){ ss -tln 2>/dev/null | grep -q ":$1 "; }
 # --- Kiểm tra MySQL thực sự nhận kết nối (đáng tin hơn ss trong WSL) ---
 mysql_ready(){ mysqladmin --socket="$MYSQL_SOCK" -u root -p'root@2024' ping 2>/dev/null | grep -q "alive"; }
 
+# --- Theo dõi log realtime: catalina.out + localhost (log app/JUL) + access log ---
+# - Log startup/scheduler (AppStartupListener, BookingExpiryJob) -> catalina.out & catalina.<date>.log
+# - Log lỗi app khi xử lý request (JUL)                          -> localhost.<date>.log
+# - Mỗi HTTP request khi trỏ trang                               -> localhost_access_log.<date>.txt
+# Dùng -F --retry phòng khi file ngày mới chưa tạo.
+follow_logs(){
+    local today; today="$(date +%F)"
+    local catalina="$TOMCAT_DIR/logs/catalina.out"
+    local logs=(
+        "$catalina"
+        "$TOMCAT_DIR/logs/localhost.${today}.log"
+        "$TOMCAT_DIR/logs/localhost_access_log.${today}.txt"
+    )
+
+    # In tóm tắt các log startup/scheduler của app vừa phát sinh (đảm bảo không bỏ sót
+    # dù chúng đã trôi khỏi vùng tail realtime do xảy ra lúc khởi động).
+    echo "=== Log khởi động & scheduler của app (gần nhất) ==="
+    grep -E "com\.project\.|AppStartupListener|BookingExpiryJob" "$catalina" 2>/dev/null | tail -n 15 || true
+    echo "----------------------------------------------"
+
+    echo -e "${BLUE}[INFO]${NC} Theo dõi log realtime (Ctrl+C để thoát, Tomcat vẫn chạy nền)..."
+    for f in "${logs[@]}"; do echo "  - $f"; done
+    echo "----------------------------------------------"
+    exec tail -n 40 -F --retry "${logs[@]}"
+}
+
 # --- Cần quyền root ---
 if [ "$EUID" -ne 0 ]; then
     err "Cần quyền root. Chạy: sudo bash start.sh"
@@ -105,6 +131,8 @@ if [ "$CODE" = "200" ]; then
     echo ""
     echo "  Dừng ứng dụng:  sudo bash stop.sh"
     echo ""
+    # --- Stream log realtime của Tomcat + app ---
+    follow_logs
 else
     warn "Ứng dụng chưa phản hồi (HTTP $CODE). Xem log:"
     echo "  sudo tail -50 $TOMCAT_DIR/logs/catalina.out"

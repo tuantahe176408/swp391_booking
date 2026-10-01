@@ -341,6 +341,22 @@ INSERT INTO rooms (room_type_id, room_number, status, housekeeping_status) VALUE
 (27,'SUITE01','AVAILABLE','CLEAN'),
 (28,'BG01','AVAILABLE','CLEAN'),(28,'BG02','OCCUPIED','NEEDS_CLEANING');
 
+-- HS 14: Dragon Bridge Hostel (Đà Nẵng)
+-- Dorm 8 Giường HQ → 8 giường (D1-D8)
+INSERT INTO rooms (room_type_id, room_number, status, housekeeping_status)
+SELECT rt.room_type_id, CONCAT('D', n.num), 'AVAILABLE', 'CLEAN'
+FROM room_types rt
+CROSS JOIN (SELECT 1 num UNION SELECT 2 UNION SELECT 3 UNION SELECT 4
+            UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8) n
+WHERE rt.homestay_id = 14 AND rt.name LIKE 'Dorm%';
+
+-- Phòng Đôi Hostel → 2 phòng (P1, P2)
+INSERT INTO rooms (room_type_id, room_number, status, housekeeping_status)
+SELECT rt.room_type_id, CONCAT('P', n.num), 'AVAILABLE', 'CLEAN'
+FROM room_types rt
+CROSS JOIN (SELECT 1 num UNION SELECT 2) n
+WHERE rt.homestay_id = 14 AND rt.name LIKE 'Phòng Đôi%';
+
 -- ====================================================================================
 -- 10. DYNAMIC PRICES (giá theo mùa lễ tết tháng 10-12/2026)
 -- ====================================================================================
