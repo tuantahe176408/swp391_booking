@@ -13,7 +13,7 @@ public class Room implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum Status {
-        AVAILABLE, OCCUPIED, DIRTY, MAINTENANCE, HOUSEKEEPING
+        AVAILABLE, OCCUPIED, DIRTY, MAINTENANCE
     }
 
     private int roomId;
@@ -28,6 +28,9 @@ public class Room implements Serializable {
     // Transient for UI
     private String roomTypeName;
     private BigDecimal basePrice;
+    private String  currentGuestName;    // UC13 Room Matrix: tên khách đang ở (nếu OCCUPIED)
+    private String  currentBookingCode;  // UC13 Room Matrix: mã booking hiện tại (nếu OCCUPIED)
+    private Integer currentBookingId;    // UC12 Check-out: booking_id hiện tại để submit form checkout
 
     public Room() {
         this.status = Status.AVAILABLE;
@@ -62,4 +65,13 @@ public class Room implements Serializable {
 
     public BigDecimal getBasePrice() { return basePrice; }
     public void setBasePrice(BigDecimal basePrice) { this.basePrice = basePrice; }
+
+    public String getCurrentGuestName() { return currentGuestName; }
+    public void setCurrentGuestName(String currentGuestName) { this.currentGuestName = currentGuestName; }
+
+    public String getCurrentBookingCode() { return currentBookingCode; }
+    public void setCurrentBookingCode(String currentBookingCode) { this.currentBookingCode = currentBookingCode; }
+
+    public Integer getCurrentBookingId() { return currentBookingId; }
+    public void setCurrentBookingId(Integer currentBookingId) { this.currentBookingId = currentBookingId; }
 }

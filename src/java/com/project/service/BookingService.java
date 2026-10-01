@@ -46,7 +46,7 @@ public class BookingService {
                     "guest_name, guest_email, guest_phone, checkin_date, checkout_date, total_nights, " +
                     "room_price_total, addon_price_total, voucher_id, discount_amount, final_total, " +
                     "booking_type, booking_status, hold_expires_at) " +
-                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE_ADD(NOW(), INTERVAL 15 MINUTE))";
+                    "VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,DATE_ADD(NOW(), INTERVAL 1 MINUTE))";
 
             int newBookingId;
             try (PreparedStatement ps = conn.prepareStatement(sqlBooking, PreparedStatement.RETURN_GENERATED_KEYS)) {
