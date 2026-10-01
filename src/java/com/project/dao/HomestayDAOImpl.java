@@ -852,4 +852,61 @@ public class HomestayDAOImpl implements HomestayDAO {
         }
         return Optional.empty();
     }
+
+    // ── UC23: Admin Approval Operations ──────────────────────────────────────
+
+    @Override
+    public List<Homestay> findPendingApprovals() {
+        List<Homestay> list = new ArrayList<>();
+        String sql = "SELECT h.homestay_id, h.owner_id, h.name, h.address, h.city, h.district, " +
+                     "h.status, h.created_at, " +
+                     "(SELECT hi.image_url FROM homestay_images hi " +
+                     " WHERE hi.homestay_id = h.homestay_id " +
+                     " ORDER BY hi.is_primary DESC, hi.display_order ASC LIMIT 1) AS primary_image, " +
+                     "u.full_name AS owner_name " +
+                     "FROM homestays h " +
+                     "JOIN users u ON u.user_id = h.owner_id " +
+                     "WHERE h.status = 'PENDING_APPROVAL' " +
+                     "ORDER BY h.created_at ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                Homestay h = new Homestay();
+                h.setHomestayId(rs.getInt("homestay_id"));
+                h.setOwnerId(rs.getInt("owner_id"));
+                h.setName(rs.getString("name"));
+                h.setAddress(rs.getString("address"));
+                h.setCity(rs.getString("city"));
+                h.setDistrict(rs.getString("district"));
+                String statusStr = rs.getString("status");
+                if (statusStr != null) {
+                    try { h.setStatus(Homestay.Status.valueOf(statusStr)); } catch (IllegalArgumentException ignored) {}
+                }
+                h.setCreatedAt(rs.getTimestamp("created_at"));
+                h.setPrimaryImageUrl(rs.getString("primary_image"));
+                h.setOwnerName(rs.getString("owner_name"));
+                list.add(h);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in findPendingApprovals", e);
+        }
+        return list;
+    }
+
+    @Override
+    public boolean adminUpdateHomestayStatus(int homestayId, Homestay.Status newStatus, String rejectionReason) {
+        String sql = "UPDATE homestays SET status = ?, rejection_reason = ?, updated_at = CURRENT_TIMESTAMP " +
+                     "WHERE homestay_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newStatus.name());
+            ps.setString(2, rejectionReason);
+            ps.setInt(3, homestayId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in adminUpdateHomestayStatus id=" + homestayId, e);
+            return false;
+        }
+    }
 }

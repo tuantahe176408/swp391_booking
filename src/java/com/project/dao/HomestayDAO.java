@@ -116,4 +116,19 @@ public interface HomestayDAO {
      * Get a single HomestayImage by its ID (used for Cloudinary delete before DB delete).
      */
     Optional<HomestayImage> getHomestayImageById(int imageId);
+
+    // ── Admin Approval Operations (UC23) ─────────────────────────────────────
+
+    /**
+     * UC23: Return all homestays with status = PENDING_APPROVAL, joined with owner's full_name.
+     * Results ordered by created_at ASC (oldest requests first).
+     */
+    List<Homestay> findPendingApprovals();
+
+    /**
+     * UC23: Admin-level status update — no ownerId check.
+     * Sets status and optionally stores a rejection reason (pass null when approving).
+     * @return true if a row was updated
+     */
+    boolean adminUpdateHomestayStatus(int homestayId, Homestay.Status newStatus, String rejectionReason);
 }
