@@ -30,6 +30,32 @@ APP_URL="http://localhost:8080/${APP_NAME}/home"
 http_code(){ curl -s -o /dev/null -w "%{http_code}" "$APP_URL" 2>/dev/null; return 0; }
 mysql_ready(){ mysqladmin --socket="$MYSQL_SOCK" -u root -p'root@2024' ping 2>/dev/null | grep -q "alive"; }
 
+# --- Theo dõi log realtime: catalina.out + localhost (log app/JUL) + access log ---
+# - Log startup/scheduler (AppStartupListener, BookingExpiryJob) -> catalina.out & catalina.<date>.log
+# - Log lỗi app khi xử lý request (JUL)                          -> localhost.<date>.log
+# - Mỗi HTTP request khi trỏ trang                               -> localhost_access_log.<date>.txt
+# Dùng -F --retry phòng khi file ngày mới chưa tạo.
+follow_logs(){
+    local today; today="$(date +%F)"
+    local catalina="$TOMCAT_DIR/logs/catalina.out"
+    local logs=(
+        "$catalina"
+        "$TOMCAT_DIR/logs/localhost.${today}.log"
+        "$TOMCAT_DIR/logs/localhost_access_log.${today}.txt"
+    )
+
+    # In tóm tắt các log startup/scheduler của app vừa phát sinh (đảm bảo không bỏ sót
+    # dù chúng đã trôi khỏi vùng tail realtime do xảy ra lúc khởi động).
+    echo -e "${CYAN}>>> Log khởi động & scheduler của app (gần nhất):${NC}"
+    grep -E "com\.project\.|AppStartupListener|BookingExpiryJob" "$catalina" 2>/dev/null | tail -n 15 || true
+    echo "----------------------------------------------"
+
+    echo -e "${BLUE}[INFO]${NC} Theo dõi log realtime (Ctrl+C để thoát, Tomcat vẫn chạy nền)..."
+    for f in "${logs[@]}"; do echo "  - $f"; done
+    echo "----------------------------------------------"
+    exec tail -n 40 -F --retry "${logs[@]}"
+}
+
 # --- Cần quyền root ---
 [ "$EUID" -ne 0 ] && err "Cần quyền root. Chạy: sudo bash rebuild.sh"
 
@@ -118,6 +144,9 @@ if [ "$CODE" = "200" ]; then
     echo "  Truy cập:  $APP_URL"
     echo "  Đăng nhập: http://localhost:8080/${APP_NAME}/login"
     echo ""
+    # --- Stream log realtime của Tomcat + app ---
+    step "Theo dõi log realtime..."
+    follow_logs
 else
     warn "Ứng dụng chưa phản hồi (HTTP $CODE). Xem log:"
     echo "  sudo tail -60 $TOMCAT_DIR/logs/catalina.out"

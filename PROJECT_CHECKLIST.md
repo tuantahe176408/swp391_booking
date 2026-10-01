@@ -75,6 +75,11 @@
 - [x] Danh sách Homestay phân trang và lọc động (`SearchController.java`, `search.jsp`)
 - [x] Chi tiết Homestay: Mô tả, Ảnh, Địa chỉ, Quy định (`HomestayImage.java`, `Amenity.java`, `Review.java`)
 - [x] Chi tiết Phòng: Bảng giá, Sức chứa, Lịch trống trực tiếp (`RoomType.java`, `Room.java`, `RoomDAO.java`, `RoomDAOImpl.java`, `HomestayDetailController.java`, `detail.jsp`)
+- [x] **[MỚI]** Kiểm tra tồn kho phòng theo khoảng ngày trên trang detail (`RoomDAO.getAvailableCountByType()`, `RoomDAOImpl.java`)
+- [x] **[MỚI]** Badge "Hết phòng" + disable nút "Chọn phòng" khi `availableCount ≤ 0` (`detail.jsp`)
+- [x] **[MỚI]** AJAX re-check availability khi đổi ngày check-in/out: endpoint `?format=availability` → JSON `availMap` (`HomestayDetailController.java`)
+- [x] **[MỚI]** JS `updateRoomAvailability()`: cập nhật card DOM (badge, button, onclick) không reload trang (`detail.jsp`)
+- [x] **[MỚI]** Logic booking-based availability: `available = GREATEST(1, total_rooms) − active_bookings(CONFIRMED/CHECKED_IN/PENDING chưa hết hạn)` trùng khoảng ngày
 
 #### Nhóm 9: Gợi ý Thông minh & Danh sách Yêu thích (Bình - UC04, UC05)
 - [x] Gợi ý Homestay theo địa điểm & hành vi (`RecommendationController.java`, `recommendations.jsp`)
@@ -139,11 +144,26 @@
 - [x] Xác nhận Check-in và bàn giao chìa khóa phòng (`ReceptionCheckinController.java`)
 - [x] Ma trận phòng trực quan (Room Matrix) thời gian thực (`RoomMatrixController.java`, `room-matrix.jsp`)
 - [x] Đổi phòng nhanh cho khách khi có yêu cầu (`RoomMatrixController.java`)
+- [x] **[MỚI - UC12 Check-out]** Triển khai Check-out nguyên tử: `booking → CHECKED_OUT` + `room → DIRTY` trong 1 transaction (`BookingDAO.checkoutBooking()`, `BookingDAOImpl.java`)
+- [x] **[MỚI]** Nút Check-out trên card OCCUPIED trong Room Matrix — confirm dialog, submit POST `/reception/checkin?action=checkout` (`room-matrix.jsp`)
+- [x] **[MỚI]** Nút Check-out ngay trên màn Check-in khi tìm thấy booking CHECKED_IN (`checkin.jsp`)
+- [x] **[MỚI]** Controller checkout redirect về đúng trang gốc (checkin hoặc matrix) dựa theo `Referer` header
+- [x] **[MỚI]** Flash message checkout thành công / thất bại trên cả 2 trang
+- [x] **[MỚI]** Room Matrix UI redesign: soft pastel, muted colors, `border-top` accent, AJAX polling cập nhật checkout button động
+- [x] **[MỚI]** Room Matrix fix SQL `getRoomsForMatrix`: CHECKED_IN không cần date range → fix SUITE1 mất tên khách
+- [x] **[MỚI]** Room model thêm `currentBookingId` transient field; `RoomDAOImpl` + `RoomMatrixController` JSON serialize field này
+- [x] **[MỚI]** `getAvailableRooms` SQL fix: `checkout_date >= CURDATE()` (thay vì `>`) để cho phép trả phòng đúng ngày
 
 #### Nhóm 14: Lễ tân - Buồng phòng & Khách vãng lai (Tuấn - UC14, UC15)
 - [x] Cập nhật trạng thái dọn dẹp vệ sinh phòng (`HousekeepingController.java`, `housekeeping.jsp`)
 - [x] Đánh dấu phòng sẵn sàng đón khách mới (`HousekeepingController.java`)
-- [x] Đặt phòng trực tiếp cho khách vãng lai (Walk-in) (`WalkInController.java`, `walk-in.jsp`)
+- [x] **[MỚI]** Housekeeping UI redesign: đồng bộ design system với room-matrix (`room-card`, `rm-pill`, `rm-icon-circle`, `rm-info-box`)
+- [x] **[MỚI]** Housekeeping tabs underline style, thứ tự workflow: Tổng quan → Cần dọn → Đang ở → Sẵn sàng → Bảo trì
+- [x] **[MỚI]** Fix `border-left` + `border-radius` bằng `inset box-shadow` (tránh clip góc card)
+- [x] **[MỚI - UC15 Walk-in]** Triển khai đặt phòng khách vãng lai đầy đủ thật từ DB (`WalkInController.java`, `walk-in.jsp`)
+- [x] **[MỚI]** Walk-in atomic transaction: tìm/tạo CUSTOMER → sinh mã `BK-W{date}-XXXX` → INSERT booking CHECKED_IN → UPDATE room OCCUPIED (`BookingDAO.createWalkInBooking()`)
+- [x] **[MỚI]** Walk-in `findOrCreateWalkInCustomer()`: tra cứu theo SĐT / email, tạo mới nếu chưa có
+- [x] **[MỚI]** Walk-in JSP: radio card room selector, real-time price JS, booking summary panel sticky, flash messages
 
 #### Nhóm 15: Admin - Duyệt Homestay & Mã Giảm Giá (Thành - UC23, UC24)
 - [x] Danh sách Homestay đang chờ duyệt đăng kiểm (`AdminApprovalController.java`, `approval-list.jsp`)
@@ -164,6 +184,22 @@
 - [x] Kiểm tra và Áp dụng Mã giảm giá Voucher (`VoucherDAOImpl.java`)
 - [x] Tính toán Tổng tiền chính xác (`BookingService.java`)
 - [x] Khóa phòng tạm thời và Lưu bản ghi Booking PENDING (`BookingDAO.java`, `BookingDAOImpl.java`, `Booking.java`)
+- [x] **[MỚI]** Hold time PENDING booking: 1 giờ (thay 15 phút) — configurable trong `BookingService.java`
+- [x] **[MỚI]** PENDING booking block phòng trong tồn kho đến khi hết `hold_expires_at`
+
+---
+
+### Nhóm System Services — Nền tảng kỹ thuật
+
+#### Hủy đơn hết hạn tự động
+- [x] **[MỚI]** `BookingDAO.cancelExpiredPendingBookings()`: UPDATE PENDING → CANCELLED khi `hold_expires_at < NOW()`
+- [x] **[MỚI]** `BookingExpiryJob.java` (Runnable): gọi DAO, bắt Exception tránh crash job (`com.project.service`)
+- [x] **[MỚI]** `AppStartupListener.java` (`@WebListener`): khởi động `ScheduledExecutorService` daemon thread khi Tomcat deploy, graceful shutdown 30s khi undeploy (`com.project.config`)
+- [x] **[MỚI]** Chu kỳ job: 1 phút (testing) — đổi `EXPIRY_JOB_INTERVAL_MINUTES` để thay đổi
+
+#### Seed data & DB fixes
+- [x] **[MỚI]** Thêm physical rooms cho Hostel 14 (Dragon Bridge Đà Nẵng) vào `seed_search_data.sql`: 8 beds Dorm + 2 Phòng Đôi — dùng SELECT-based INSERT tránh hardcode room_type_id
+- [x] **[MỚI]** `seed_receptionist_test.sql`: thêm CHECKED_IN booking cho phòng 103 Hội An (Phạm Gia Hưng) để room matrix hiển thị đúng guest info
 
 #### Nhóm 18: Khách hàng - Quản lý Đơn đặt phòng (Sáng - UC09)
 - [x] Danh sách lịch sử đặt phòng của khách hàng (`CustomerBookingController.java`, `booking-list.jsp`)
