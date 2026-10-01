@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -23,12 +24,14 @@ public class HomestayDetailController extends HttpServlet {
     private HomestayDAO homestayDAO;
     private AddonDAO addonDAO;
     private WishlistDAO wishlistDAO;
+    private RoomDAO roomDAO;
 
     @Override
     public void init() throws ServletException {
         this.homestayDAO = new HomestayDAOImpl();
         this.addonDAO    = new AddonDAOImpl();
         this.wishlistDAO = new WishlistDAOImpl();
+        this.roomDAO     = new RoomDAOImpl();
     }
 
     @Override
@@ -46,6 +49,33 @@ public class HomestayDetailController extends HttpServlet {
 
         if (!opt.isPresent()) {
             response.sendError(HttpServletResponse.SC_NOT_FOUND, "Homestay không tồn tại");
+            return;
+        }
+
+        // ── AJAX: trả JSON availability khi format=availability ───────────────
+        String format = request.getParameter("format");
+        if ("availability".equals(format)) {
+            String ci = request.getParameter("checkin");
+            String co = request.getParameter("checkout");
+            if (ci == null || ci.trim().isEmpty()) {
+                response.setContentType("application/json;charset=UTF-8");
+                response.getWriter().write("{\"availMap\":{}}");
+                return;
+            }
+            if (co == null || co.trim().isEmpty()) {
+                co = java.time.LocalDate.parse(ci.trim()).plusDays(1).toString();
+            }
+            Map<Integer, Integer> avMap = roomDAO.getAvailableCountByType(homestayId, ci.trim(), co.trim());
+            response.setContentType("application/json;charset=UTF-8");
+            StringBuilder json = new StringBuilder("{\"availMap\":{");
+            boolean first = true;
+            for (Map.Entry<Integer, Integer> e : avMap.entrySet()) {
+                if (!first) json.append(",");
+                json.append("\"").append(e.getKey()).append("\":").append(e.getValue());
+                first = false;
+            }
+            json.append("}}");
+            response.getWriter().write(json.toString());
             return;
         }
 
@@ -75,11 +105,22 @@ public class HomestayDetailController extends HttpServlet {
         String checkout = request.getParameter("checkout");
         String guests   = request.getParameter("guests");
 
-        request.setAttribute("homestay", homestay);
-        request.setAttribute("addons", addons);
-        request.setAttribute("checkin", checkin);
-        request.setAttribute("checkout", checkout);
-        request.setAttribute("guests", guests);
+        // UC03: Tính số phòng còn trống theo loại khi có ngày check-in
+        // Nếu checkout rỗng, mặc định checkin + 1 ngày để vẫn chạy được check tồn kho
+        Map<Integer, Integer> availMap = null;
+        if (checkin != null && !checkin.trim().isEmpty()) {
+            String coDate = (checkout != null && !checkout.trim().isEmpty())
+                    ? checkout.trim()
+                    : java.time.LocalDate.parse(checkin.trim()).plusDays(1).toString();
+            availMap = roomDAO.getAvailableCountByType(homestayId, checkin.trim(), coDate);
+        }
+
+        request.setAttribute("homestay",  homestay);
+        request.setAttribute("addons",    addons);
+        request.setAttribute("checkin",   checkin);
+        request.setAttribute("checkout",  checkout);
+        request.setAttribute("guests",    guests);
+        request.setAttribute("availMap",  availMap);
         request.setAttribute("pageTitle", homestay.getName() + " - Smart Booking Platform");
 
         request.getRequestDispatcher("/WEB-INF/views/customer/detail.jsp").forward(request, response);

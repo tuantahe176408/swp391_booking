@@ -91,12 +91,44 @@
                             <span class="badge bg-light text-secondary border">${homestay.roomTypes.size()} loại phòng</span>
                         </div>
                         <c:forEach var="rt" items="${homestay.roomTypes}">
-                            <div class="room-type-card mb-3 p-3 rounded-4 border bg-white shadow-sm" id="room-card-${rt.roomTypeId}" onclick="selectRoom(${rt.roomTypeId}, ${rt.basePrice}, '${rt.name}', this)">
+                            <%-- Kiểm tra còn phòng trống trong khoảng ngày đã chọn --%>
+                            <c:set var="isUnavailable" value="false"/>
+                            <c:if test="${not empty availMap}">
+                                <c:set var="avail" value="${availMap[rt.roomTypeId]}"/>
+                                <c:if test="${avail le 0}">
+                                    <c:set var="isUnavailable" value="true"/>
+                                </c:if>
+                            </c:if>
+
+                            <%-- Card: disable onclick + style khi hết phòng --%>
+                            <c:choose>
+                                <c:when test="${isUnavailable}">
+                                    <div class="room-type-card mb-3 p-3 rounded-4 border bg-light shadow-sm"
+                                         id="room-card-${rt.roomTypeId}"
+                                         style="opacity:0.65; cursor:not-allowed;">
+                                </c:when>
+                                <c:otherwise>
+                                    <div class="room-type-card mb-3 p-3 rounded-4 border bg-white shadow-sm"
+                                         id="room-card-${rt.roomTypeId}"
+                                         onclick="selectRoom(${rt.roomTypeId}, ${rt.basePrice}, '${rt.name}', this)">
+                                </c:otherwise>
+                            </c:choose>
+
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
                                     <div class="flex-grow-1">
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <h6 class="fw-bold mb-0 text-dark">${rt.name}</h6>
-                                            <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-0 small" style="font-size: 0.72rem;">Phổ biến</span>
+                                            <%-- Badge: Hết phòng hoặc Phổ biến --%>
+                                            <c:choose>
+                                                <c:when test="${isUnavailable}">
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0 small" style="font-size:0.72rem;">
+                                                        <i class="fa-solid fa-ban me-1"></i>Hết phòng
+                                                    </span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-0 small" style="font-size:0.72rem;">Phổ biến</span>
+                                                </c:otherwise>
+                                            </c:choose>
                                         </div>
                                         <div class="text-muted small mb-2 d-flex flex-wrap gap-2">
                                             <span><i class="fa-solid fa-bed text-primary me-1"></i>${rt.bedCount} giường</span>
@@ -116,12 +148,24 @@
                                     </div>
                                     <div class="text-md-end d-flex flex-column justify-content-between align-items-md-end w-100 w-md-auto">
                                         <div>
-                                            <div class="price-big text-primary fw-bold fs-4"><fmt:formatNumber value="${rt.basePrice}" type="number" groupingUsed="true"/>₫</div>
+                                            <div class="price-big fw-bold fs-4 ${isUnavailable ? 'text-muted' : 'text-primary'}">
+                                                <fmt:formatNumber value="${rt.basePrice}" type="number" groupingUsed="true"/>₫
+                                            </div>
                                             <div class="text-muted small">/ đêm</div>
                                         </div>
-                                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill mt-2 px-3 fw-semibold">
-                                            <i class="fa-solid fa-check me-1"></i> Chọn phòng
-                                        </button>
+                                        <%-- Nút Chọn phòng / Hết phòng --%>
+                                        <c:choose>
+                                            <c:when test="${isUnavailable}">
+                                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mt-2 px-3 fw-semibold" disabled>
+                                                    <i class="fa-solid fa-calendar-xmark me-1"></i>Hết phòng trong ngày này
+                                                </button>
+                                            </c:when>
+                                            <c:otherwise>
+                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill mt-2 px-3 fw-semibold">
+                                                    <i class="fa-solid fa-check me-1"></i>Chọn phòng
+                                                </button>
+                                            </c:otherwise>
+                                        </c:choose>
                                     </div>
                                 </div>
                             </div>
@@ -393,6 +437,13 @@
 </div>
 
 <script>
+/* ── Room data map: roomTypeId → {price, name} for availability restore ── */
+var ROOM_DATA = {
+<c:forEach var="rt" items="${homestay.roomTypes}" varStatus="s">
+    "${rt.roomTypeId}": { price: ${rt.basePrice}, name: "${rt.name}" }<c:if test="${!s.last}">,</c:if>
+</c:forEach>
+};
+
 let currentModalRoom = {};
 
 function showRoomDetail(roomTypeId, name, description, price, occupancy, bedCount, roomSize) {
@@ -465,7 +516,102 @@ function toggleWishlist(homestayId, btn) {
     });
 }
 
-// Khởi tạo ngày tháng không cho chọn quá khứ & tự động chọn hạng phòng đầu tiên
+// ── Availability re-check when dates change ────────────────────────────
+
+/**
+ * Gọi AJAX endpoint để lấy availMap mới khi ngày check-in/out thay đổi,
+ * sau đó cập nhật trạng thái từng card loại phòng.
+ */
+function checkAvailability() {
+    var ci = document.getElementById('checkinInput').value;
+    var co = document.getElementById('checkoutInput').value;
+    if (!ci) return;
+
+    fetch('${pageContext.request.contextPath}/homestay/detail?id=${homestay.homestayId}'
+        + '&checkin='  + encodeURIComponent(ci)
+        + '&checkout=' + encodeURIComponent(co || '')
+        + '&format=availability')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { if (data && data.availMap) updateRoomAvailability(data.availMap); })
+    .catch(function(e) { console.warn('[Availability] fetch failed:', e); });
+}
+
+/**
+ * Cập nhật DOM của từng room-type-card dựa trên availMap nhận được.
+ * - availCount <= 0 → disable card, badge "Hết phòng", button disabled
+ * - availCount  > 0 → restore onclick, badge "Phổ biến", button enabled
+ */
+function updateRoomAvailability(availMap) {
+    var selectedRtId = parseInt(document.getElementById('selectedRoomTypeId').value || '0');
+    var currentRoomDeselected = false;
+
+    Object.keys(availMap).forEach(function(rtId) {
+        var card = document.getElementById('room-card-' + rtId);
+        if (!card) return;
+
+        var isUnavail = (availMap[rtId] <= 0);
+        var rd = ROOM_DATA[rtId];
+
+        if (isUnavail) {
+            /* ── Hết phòng: disable ───────── */
+            card.removeAttribute('onclick');
+            card.style.opacity     = '0.65';
+            card.style.cursor      = 'not-allowed';
+            card.style.background  = '#f8f9fa';
+
+            var badge = card.querySelector('.badge');
+            if (badge) {
+                badge.className = 'badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0 small';
+                badge.innerHTML = '<i class="fa-solid fa-ban me-1"></i>Hết phòng';
+            }
+            var btn = card.querySelector('button:not(.btn-link)');
+            if (btn) {
+                btn.className = 'btn btn-outline-secondary btn-sm rounded-pill mt-2 px-3 fw-semibold';
+                btn.disabled  = true;
+                btn.innerHTML = '<i class="fa-solid fa-calendar-xmark me-1"></i>Hết phòng trong ngày này';
+            }
+
+            /* Bỏ chọn nếu đang select phòng này */
+            if (parseInt(rtId) === selectedRtId) {
+                card.classList.remove('border-primary', 'bg-primary-subtle');
+                card.style.borderWidth = '1px';
+                currentRoomDeselected  = true;
+            }
+        } else {
+            /* ── Còn phòng: restore ──────── */
+            if (rd) {
+                card.setAttribute('onclick',
+                    'selectRoom(' + rtId + ',' + rd.price + ',"' + rd.name.replace(/"/g, '\\"') + '",this)');
+            }
+            card.style.opacity    = '';
+            card.style.cursor     = '';
+            card.style.background = '';
+
+            var badge = card.querySelector('.badge');
+            if (badge) {
+                badge.className = 'badge bg-primary-subtle text-primary border border-primary px-2 py-0 small';
+                badge.innerHTML = 'Phổ biến';
+            }
+            var btn = card.querySelector('button:not(.btn-link)');
+            if (btn) {
+                btn.className = 'btn btn-outline-primary btn-sm rounded-pill mt-2 px-3 fw-semibold';
+                btn.disabled  = false;
+                btn.innerHTML = '<i class="fa-solid fa-check me-1"></i>Chọn phòng';
+            }
+        }
+    });
+
+    /* Nếu phòng đang chọn bị hết → reset booking widget */
+    if (currentRoomDeselected) {
+        document.getElementById('selectedRoomTypeId').value = '';
+        document.getElementById('selectedRoomName').textContent   = 'Chọn hạng phòng';
+        document.getElementById('selectedRoomPrice').innerHTML    = '<span class="text-muted fs-6 fw-normal">/ đêm</span>';
+        var bookBtn = document.getElementById('bookBtn');
+        if (bookBtn) bookBtn.disabled = true;
+    }
+}
+
+// ── Khởi tạo ngày tháng không cho chọn quá khứ & tự động chọn hạng phòng đầu tiên
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     const todayStr = today.toISOString().split('T')[0];
@@ -509,8 +655,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!checkoutInput.value || checkoutInput.value <= val) {
                     checkoutInput.value = nextStr;
                 }
+                checkAvailability(); // ← re-check khi đổi ngày nhận phòng
             });
         }
+    }
+
+    // Lắng nghe đổi ngày trả phòng để re-check availability
+    if (checkoutInput) {
+        checkoutInput.addEventListener('change', function() {
+            checkAvailability(); // ← re-check khi đổi ngày trả phòng
+        });
     }
 
     // Tự động chọn hạng phòng đầu tiên nếu có
