@@ -148,96 +148,98 @@
         </div>
     </c:if>
 
-    <div class="row g-4">
+    <div class="row g-4 align-items-start">
         <!-- ── Left Column: User Profile Summary & Navigation ──────────────── -->
-        <div class="col-lg-4">
-            <!-- Profile Identity Card -->
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
-                <!-- Cover Banner -->
-                <div style="height: 90px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #06b6d4 100%);"></div>
-                
-                <div class="card-body text-center pt-0 pb-4 px-4">
-                    <!-- Avatar with Upload Badge -->
-                    <div class="profile-avatar-wrapper mb-3" style="margin-top: -55px;">
-                        <c:choose>
-                            <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
-                                <img id="avatarPreview"
-                                     src="${sessionScope.currentUser.avatarUrl}"
-                                     class="profile-avatar-img"
-                                     alt="Avatar"
-                                     onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
-                            </c:when>
-                            <c:otherwise>
-                                <img id="avatarPreview"
-                                     src="${pageContext.request.contextPath}/assets/images/default-avatar.svg"
-                                     class="profile-avatar-img"
-                                     alt="Avatar">
-                            </c:otherwise>
-                        </c:choose>
-                        <label for="avatarFile" class="avatar-upload-badge" title="Đổi ảnh đại diện">
-                            <i class="fa-solid fa-camera font-size-sm"></i>
-                        </label>
-                    </div>
+        <div class="col-lg-4" id="profileLeftCol">
+            <div>
+                <!-- Profile Identity Card -->
+                <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 bg-white">
+                    <!-- Cover Banner -->
+                    <div style="height: 90px; background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #06b6d4 100%);"></div>
+                    
+                    <div class="card-body text-center pt-0 pb-4 px-4">
+                        <!-- Avatar with Upload Badge -->
+                        <div class="profile-avatar-wrapper mb-3" style="margin-top: -55px;">
+                            <c:choose>
+                                <c:when test="${not empty sessionScope.currentUser.avatarUrl}">
+                                    <img id="avatarPreview"
+                                         src="${sessionScope.currentUser.avatarUrl}"
+                                         class="profile-avatar-img"
+                                         alt="Avatar"
+                                         onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-avatar.svg';">
+                                </c:when>
+                                <c:otherwise>
+                                    <img id="avatarPreview"
+                                         src="${pageContext.request.contextPath}/assets/images/default-avatar.svg"
+                                         class="profile-avatar-img"
+                                         alt="Avatar">
+                                </c:otherwise>
+                            </c:choose>
+                            <label for="avatarFile" class="avatar-upload-badge" title="Đổi ảnh đại diện">
+                                <i class="fa-solid fa-camera font-size-sm"></i>
+                            </label>
+                        </div>
 
-                    <h5 class="fw-bold mb-1 text-dark">${sessionScope.currentUser.fullName}</h5>
-                    <p class="text-secondary small mb-3">
-                        <i class="fa-regular fa-envelope me-1"></i>${sessionScope.currentUser.email}
-                    </p>
+                        <h5 class="fw-bold mb-1 text-dark">${sessionScope.currentUser.fullName}</h5>
+                        <p class="text-secondary small mb-3">
+                            <i class="fa-regular fa-envelope me-1"></i>${sessionScope.currentUser.email}
+                        </p>
 
-                    <!-- Badges -->
-                    <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
-                        <c:choose>
-                            <c:when test="${sessionScope.currentUser.authProvider == 'GOOGLE'}">
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-pill font-weight-semibold">
-                                    <i class="fa-brands fa-google me-1"></i>Google Account
+                        <!-- Badges -->
+                        <div class="d-flex justify-content-center gap-2 flex-wrap mb-3">
+                            <c:choose>
+                                <c:when test="${sessionScope.currentUser.authProvider == 'GOOGLE'}">
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2.5 py-1.5 rounded-pill font-weight-semibold">
+                                        <i class="fa-brands fa-google me-1"></i>Google Account
+                                    </span>
+                                </c:when>
+                                <c:otherwise>
+                                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1.5 rounded-pill font-weight-semibold">
+                                        <i class="fa-solid fa-shield-halved me-1"></i>Tài khoản Email
+                                    </span>
+                                </c:otherwise>
+                            </c:choose>
+
+                            <c:if test="${sessionScope.currentUser.emailVerified}">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-pill font-weight-semibold">
+                                    <i class="fa-solid fa-circle-check me-1"></i>Đã xác thực
                                 </span>
-                            </c:when>
-                            <c:otherwise>
-                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1.5 rounded-pill font-weight-semibold">
-                                    <i class="fa-solid fa-shield-halved me-1"></i>Tài khoản Email
-                                </span>
-                            </c:otherwise>
-                        </c:choose>
+                            </c:if>
+                        </div>
 
-                        <c:if test="${sessionScope.currentUser.emailVerified}">
-                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1.5 rounded-pill font-weight-semibold">
-                                <i class="fa-solid fa-circle-check me-1"></i>Đã xác thực
-                            </span>
-                        </c:if>
-                    </div>
-
-                    <!-- Upload Action Button -->
-                    <div class="pt-2 border-top">
-                        <label for="avatarFile" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold cursor-pointer">
-                            <i class="fa-solid fa-upload me-1.5"></i>Chọn ảnh mới
-                        </label>
-                        <div class="form-text mt-1 text-muted" style="font-size: 0.78rem;">JPG, PNG, GIF, WebP — tối đa 5 MB</div>
+                        <!-- Upload Action Button -->
+                        <div class="pt-2 border-top">
+                            <label for="avatarFile" class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1.5 fw-semibold cursor-pointer">
+                                <i class="fa-solid fa-upload me-1.5"></i>Chọn ảnh mới
+                            </label>
+                            <div class="form-text mt-1 text-muted" style="font-size: 0.78rem;">JPG, PNG, GIF, WebP — tối đa 5 MB</div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Quick Navigation Menu -->
-            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
-                <div class="fw-bold text-dark px-2 mb-2 small text-uppercase text-secondary" style="letter-spacing: 0.5px;">Trung tâm cá nhân</div>
-                <a href="${pageContext.request.contextPath}/customer/profile" class="profile-side-link active">
-                    <i class="fa-solid fa-user-gear me-2.5 text-primary"></i>Thông tin tài khoản
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/bookings" class="profile-side-link">
-                    <i class="fa-solid fa-calendar-check me-2.5 text-secondary"></i>Đơn đặt phòng của tôi
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/wishlist" class="profile-side-link">
-                    <i class="fa-solid fa-heart me-2.5 text-danger"></i>Danh sách yêu thích
-                </a>
-                <a href="${pageContext.request.contextPath}/customer/recommendations" class="profile-side-link">
-                    <i class="fa-solid fa-wand-magic-sparkles me-2.5 text-warning"></i>Gợi ý Homestay dành cho bạn
-                </a>
+                <!-- Quick Navigation Menu -->
+                <div class="card border-0 shadow-sm rounded-4 p-3 bg-white" id="profileMenuCard">
+                    <div class="fw-bold text-dark px-2 mb-2 small text-uppercase text-secondary" style="letter-spacing: 0.5px;">Trung tâm cá nhân</div>
+                    <a href="${pageContext.request.contextPath}/customer/profile" class="profile-side-link active">
+                        <i class="fa-solid fa-user-gear me-2.5 text-primary"></i>Thông tin tài khoản
+                    </a>
+                    <a href="${pageContext.request.contextPath}/customer/bookings" class="profile-side-link">
+                        <i class="fa-solid fa-calendar-check me-2.5 text-secondary"></i>Đơn đặt phòng của tôi
+                    </a>
+                    <a href="${pageContext.request.contextPath}/customer/wishlist" class="profile-side-link">
+                        <i class="fa-solid fa-heart me-2.5 text-danger"></i>Danh sách yêu thích
+                    </a>
+                    <a href="${pageContext.request.contextPath}/customer/recommendations" class="profile-side-link">
+                        <i class="fa-solid fa-wand-magic-sparkles me-2.5 text-warning"></i>Gợi ý Homestay dành cho bạn
+                    </a>
+                </div>
             </div>
         </div>
 
         <!-- ── Right Column: Information Forms ────────────────────────────── -->
         <div class="col-lg-8">
-            <!-- Form 1: General Info & Preferences -->
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4">
+            <!-- Form 1: General Info & Preferences (stretches to touch the bottom of Trung tâm cá nhân) -->
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden bg-white mb-4 d-flex flex-column" id="profileInfoCard">
                 <div class="card-header bg-white border-bottom p-4">
                     <div class="d-flex align-items-center justify-content-between">
                         <div>
@@ -249,9 +251,10 @@
                     </div>
                 </div>
 
-                <div class="card-body p-4">
+                <div class="card-body p-4 d-flex flex-column flex-grow-1">
                     <form action="${pageContext.request.contextPath}/customer/profile"
-                          method="POST" enctype="multipart/form-data" id="profileForm">
+                          method="POST" enctype="multipart/form-data" id="profileForm"
+                          class="d-flex flex-column flex-grow-1 justify-content-between">
                         
                         <!-- Hidden File Input for Avatar (triggered by camera button or Choose Image) -->
                         <input type="file" id="avatarFile" name="avatarFile"
@@ -339,11 +342,13 @@
                             </div>
                         </div>
 
-                        <!-- Submit Button -->
-                        <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
-                            <a href="${pageContext.request.contextPath}/home" class="btn btn-light rounded-pill px-4 fw-semibold text-secondary">Hủy</a>
-                            <button type="submit" class="btn btn-primary-custom rounded-pill px-4 fw-semibold shadow-sm">
-                                <i class="fa-solid fa-floppy-disk me-1.5"></i>Lưu thay đổi
+                        <!-- Submit Button: mt-auto to ensure button is cleanly anchored to the bottom -->
+                        <div class="d-flex justify-content-center justify-content-md-end gap-3 mt-auto pt-4 border-top">
+                            <a href="${pageContext.request.contextPath}/home" class="btn btn-outline-secondary rounded-pill px-4 py-2 fw-semibold">
+                                <i class="fa-solid fa-xmark me-1"></i>Hủy
+                            </a>
+                            <button type="submit" class="btn btn-primary-custom rounded-pill px-4 py-2 fw-semibold shadow-sm">
+                                <i class="fa-solid fa-floppy-disk me-1"></i>Lưu thay đổi
                             </button>
                         </div>
                     </form>
@@ -461,10 +466,53 @@ function previewAvatar(input) {
         var preview = document.getElementById('avatarPreview');
         if (preview) {
             preview.src = e.target.result;
+            setTimeout(alignProfileCardHeight, 60);
         }
     };
     reader.readAsDataURL(file);
 }
+
+/**
+ * Tự động giãn chiều cao card "Thông tin cá nhân" để mép dưới chạm đúng đáy card "Trung tâm cá nhân"
+ */
+function alignProfileCardHeight() {
+    var infoCard = document.getElementById('profileInfoCard');
+    var leftCol = document.getElementById('profileLeftCol');
+    var menuCard = document.getElementById('profileMenuCard');
+    if (!infoCard || !leftCol) return;
+
+    if (window.innerWidth >= 992) {
+        var targetHeight = leftCol.offsetHeight;
+        if (menuCard) {
+            var colTop = leftCol.getBoundingClientRect().top + window.scrollY;
+            var menuBottom = menuCard.getBoundingClientRect().bottom + window.scrollY;
+            var calculatedHeight = menuBottom - colTop;
+            if (calculatedHeight > 0) {
+                targetHeight = calculatedHeight;
+            }
+        }
+        infoCard.style.minHeight = Math.round(targetHeight) + 'px';
+    } else {
+        infoCard.style.minHeight = '';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', alignProfileCardHeight);
+window.addEventListener('load', alignProfileCardHeight);
+window.addEventListener('resize', alignProfileCardHeight);
+
+if (window.ResizeObserver) {
+    var sidebarObserver = new ResizeObserver(function() {
+        alignProfileCardHeight();
+    });
+    var leftColEl = document.getElementById('profileLeftCol');
+    if (leftColEl) {
+        sidebarObserver.observe(leftColEl);
+    }
+}
+
+// Khởi chạy ngay khi script được parse
+alignProfileCardHeight();
 </script>
 
 <jsp:include page="../common/footer.jsp"/>
