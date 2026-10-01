@@ -63,11 +63,11 @@
 
         <div class="owner-sidebar__group-label">Báo cáo &amp; Vệ sinh</div>
 
-        <a class="owner-sidebar__link ${activeTab == 'housekeeping' || activeTab == 'report' ? 'is-active' : ''}"
-           href="${pageContext.request.contextPath}/reception/daily-report">
+        <a class="owner-sidebar__link ${activeTab == 'housekeeping' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/reception/housekeeping">
             <span class="owner-sidebar__link-icon"><i class="fa-solid fa-broom"></i></span>
-            <span class="owner-sidebar__link-text">Báo cáo Tạm trú &amp; Dọn dẹp</span>
-            <c:if test="${activeTab == 'housekeeping' || activeTab == 'report'}"><span class="owner-sidebar__link-dot"></span></c:if>
+            <span class="owner-sidebar__link-text">Quản lý Buồng phòng</span>
+            <c:if test="${activeTab == 'housekeeping'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
     </nav>
 
