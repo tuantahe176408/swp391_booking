@@ -49,6 +49,8 @@ public class Homestay implements Serializable {
     private boolean wishlisted;
     /** Transient: total physical rooms count (from rooms table via room_types JOIN) */
     private int roomCount;
+    /** Transient: owner's full name (from JOIN with users table, used in admin approval list) */
+    private String ownerName;
 
     public Homestay() {
         this.status = Status.PENDING_APPROVAL;
@@ -267,4 +269,7 @@ public class Homestay implements Serializable {
 
     public int getRoomCount() { return roomCount; }
     public void setRoomCount(int roomCount) { this.roomCount = roomCount; }
+
+    public String getOwnerName() { return ownerName; }
+    public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
 }
