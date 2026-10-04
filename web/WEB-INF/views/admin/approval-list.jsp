@@ -58,7 +58,7 @@
                                         <th>Địa chỉ</th>
                                         <th>Ngày đăng ký</th>
                                         <th>Trạng thái</th>
-                                        <th>Thao tác</th>
+                                        <th class="text-nowrap" style="min-width: 220px;">Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -79,23 +79,25 @@
                                             </td>
                                             <td><fmt:formatDate value="${h.createdAt}" pattern="dd/MM/yyyy"/></td>
                                             <td><span class="badge bg-warning text-dark">PENDING_APPROVAL</span></td>
-                                            <td>
-                                                <%-- Approve --%>
-                                                <form method="post" action="${pageContext.request.contextPath}/admin/approvals"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('Phê duyệt homestay này?');">
-                                                    <input type="hidden" name="action"     value="approve">
-                                                    <input type="hidden" name="homestayId" value="${h.homestayId}">
-                                                    <button type="submit" class="btn btn-sm btn-success me-1">
-                                                        <i class="fa-solid fa-check me-1"></i>Phê duyệt
+                                            <td class="text-nowrap">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <%-- Approve --%>
+                                                    <form method="post" action="${pageContext.request.contextPath}/admin/approvals"
+                                                          class="m-0 p-0"
+                                                          onsubmit="return confirm('Phê duyệt homestay này?');">
+                                                        <input type="hidden" name="action"     value="approve">
+                                                        <input type="hidden" name="homestayId" value="${h.homestayId}">
+                                                        <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5 shadow-sm">
+                                                            <i class="fa-solid fa-check"></i> Phê duyệt
+                                                        </button>
+                                                    </form>
+                                                    <%-- Reject: opens modal --%>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger rounded-pill px-3 py-1.5 fw-semibold d-inline-flex align-items-center gap-1.5"
+                                                            data-bs-toggle="modal" data-bs-target="#rejectModal"
+                                                            data-id="${h.homestayId}" data-name="${h.name}">
+                                                        <i class="fa-solid fa-xmark"></i> Từ chối
                                                     </button>
-                                                </form>
-                                                <%-- Reject: opens modal --%>
-                                                <button type="button" class="btn btn-sm btn-outline-danger"
-                                                        data-bs-toggle="modal" data-bs-target="#rejectModal"
-                                                        data-id="${h.homestayId}" data-name="${h.name}">
-                                                    <i class="fa-solid fa-xmark me-1"></i>Từ chối
-                                                </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     </c:forEach>
@@ -144,11 +146,24 @@
 </div>
 
 <script>
-    document.getElementById('rejectModal').addEventListener('show.bs.modal', function (event) {
-        var btn = event.relatedTarget;
-        document.getElementById('rejectHomestayId').value = btn.getAttribute('data-id');
-        document.getElementById('rejectHomestayName').textContent = btn.getAttribute('data-name');
-        document.getElementById('rejectionReason').value = '';
+    document.addEventListener('DOMContentLoaded', function() {
+        var modalEl = document.getElementById('rejectModal');
+        if (modalEl) {
+            modalEl.addEventListener('show.bs.modal', function (event) {
+                var btn = event.relatedTarget;
+                if (btn) {
+                    var trigger = btn.closest('[data-bs-target="#rejectModal"]') || btn;
+                    var hid = trigger.getAttribute('data-id') || '';
+                    var hname = trigger.getAttribute('data-name') || '';
+                    var idInput = document.getElementById('rejectHomestayId');
+                    var nameSpan = document.getElementById('rejectHomestayName');
+                    if (idInput) idInput.value = hid;
+                    if (nameSpan) nameSpan.textContent = hname;
+                }
+                var reasonInput = document.getElementById('rejectionReason');
+                if (reasonInput) reasonInput.value = '';
+            });
+        }
     });
 </script>
 

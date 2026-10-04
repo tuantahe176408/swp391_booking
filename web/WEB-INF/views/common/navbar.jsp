@@ -82,15 +82,15 @@
                                 
                                 <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><a class="dropdown-item rounded-2 py-2 text-danger fw-semibold bg-danger-subtle" href="${pageContext.request.contextPath}/admin/users"><i class="fa-solid fa-user-shield me-2"></i> Portal Quản Trị</a></li>
+                                    <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/admin/users"><i class="fa-solid fa-user-shield me-2 text-danger"></i> Portal Quản Trị</a></li>
                                 </c:if>
                                 <c:if test="${sessionScope.currentUser.role == 'OWNER'}">
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><a class="dropdown-item rounded-2 py-2 text-primary fw-semibold bg-primary-subtle" href="${pageContext.request.contextPath}/owner/homestays"><i class="fa-solid fa-house-user me-2"></i> Portal Chủ Nhà</a></li>
+                                    <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/owner/homestays"><i class="fa-solid fa-house-user me-2 text-primary"></i> Portal Chủ Nhà</a></li>
                                 </c:if>
                                 <c:if test="${sessionScope.currentUser.role == 'RECEPTIONIST'}">
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><a class="dropdown-item rounded-2 py-2 text-info fw-semibold bg-info-subtle" href="${pageContext.request.contextPath}/reception/checkin"><i class="fa-solid fa-concierge-bell me-2"></i> Portal Lễ Tân</a></li>
+                                    <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/reception/checkin"><i class="fa-solid fa-concierge-bell me-2 text-info"></i> Portal Lễ Tân</a></li>
                                 </c:if>
                                 
                                 <li><hr class="dropdown-divider my-1"></li>

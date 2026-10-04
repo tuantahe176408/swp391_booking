@@ -87,7 +87,7 @@
 
     <!-- Footer -->
     <div class="owner-sidebar__footer d-flex flex-column gap-2">
-        <a href="${pageContext.request.contextPath}/home" class="owner-sidebar__logout-link" style="color:#fca5a5;" title="Xem giao diện khách du lịch">
+        <a href="${pageContext.request.contextPath}/home" class="owner-sidebar__back-link" title="Xem giao diện khách du lịch">
             <i class="fa-solid fa-house me-2"></i>Trang Khách Hàng
         </a>
         <a href="${pageContext.request.contextPath}/logout" class="owner-sidebar__logout-link">
