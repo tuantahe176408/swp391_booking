@@ -223,7 +223,7 @@
                                                         <input type="hidden" name="voucherId" value="${v.voucherId}">
                                                         <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"
                                                                 onclick="return confirm('Xóa vĩnh viễn voucher ${v.code}? Thao tác không thể hoàn tác!');">
-                                                            <i class="fa-solid fa-trash-can"></i>
+                                                            <i class="fa-solid fa-trash-can me-1"></i>Xóa
                                                         </button>
                                                     </form>
                                                 </div>
