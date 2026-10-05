@@ -34,6 +34,8 @@ public class AdminVoucherController extends HttpServlet {
         this.voucherDAO = new VoucherDAOImpl();
     }
 
+    private static final int PAGE_SIZE = 8;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -46,16 +48,50 @@ public class AdminVoucherController extends HttpServlet {
             return;
         }
 
-        List<Voucher> voucherList = voucherDAO.getAllVouchers();
-        long activeCount  = voucherList.stream().filter(Voucher::isActive).count();
-        long expiredCount = voucherList.stream()
+        // Parse search & filter parameters
+        String keyword      = request.getParameter("keyword");
+        String status       = request.getParameter("status");
+        String discountType = request.getParameter("discountType");
+        String pageStr      = request.getParameter("page");
+
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+        if (status != null && status.trim().isEmpty()) status = null;
+        if (discountType != null && discountType.trim().isEmpty()) discountType = null;
+
+        int page = 1;
+        if (pageStr != null) {
+            try {
+                page = Math.max(1, Integer.parseInt(pageStr.trim()));
+            } catch (NumberFormatException ignored) {}
+        }
+        int offset = (page - 1) * PAGE_SIZE;
+
+        // Statistics for summary badges
+        List<Voucher> allVouchers = voucherDAO.getAllVouchers();
+        long activeCount  = allVouchers.stream().filter(Voucher::isActive).count();
+        long expiredCount = allVouchers.stream()
                 .filter(v -> v.getEndDate() != null && v.getEndDate().getTime() < System.currentTimeMillis())
                 .count();
 
-        request.setAttribute("voucherList",   voucherList);
-        request.setAttribute("totalCount",    voucherList.size());
+        // Search & Paginate
+        List<Voucher> pagedList = voucherDAO.searchVouchers(keyword, status, discountType, offset, PAGE_SIZE);
+        int totalRows = voucherDAO.countSearchVouchers(keyword, status, discountType);
+        int totalPages = (totalRows == 0) ? 1 : (int) Math.ceil((double) totalRows / PAGE_SIZE);
+
+        request.setAttribute("voucherList",   pagedList);
+        request.setAttribute("totalCount",    allVouchers.size());
         request.setAttribute("activeCount",   activeCount);
         request.setAttribute("expiredCount",  expiredCount);
+        request.setAttribute("totalRows",     totalRows);
+        request.setAttribute("totalPages",    totalPages);
+        request.setAttribute("currentPage",   page);
+        request.setAttribute("pageSize",      PAGE_SIZE);
+
+        // Filter state for retaining form inputs
+        request.setAttribute("filterKeyword",      keyword);
+        request.setAttribute("filterStatus",       status);
+        request.setAttribute("filterDiscountType", discountType);
+
         request.setAttribute("activeTab",     "vouchers");
         request.setAttribute("pageTitle",     "Admin - Quản lý Voucher & Chiến dịch Marketing");
         request.getRequestDispatcher("/WEB-INF/views/admin/voucher-form.jsp").forward(request, response);

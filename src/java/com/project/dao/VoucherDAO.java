@@ -16,4 +16,6 @@ public interface VoucherDAO {
     boolean toggleActive(int voucherId, boolean active);
     boolean deleteVoucher(int voucherId);
     boolean incrementUsedCount(int voucherId);
+    List<Voucher> searchVouchers(String keyword, String status, String discountType, int offset, int limit);
+    int countSearchVouchers(String keyword, String status, String discountType);
 }

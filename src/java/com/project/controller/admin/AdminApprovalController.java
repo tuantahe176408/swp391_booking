@@ -28,6 +28,8 @@ public class AdminApprovalController extends HttpServlet {
         this.homestayDAO = new HomestayDAOImpl();
     }
 
+    private static final int PAGE_SIZE = 10;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -40,12 +42,49 @@ public class AdminApprovalController extends HttpServlet {
             return;
         }
 
-        List<Homestay> pendingList = homestayDAO.findPendingApprovals();
+        // Parse search & filter parameters
+        String keyword = request.getParameter("keyword");
+        String status  = request.getParameter("status");
+        String city    = request.getParameter("city");
+        String pageStr = request.getParameter("page");
 
-        request.setAttribute("pendingList", pendingList);
-        request.setAttribute("pendingCount", pendingList.size());
-        request.setAttribute("activeTab", "approvals");
-        request.setAttribute("pageTitle", "Admin - Duyệt Homestay Đăng ký");
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+        if (city != null && city.trim().isEmpty()) city = null;
+
+        // Default to PENDING_APPROVAL unless explicitly set
+        if (status == null || status.trim().isEmpty()) {
+            status = "PENDING_APPROVAL";
+        }
+
+        int page = 1;
+        if (pageStr != null) {
+            try {
+                page = Math.max(1, Integer.parseInt(pageStr.trim()));
+            } catch (NumberFormatException ignored) {}
+        }
+        int offset = (page - 1) * PAGE_SIZE;
+
+        List<Homestay> homestayList = homestayDAO.findAdminHomestays(keyword, status, city, offset, PAGE_SIZE);
+        int totalRows    = homestayDAO.countAdminHomestays(keyword, status, city);
+        int pendingCount = homestayDAO.countAdminHomestays(null, "PENDING_APPROVAL", null);
+        int totalPages   = (totalRows == 0) ? 1 : (int) Math.ceil((double) totalRows / PAGE_SIZE);
+        List<String> allCities = homestayDAO.getAllCities();
+
+        request.setAttribute("pendingList",    homestayList);
+        request.setAttribute("pendingCount",   pendingCount);
+        request.setAttribute("totalRows",      totalRows);
+        request.setAttribute("totalPages",     totalPages);
+        request.setAttribute("currentPage",    page);
+        request.setAttribute("pageSize",       PAGE_SIZE);
+        request.setAttribute("allCities",      allCities);
+
+        // Retain filter state
+        request.setAttribute("filterKeyword",  keyword);
+        request.setAttribute("filterStatus",   status);
+        request.setAttribute("filterCity",     city);
+
+        request.setAttribute("activeTab",      "approvals");
+        request.setAttribute("pageTitle",      "Admin - Duyệt Homestay Đăng ký");
         request.getRequestDispatcher("/WEB-INF/views/admin/approval-list.jsp").forward(request, response);
     }
 

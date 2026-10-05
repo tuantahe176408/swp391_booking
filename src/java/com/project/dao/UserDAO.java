@@ -33,4 +33,8 @@ public interface UserDAO {
     List<User> findAll(int offset, int limit);
 
     int countAll();
+
+    List<User> searchUsers(String keyword, String role, Boolean isActive, int offset, int limit);
+
+    int countSearchUsers(String keyword, String role, Boolean isActive);
 }

@@ -27,6 +27,8 @@ public class AdminUserController extends HttpServlet {
         this.userDAO = new UserDAOImpl();
     }
 
+    private static final int PAGE_SIZE = 10;
+
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
@@ -39,13 +41,50 @@ public class AdminUserController extends HttpServlet {
             return;
         }
 
-        List<User> userList = userDAO.findAll(0, 50);
-        int totalUsers = userDAO.countAll();
+        // Parse search & filter parameters
+        String keyword = request.getParameter("keyword");
+        String role    = request.getParameter("role");
+        String status  = request.getParameter("status");
+        String pageStr = request.getParameter("page");
 
-        request.setAttribute("userList", userList);
-        request.setAttribute("totalUsers", totalUsers);
-        request.setAttribute("activeTab", "users");
-        request.setAttribute("pageTitle", "Admin - Quản lý Người dùng & Phân quyền");
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+        if (role != null && role.trim().isEmpty()) role = null;
+        if (status != null && status.trim().isEmpty()) status = null;
+
+        Boolean isActive = null;
+        if ("ACTIVE".equalsIgnoreCase(status)) {
+            isActive = true;
+        } else if ("BANNED".equalsIgnoreCase(status)) {
+            isActive = false;
+        }
+
+        int page = 1;
+        if (pageStr != null) {
+            try {
+                page = Math.max(1, Integer.parseInt(pageStr.trim()));
+            } catch (NumberFormatException ignored) {}
+        }
+        int offset = (page - 1) * PAGE_SIZE;
+
+        int totalUsers = userDAO.countAll();
+        List<User> userList = userDAO.searchUsers(keyword, role, isActive, offset, PAGE_SIZE);
+        int totalRows = userDAO.countSearchUsers(keyword, role, isActive);
+        int totalPages = (totalRows == 0) ? 1 : (int) Math.ceil((double) totalRows / PAGE_SIZE);
+
+        request.setAttribute("userList",       userList);
+        request.setAttribute("totalUsers",     totalUsers);
+        request.setAttribute("totalRows",      totalRows);
+        request.setAttribute("totalPages",     totalPages);
+        request.setAttribute("currentPage",    page);
+        request.setAttribute("pageSize",       PAGE_SIZE);
+
+        // Retain filter state
+        request.setAttribute("filterKeyword",  keyword);
+        request.setAttribute("filterRole",     role);
+        request.setAttribute("filterStatus",   status);
+
+        request.setAttribute("activeTab",      "users");
+        request.setAttribute("pageTitle",      "Admin - Quản lý Người dùng & Phân quyền");
         request.getRequestDispatcher("/WEB-INF/views/admin/user-list.jsp").forward(request, response);
     }
 
