@@ -93,11 +93,39 @@
                         <div class="step-badge">3</div>
                         <h5 class="fw-bold mb-0">Mã giảm giá Voucher</h5>
                     </div>
-                    <div class="input-group">
-                        <input type="text" name="voucherCode" id="voucherCode" class="form-control voucher-input" placeholder="Nhập mã voucher (VD: SUMMER2026)">
-                        <button type="button" class="btn btn-outline-primary btn-apply-voucher fw-semibold" onclick="applyVoucher()">Áp dụng</button>
+                    <%-- Hidden field chứa code đã validated để submit form --%>
+                    <input type="hidden" name="voucherCode" id="voucherCodeHidden" value="">
+                    <div id="voucherInputGroup">
+                        <div class="input-group">
+                            <input type="text" id="voucherCodeInput"
+                                   class="form-control voucher-input text-uppercase"
+                                   placeholder="Nhập mã voucher (VD: SALE30BEACH)"
+                                   oninput="this.value=this.value.toUpperCase()"
+                                   onkeydown="if(event.key==='Enter'){event.preventDefault();applyVoucher();}">
+                            <button type="button" id="btnApplyVoucher"
+                                    class="btn btn-outline-primary btn-apply-voucher fw-semibold"
+                                    onclick="applyVoucher()">
+                                <span id="voucherBtnText">Áp dụng</span>
+                                <span id="voucherSpinner" class="spinner-border spinner-border-sm ms-1 d-none"></span>
+                            </button>
+                        </div>
+                        <div id="voucherMsg" class="mt-2 small"></div>
                     </div>
-                    <div id="voucherMsg" class="mt-2 small"></div>
+                    <%-- Applied voucher tag (ẩn lúc đầu) --%>
+                    <div id="voucherApplied" class="d-none">
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3"
+                             style="background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-tag text-success"></i>
+                                <span class="fw-semibold text-success font-monospace" id="appliedCode"></span>
+                                <span class="text-muted small" id="appliedDesc"></span>
+                            </div>
+                            <button type="button" class="btn btn-sm text-danger p-0 ms-2"
+                                    onclick="removeVoucher()" title="Xóa voucher">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Step 4: Phương thức thanh toán -->
@@ -199,19 +227,90 @@ function recalcTotal() {
 }
 
 function updateFinal() {
-    const total = roomPrice * totalNights + addonTotal - discount;
+    const subtotal = roomPrice * totalNights + addonTotal;
+    const total    = Math.max(0, subtotal - appliedDiscount);
+    // Hiện/ẩn discount row
+    const discRow  = document.getElementById('discountRow');
+    if (appliedDiscount > 0) {
+        discRow.style.display = 'flex';
+        document.getElementById('discountAmt').textContent = '-' + new Intl.NumberFormat('vi-VN').format(appliedDiscount) + '₫';
+    } else {
+        discRow.style.display = 'none';
+    }
     document.getElementById('finalTotal').textContent = new Intl.NumberFormat('vi-VN').format(total) + '₫';
 }
 
+// ---------- Voucher Logic ----------
+let appliedDiscount = 0;
+
 function applyVoucher() {
-    const code = document.getElementById('voucherCode').value.trim();
-    if (!code) return;
-    const msg = document.getElementById('voucherMsg');
+    const code = document.getElementById('voucherCodeInput').value.trim().toUpperCase();
+    const msg  = document.getElementById('voucherMsg');
+    const btn  = document.getElementById('btnApplyVoucher');
+    const spin = document.getElementById('voucherSpinner');
+
+    if (!code) {
+        msg.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Vui lòng nhập mã voucher.</span>';
+        return;
+    }
+
+    const orderTotal = roomPrice * totalNights + addonTotal;
+    btn.disabled = true;
+    spin.classList.remove('d-none');
     msg.innerHTML = '<span class="text-muted">Đang kiểm tra...</span>';
-    // TODO: AJAX call to /api/voucher/validate?code=...
-    // Tạm thời simulate
-    msg.innerHTML = '<span class="text-warning"><i class="fa-solid fa-circle-info me-1"></i>Tính năng đang phát triển. Voucher sẽ được áp dụng khi submit.</span>';
+
+    fetch(contextPath + '/api/voucher/validate?code=' + encodeURIComponent(code)
+              + '&orderTotal=' + orderTotal)
+        .then(r => r.json())
+        .then(data => {
+            btn.disabled = false;
+            spin.classList.add('d-none');
+
+            if (data.valid) {
+                // Lưu discount
+                appliedDiscount = parseFloat(data.discountAmount) || 0;
+                document.getElementById('voucherCodeHidden').value = code;
+
+                // Hiện tag applied, ẩn input group
+                document.getElementById('appliedCode').textContent = data.code;
+                document.getElementById('appliedDesc').textContent = data.description || '';
+                document.getElementById('voucherApplied').classList.remove('d-none');
+                document.getElementById('voucherInputGroup').classList.add('d-none');
+
+                // Update order summary
+                updateFinal();
+            } else {
+                appliedDiscount = 0;
+                document.getElementById('voucherCodeHidden').value = '';
+                msg.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-xmark me-1"></i>'
+                    + escapeHtml(data.message) + '</span>';
+                updateFinal();
+            }
+        })
+        .catch(() => {
+            btn.disabled = false;
+            spin.classList.add('d-none');
+            msg.innerHTML = '<span class="text-danger"><i class="fa-solid fa-circle-exclamation me-1"></i>Lỗi kết nối. Vui lòng thử lại.</span>';
+        });
 }
+
+function removeVoucher() {
+    appliedDiscount = 0;
+    document.getElementById('voucherCodeHidden').value = '';
+    document.getElementById('voucherCodeInput').value  = '';
+    document.getElementById('voucherMsg').innerHTML    = '';
+    document.getElementById('voucherApplied').classList.add('d-none');
+    document.getElementById('voucherInputGroup').classList.remove('d-none');
+    updateFinal();
+}
+
+function escapeHtml(str) {
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+}
+
+const contextPath = '${pageContext.request.contextPath}';
 </script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
