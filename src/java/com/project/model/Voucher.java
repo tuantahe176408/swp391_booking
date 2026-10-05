@@ -22,20 +22,25 @@ public class Voucher implements Serializable {
     private DiscountType discountType;
     private BigDecimal discountValue;
     private BigDecimal maxDiscountAmount;
-    private BigDecimal minOrderAmount;
-    private int totalLimit;
+    private BigDecimal minBookingAmount;   // DB: min_booking_amount
+    private int usageLimit;               // DB: usage_limit
     private int usedCount;
-    private java.sql.Date expiryDate;
+    private Timestamp startDate;          // DB: start_date
+    private Timestamp endDate;            // DB: end_date
     private boolean active;
+    private Integer createdByUserId;
     private Timestamp createdAt;
 
     public Voucher() {
         this.discountValue = BigDecimal.ZERO;
         this.maxDiscountAmount = BigDecimal.ZERO;
-        this.minOrderAmount = BigDecimal.ZERO;
+        this.minBookingAmount = BigDecimal.ZERO;
         this.active = true;
         this.usedCount = 0;
+        this.usageLimit = 100;
     }
+
+    // ---- Getters / Setters ----
 
     public int getVoucherId() { return voucherId; }
     public void setVoucherId(int voucherId) { this.voucherId = voucherId; }
@@ -55,20 +60,26 @@ public class Voucher implements Serializable {
     public BigDecimal getMaxDiscountAmount() { return maxDiscountAmount; }
     public void setMaxDiscountAmount(BigDecimal maxDiscountAmount) { this.maxDiscountAmount = maxDiscountAmount; }
 
-    public BigDecimal getMinOrderAmount() { return minOrderAmount; }
-    public void setMinOrderAmount(BigDecimal minOrderAmount) { this.minOrderAmount = minOrderAmount; }
+    public BigDecimal getMinBookingAmount() { return minBookingAmount; }
+    public void setMinBookingAmount(BigDecimal minBookingAmount) { this.minBookingAmount = minBookingAmount; }
 
-    public int getTotalLimit() { return totalLimit; }
-    public void setTotalLimit(int totalLimit) { this.totalLimit = totalLimit; }
+    public int getUsageLimit() { return usageLimit; }
+    public void setUsageLimit(int usageLimit) { this.usageLimit = usageLimit; }
 
     public int getUsedCount() { return usedCount; }
     public void setUsedCount(int usedCount) { this.usedCount = usedCount; }
 
-    public java.sql.Date getExpiryDate() { return expiryDate; }
-    public void setExpiryDate(java.sql.Date expiryDate) { this.expiryDate = expiryDate; }
+    public Timestamp getStartDate() { return startDate; }
+    public void setStartDate(Timestamp startDate) { this.startDate = startDate; }
+
+    public Timestamp getEndDate() { return endDate; }
+    public void setEndDate(Timestamp endDate) { this.endDate = endDate; }
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public Integer getCreatedByUserId() { return createdByUserId; }
+    public void setCreatedByUserId(Integer createdByUserId) { this.createdByUserId = createdByUserId; }
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
@@ -86,5 +97,17 @@ public class Voucher implements Serializable {
             discount = discount.min(maxDiscountAmount);
         }
         return discount;
+    }
+
+    /**
+     * Kiểm tra voucher còn hiệu lực không
+     */
+    public boolean isValid() {
+        if (!active) return false;
+        long now = System.currentTimeMillis();
+        if (startDate != null && startDate.getTime() > now) return false;
+        if (endDate != null && endDate.getTime() < now) return false;
+        if (usageLimit > 0 && usedCount >= usageLimit) return false;
+        return true;
     }
 }
