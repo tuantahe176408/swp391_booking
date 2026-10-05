@@ -27,18 +27,21 @@ public class VoucherDAOImpl implements VoucherDAO {
         v.setDiscountType(dtype != null ? Voucher.DiscountType.valueOf(dtype) : Voucher.DiscountType.PERCENTAGE);
         v.setDiscountValue(rs.getBigDecimal("discount_value"));
         v.setMaxDiscountAmount(rs.getBigDecimal("max_discount_amount"));
-        v.setMinOrderAmount(rs.getBigDecimal("min_order_amount"));
-        v.setTotalLimit(rs.getInt("total_limit"));
+        v.setMinBookingAmount(rs.getBigDecimal("min_booking_amount"));
+        v.setUsageLimit(rs.getInt("usage_limit"));
         v.setUsedCount(rs.getInt("used_count"));
-        v.setExpiryDate(rs.getDate("expiry_date"));
+        v.setStartDate(rs.getTimestamp("start_date"));
+        v.setEndDate(rs.getTimestamp("end_date"));
         v.setActive(rs.getBoolean("is_active"));
+        int createdBy = rs.getInt("created_by_user_id");
+        v.setCreatedByUserId(rs.wasNull() ? null : createdBy);
         v.setCreatedAt(rs.getTimestamp("created_at"));
         return v;
     }
 
     @Override
     public Optional<Voucher> findByCode(String code) {
-        String sql = "SELECT * FROM vouchers WHERE code = ? AND is_active = TRUE AND expiry_date >= CURDATE()";
+        String sql = "SELECT * FROM vouchers WHERE code = ? AND is_active = TRUE AND end_date >= NOW() AND start_date <= NOW()";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, code.trim().toUpperCase());
@@ -67,46 +70,53 @@ public class VoucherDAOImpl implements VoucherDAO {
 
     @Override
     public int insertVoucher(Voucher v) {
-        String sql = "INSERT INTO vouchers (code, description, discount_type, discount_value, max_discount_amount, min_order_amount, total_limit, expiry_date, is_active) VALUES (?,?,?,?,?,?,?,?,?)";
+        String sql = "INSERT INTO vouchers (code, description, discount_type, discount_value, max_discount_amount, min_booking_amount, usage_limit, start_date, end_date, is_active, created_by_user_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, v.getCode().toUpperCase());
+            ps.setString(1, v.getCode().trim().toUpperCase());
             ps.setString(2, v.getDescription());
             ps.setString(3, v.getDiscountType().name());
             ps.setBigDecimal(4, v.getDiscountValue());
             ps.setBigDecimal(5, v.getMaxDiscountAmount());
-            ps.setBigDecimal(6, v.getMinOrderAmount());
-            ps.setInt(7, v.getTotalLimit());
-            ps.setDate(8, v.getExpiryDate());
-            ps.setBoolean(9, v.isActive());
+            ps.setBigDecimal(6, v.getMinBookingAmount());
+            ps.setInt(7, v.getUsageLimit());
+            ps.setTimestamp(8, v.getStartDate());
+            ps.setTimestamp(9, v.getEndDate());
+            ps.setBoolean(10, v.isActive());
+            if (v.getCreatedByUserId() != null) {
+                ps.setInt(11, v.getCreatedByUserId());
+            } else {
+                ps.setNull(11, Types.INTEGER);
+            }
             ps.executeUpdate();
             try (ResultSet rs = ps.getGeneratedKeys()) {
                 if (rs.next()) return rs.getInt(1);
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in insertVoucher", e);
+            LOGGER.log(Level.SEVERE, "Error in insertVoucher: " + v.getCode(), e);
         }
         return -1;
     }
 
     @Override
     public boolean updateVoucher(Voucher v) {
-        String sql = "UPDATE vouchers SET code=?, description=?, discount_type=?, discount_value=?, max_discount_amount=?, min_order_amount=?, total_limit=?, expiry_date=?, is_active=? WHERE voucher_id=?";
+        String sql = "UPDATE vouchers SET code=?, description=?, discount_type=?, discount_value=?, max_discount_amount=?, min_booking_amount=?, usage_limit=?, start_date=?, end_date=?, is_active=? WHERE voucher_id=?";
         try (Connection conn = DBContext.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, v.getCode().toUpperCase());
+            ps.setString(1, v.getCode().trim().toUpperCase());
             ps.setString(2, v.getDescription());
             ps.setString(3, v.getDiscountType().name());
             ps.setBigDecimal(4, v.getDiscountValue());
             ps.setBigDecimal(5, v.getMaxDiscountAmount());
-            ps.setBigDecimal(6, v.getMinOrderAmount());
-            ps.setInt(7, v.getTotalLimit());
-            ps.setDate(8, v.getExpiryDate());
-            ps.setBoolean(9, v.isActive());
-            ps.setInt(10, v.getVoucherId());
+            ps.setBigDecimal(6, v.getMinBookingAmount());
+            ps.setInt(7, v.getUsageLimit());
+            ps.setTimestamp(8, v.getStartDate());
+            ps.setTimestamp(9, v.getEndDate());
+            ps.setBoolean(10, v.isActive());
+            ps.setInt(11, v.getVoucherId());
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in updateVoucher", e);
+            LOGGER.log(Level.SEVERE, "Error in updateVoucher: " + v.getVoucherId(), e);
         }
         return false;
     }
@@ -120,7 +130,7 @@ public class VoucherDAOImpl implements VoucherDAO {
             ps.setInt(2, voucherId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in toggleActive", e);
+            LOGGER.log(Level.SEVERE, "Error in toggleActive: " + voucherId, e);
         }
         return false;
     }
@@ -133,7 +143,7 @@ public class VoucherDAOImpl implements VoucherDAO {
             ps.setInt(1, voucherId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in deleteVoucher", e);
+            LOGGER.log(Level.SEVERE, "Error in deleteVoucher: " + voucherId, e);
         }
         return false;
     }
@@ -146,7 +156,7 @@ public class VoucherDAOImpl implements VoucherDAO {
             ps.setInt(1, voucherId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in incrementUsedCount", e);
+            LOGGER.log(Level.SEVERE, "Error in incrementUsedCount: " + voucherId, e);
         }
         return false;
     }
