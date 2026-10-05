@@ -49,7 +49,7 @@
 
         <a class="owner-sidebar__link ${activeTab == 'approvals' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/admin/approvals">
-            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-square-check"></i></span>
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-house-circle-check"></i></span>
             <span class="owner-sidebar__link-text">Duyệt Homestay</span>
             <c:if test="${activeTab == 'approvals'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
