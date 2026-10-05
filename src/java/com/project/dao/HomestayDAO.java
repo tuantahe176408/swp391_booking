@@ -126,6 +126,13 @@ public interface HomestayDAO {
     List<Homestay> findPendingApprovals();
 
     /**
+     * UC23: Search & filter homestays for Admin approval with pagination.
+     */
+    List<Homestay> findAdminHomestays(String keyword, String status, String city, int offset, int limit);
+
+    int countAdminHomestays(String keyword, String status, String city);
+
+    /**
      * UC23: Admin-level status update — no ownerId check.
      * Sets status and optionally stores a rejection reason (pass null when approving).
      * @return true if a row was updated

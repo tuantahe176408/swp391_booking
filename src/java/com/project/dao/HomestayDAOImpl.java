@@ -857,41 +857,104 @@ public class HomestayDAOImpl implements HomestayDAO {
 
     @Override
     public List<Homestay> findPendingApprovals() {
+        return findAdminHomestays(null, "PENDING_APPROVAL", null, 0, 100);
+    }
+
+    @Override
+    public List<Homestay> findAdminHomestays(String keyword, String status, String city, int offset, int limit) {
         List<Homestay> list = new ArrayList<>();
-        String sql = "SELECT h.homestay_id, h.owner_id, h.name, h.address, h.city, h.district, " +
-                     "h.status, h.created_at, " +
-                     "(SELECT hi.image_url FROM homestay_images hi " +
-                     " WHERE hi.homestay_id = h.homestay_id " +
-                     " ORDER BY hi.is_primary DESC, hi.display_order ASC LIMIT 1) AS primary_image, " +
-                     "u.full_name AS owner_name " +
-                     "FROM homestays h " +
-                     "JOIN users u ON u.user_id = h.owner_id " +
-                     "WHERE h.status = 'PENDING_APPROVAL' " +
-                     "ORDER BY h.created_at ASC";
+        StringBuilder sql = new StringBuilder(
+            "SELECT h.homestay_id, h.owner_id, h.name, h.address, h.city, h.district, " +
+            "h.status, h.created_at, h.rejection_reason, " +
+            "(SELECT hi.image_url FROM homestay_images hi " +
+            " WHERE hi.homestay_id = h.homestay_id " +
+            " ORDER BY hi.is_primary DESC, hi.display_order ASC LIMIT 1) AS primary_image, " +
+            "u.full_name AS owner_name " +
+            "FROM homestays h " +
+            "JOIN users u ON u.user_id = h.owner_id " +
+            "WHERE 1=1 "
+        );
+        List<Object> params = buildAdminHomestayFilterParams(sql, keyword, status, city);
+
+        sql.append(" ORDER BY h.created_at DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) {
-                Homestay h = new Homestay();
-                h.setHomestayId(rs.getInt("homestay_id"));
-                h.setOwnerId(rs.getInt("owner_id"));
-                h.setName(rs.getString("name"));
-                h.setAddress(rs.getString("address"));
-                h.setCity(rs.getString("city"));
-                h.setDistrict(rs.getString("district"));
-                String statusStr = rs.getString("status");
-                if (statusStr != null) {
-                    try { h.setStatus(Homestay.Status.valueOf(statusStr)); } catch (IllegalArgumentException ignored) {}
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Homestay h = new Homestay();
+                    h.setHomestayId(rs.getInt("homestay_id"));
+                    h.setOwnerId(rs.getInt("owner_id"));
+                    h.setName(rs.getString("name"));
+                    h.setAddress(rs.getString("address"));
+                    h.setCity(rs.getString("city"));
+                    h.setDistrict(rs.getString("district"));
+                    String statusStr = rs.getString("status");
+                    if (statusStr != null) {
+                        try { h.setStatus(Homestay.Status.valueOf(statusStr)); } catch (IllegalArgumentException ignored) {}
+                    }
+                    h.setCreatedAt(rs.getTimestamp("created_at"));
+                    h.setRejectionReason(rs.getString("rejection_reason"));
+                    h.setPrimaryImageUrl(rs.getString("primary_image"));
+                    h.setOwnerName(rs.getString("owner_name"));
+                    list.add(h);
                 }
-                h.setCreatedAt(rs.getTimestamp("created_at"));
-                h.setPrimaryImageUrl(rs.getString("primary_image"));
-                h.setOwnerName(rs.getString("owner_name"));
-                list.add(h);
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.SEVERE, "Error in findPendingApprovals", e);
+            LOGGER.log(Level.SEVERE, "Error in findAdminHomestays", e);
         }
         return list;
+    }
+
+    @Override
+    public int countAdminHomestays(String keyword, String status, String city) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) " +
+            "FROM homestays h " +
+            "JOIN users u ON u.user_id = h.owner_id " +
+            "WHERE 1=1 "
+        );
+        List<Object> params = buildAdminHomestayFilterParams(sql, keyword, status, city);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in countAdminHomestays", e);
+        }
+        return 0;
+    }
+
+    private List<Object> buildAdminHomestayFilterParams(StringBuilder sql, String keyword, String status, String city) {
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(h.name) LIKE ? OR LOWER(u.full_name) LIKE ? OR LOWER(h.address) LIKE ?) ");
+            String kw = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add(kw);
+        }
+        if (status != null && !status.trim().isEmpty() && !"ALL".equalsIgnoreCase(status)) {
+            sql.append(" AND h.status = ? ");
+            params.add(status.trim().toUpperCase());
+        }
+        if (city != null && !city.trim().isEmpty() && !"ALL".equalsIgnoreCase(city)) {
+            sql.append(" AND h.city = ? ");
+            params.add(city.trim());
+        }
+        return params;
     }
 
     @Override

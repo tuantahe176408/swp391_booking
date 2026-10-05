@@ -86,12 +86,48 @@
                     </button>
                 </div>
 
+                <%-- Search & Filter Toolbar --%>
+                <form method="get" action="${pageContext.request.contextPath}/admin/vouchers" class="row g-2 mb-4 align-items-center">
+                    <div class="col-md-4">
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" name="keyword" class="form-control bg-light border-start-0 ps-0" 
+                                   placeholder="Tìm kiếm mã hoặc mô tả..." value="<c:out value='${filterKeyword}'/>">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="status" class="form-select bg-light" onchange="this.form.submit()">
+                            <option value="">-- Tất cả trạng thái --</option>
+                            <option value="ACTIVE" ${filterStatus == 'ACTIVE' ? 'selected' : ''}>Đang phát hành</option>
+                            <option value="INACTIVE" ${filterStatus == 'INACTIVE' ? 'selected' : ''}>Đã tắt</option>
+                            <option value="EXPIRED" ${filterStatus == 'EXPIRED' ? 'selected' : ''}>Đã hết hạn</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <select name="discountType" class="form-select bg-light" onchange="this.form.submit()">
+                            <option value="">-- Tất cả loại giảm giá --</option>
+                            <option value="PERCENTAGE" ${filterDiscountType == 'PERCENTAGE' ? 'selected' : ''}>Theo phần trăm (%)</option>
+                            <option value="FIXED_AMOUNT" ${filterDiscountType == 'FIXED_AMOUNT' ? 'selected' : ''}>Số tiền cố định (₫)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-dark w-100 rounded-3">
+                            <i class="fa-solid fa-filter me-1"></i>Lọc
+                        </button>
+                        <c:if test="${not empty filterKeyword or not empty filterStatus or not empty filterDiscountType}">
+                            <a href="${pageContext.request.contextPath}/admin/vouchers" class="btn btn-outline-secondary rounded-3" title="Đặt lại bộ lọc">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </a>
+                        </c:if>
+                    </div>
+                </form>
+
                 <c:choose>
                     <c:when test="${empty voucherList}">
                         <div class="text-center py-5 text-muted">
                             <i class="fa-solid fa-ticket-slash fa-3x mb-3 opacity-25"></i>
-                            <p class="fw-semibold mb-1">Chưa có voucher nào.</p>
-                            <p class="small">Nhấn <strong>Tạo Mã Mới</strong> để bắt đầu chiến dịch đầu tiên.</p>
+                            <p class="fw-semibold mb-1">Không tìm thấy voucher phù hợp.</p>
+                            <p class="small">Thử thay đổi từ khóa hoặc bộ lọc tìm kiếm.</p>
                         </div>
                     </c:when>
                     <c:otherwise>
@@ -232,6 +268,44 @@
                                     </c:forEach>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <%-- Pagination Bar --%>
+                        <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 pt-3 border-top mt-3">
+                            <div class="text-muted small">
+                                Hiển thị <strong>${totalRows > 0 ? (currentPage - 1) * pageSize + 1 : 0}</strong> - 
+                                <strong>${currentPage * pageSize > totalRows ? totalRows : currentPage * pageSize}</strong> 
+                                trong tổng số <strong>${totalRows}</strong> voucher
+                            </div>
+                            <c:if test="${totalPages > 1}">
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <%-- Prev --%>
+                                        <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                                            <a class="page-link rounded-start-3" 
+                                               href="${pageContext.request.contextPath}/admin/vouchers?page=${currentPage - 1}&keyword=${filterKeyword != null ? filterKeyword : ''}&status=${filterStatus != null ? filterStatus : ''}&discountType=${filterDiscountType != null ? filterDiscountType : ''}">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                        <%-- Page numbers --%>
+                                        <c:forEach begin="1" end="${totalPages}" var="p">
+                                            <li class="page-item ${currentPage == p ? 'active' : ''}">
+                                                <a class="page-link" 
+                                                   href="${pageContext.request.contextPath}/admin/vouchers?page=${p}&keyword=${filterKeyword != null ? filterKeyword : ''}&status=${filterStatus != null ? filterStatus : ''}&discountType=${filterDiscountType != null ? filterDiscountType : ''}">
+                                                    ${p}
+                                                </a>
+                                            </li>
+                                        </c:forEach>
+                                        <%-- Next --%>
+                                        <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                                            <a class="page-link rounded-end-3" 
+                                               href="${pageContext.request.contextPath}/admin/vouchers?page=${currentPage + 1}&keyword=${filterKeyword != null ? filterKeyword : ''}&status=${filterStatus != null ? filterStatus : ''}&discountType=${filterDiscountType != null ? filterDiscountType : ''}">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </c:if>
                         </div>
                     </c:otherwise>
                 </c:choose>

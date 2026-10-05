@@ -287,6 +287,73 @@ public class UserDAOImpl implements UserDAO {
         return 0;
     }
 
+    @Override
+    public List<User> searchUsers(String keyword, String role, Boolean isActive, int offset, int limit) {
+        List<User> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("SELECT * FROM users WHERE 1=1 ");
+        List<Object> params = buildUserFilterParams(sql, keyword, role, isActive);
+
+        sql.append(" ORDER BY user_id DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in searchUsers", e);
+        }
+        return list;
+    }
+
+    @Override
+    public int countSearchUsers(String keyword, String role, Boolean isActive) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM users WHERE 1=1 ");
+        List<Object> params = buildUserFilterParams(sql, keyword, role, isActive);
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) {
+                ps.setObject(i + 1, params.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in countSearchUsers", e);
+        }
+        return 0;
+    }
+
+    private List<Object> buildUserFilterParams(StringBuilder sql, String keyword, String role, Boolean isActive) {
+        List<Object> params = new ArrayList<>();
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            sql.append(" AND (LOWER(full_name) LIKE ? OR LOWER(email) LIKE ? OR phone_number LIKE ?) ");
+            String kw = "%" + keyword.trim().toLowerCase() + "%";
+            params.add(kw);
+            params.add(kw);
+            params.add("%" + keyword.trim() + "%");
+        }
+        if (role != null && !role.trim().isEmpty() && !"ALL".equalsIgnoreCase(role)) {
+            sql.append(" AND role = ? ");
+            params.add(role.trim().toUpperCase());
+        }
+        if (isActive != null) {
+            sql.append(" AND is_active = ? ");
+            params.add(isActive);
+        }
+        return params;
+    }
+
     private User mapResultSetToUser(ResultSet rs) throws SQLException {
         User user = new User();
         user.setUserId(rs.getInt("user_id"));
