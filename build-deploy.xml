@@ -47,6 +47,11 @@
                debug="true">
             <classpath refid="compile.classpath"/>
         </javac>
+        <copy todir="${classes.dir}">
+            <fileset dir="${src.dir}">
+                <exclude name="**/*.java"/>
+            </fileset>
+        </copy>
     </target>
 
     <target name="copy-web" depends="compile">

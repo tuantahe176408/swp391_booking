@@ -77,6 +77,8 @@ public class AdminVoucherController extends HttpServlet {
 
         if ("create".equals(action)) {
             handleCreate(request, response, session, currentUser);
+        } else if ("update".equals(action)) {
+            handleUpdate(request, response, session);
         } else if ("toggle".equals(action)) {
             handleToggle(request, response, session);
         } else if ("delete".equals(action)) {
@@ -133,6 +135,51 @@ public class AdminVoucherController extends HttpServlet {
             session.setAttribute("adminErrorMessage", "Lỗi tạo voucher: " + e.getMessage());
         }
 
+        response.sendRedirect(request.getContextPath() + "/admin/vouchers");
+    }
+
+    // ---- UPDATE (Safe Fields Only) ----
+    private void handleUpdate(HttpServletRequest request, HttpServletResponse response,
+                              HttpSession session) throws IOException {
+        try {
+            int voucherId  = Integer.parseInt(request.getParameter("voucherId"));
+            String description = request.getParameter("description");
+            String endStr      = request.getParameter("endDate");
+            String maxDisc     = request.getParameter("maxDiscountAmount");
+            String minBook     = request.getParameter("minBookingAmount");
+            String usageLimStr = request.getParameter("usageLimit");
+
+            // Load existing voucher để giữ nguyên các immutable fields
+            java.util.List<com.project.model.Voucher> all = voucherDAO.getAllVouchers();
+            com.project.model.Voucher existing = all.stream()
+                    .filter(v -> v.getVoucherId() == voucherId)
+                    .findFirst().orElse(null);
+
+            if (existing == null) {
+                session.setAttribute("adminErrorMessage", "Không tìm thấy voucher cần cập nhật.");
+                response.sendRedirect(request.getContextPath() + "/admin/vouchers");
+                return;
+            }
+
+            // Chỉ cập nhật safe fields — giữ nguyên code/discountType/discountValue
+            existing.setDescription(description != null ? description.trim() : existing.getDescription());
+            existing.setMaxDiscountAmount(parseBigDecimal(maxDisc, existing.getMaxDiscountAmount()));
+            existing.setMinBookingAmount(parseBigDecimal(minBook, existing.getMinBookingAmount()));
+            existing.setUsageLimit(parseIntSafe(usageLimStr, existing.getUsageLimit()));
+            if (endStr != null && !endStr.trim().isEmpty()) {
+                existing.setEndDate(parseTimestampEnd(endStr));
+            }
+
+            boolean ok = voucherDAO.updateVoucher(existing);
+            if (ok) {
+                session.setAttribute("adminSuccessMessage",
+                        "Đã cập nhật voucher [" + existing.getCode() + "] thành công!");
+            } else {
+                session.setAttribute("adminErrorMessage", "Cập nhật thất bại. Vui lòng thử lại.");
+            }
+        } catch (Exception e) {
+            session.setAttribute("adminErrorMessage", "Lỗi cập nhật voucher: " + e.getMessage());
+        }
         response.sendRedirect(request.getContextPath() + "/admin/vouchers");
     }
 

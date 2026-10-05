@@ -184,6 +184,19 @@
                                             <%-- Actions --%>
                                             <td>
                                                 <div class="d-flex align-items-center gap-2">
+                                                    <%-- Edit --%>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3"
+                                                            data-bs-toggle="modal" data-bs-target="#editVoucherModal"
+                                                            data-id="${v.voucherId}"
+                                                            data-code="${v.code}"
+                                                            data-desc="<c:out value='${v.description}'/>"
+                                                            data-end="<fmt:formatDate value='${v.endDate}' pattern='yyyy-MM-dd'/>"
+                                                            data-maxdisc="${v.maxDiscountAmount}"
+                                                            data-minbook="${v.minBookingAmount}"
+                                                            data-limit="${v.usageLimit}"
+                                                            onclick="openEditModal(this)">
+                                                        <i class="fa-solid fa-pen-to-square me-1"></i>Sửa
+                                                    </button>
                                                     <%-- Toggle --%>
                                                     <form method="post" action="${pageContext.request.contextPath}/admin/vouchers" class="m-0">
                                                         <input type="hidden" name="action"    value="toggle">
@@ -336,8 +349,82 @@
     </div>
 </div>
 
+<%-- Edit Voucher Modal --%>
+<div class="modal fade" id="editVoucherModal" tabindex="-1" aria-labelledby="editVoucherModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <form method="post" action="${pageContext.request.contextPath}/admin/vouchers" id="edit-voucher-form">
+                <input type="hidden" name="action"    value="update">
+                <input type="hidden" name="voucherId" id="ev-voucherId" value="">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold" id="editVoucherModalLabel">
+                        <i class="fa-solid fa-pen-to-square text-primary me-2"></i>
+                        Chỉnh sửa Voucher — <span id="ev-codeDisplay" class="font-monospace text-primary"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body pt-2">
+                    <%-- Read-only info box --%>
+                    <div class="alert alert-info d-flex gap-2 align-items-start py-2 mb-3 small rounded-3">
+                        <i class="fa-solid fa-lock mt-1"></i>
+                        <div>
+                            <strong>Trường khóa:</strong> Mã voucher, loại giảm giá và mức giảm không thể thay đổi sau khi tạo —
+                            để đảm bảo tính nhất quán với các booking đã sử dụng mã này.
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label for="ev-description" class="form-label fw-semibold small">Mô tả chiến dịch</label>
+                            <textarea id="ev-description" name="description"
+                                      class="form-control rounded-3" rows="2"
+                                      placeholder="Mô tả chiến dịch..."></textarea>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="ev-minBookingAmount" class="form-label fw-semibold small">
+                                Đơn tối thiểu (₫)
+                            </label>
+                            <input type="number" id="ev-minBookingAmount" name="minBookingAmount"
+                                   class="form-control rounded-3" min="0" step="1000">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="ev-maxDiscountAmount" class="form-label fw-semibold small">
+                                Giảm tối đa (₫) <span class="text-muted">(chỉ dùng với %)</span>
+                            </label>
+                            <input type="number" id="ev-maxDiscountAmount" name="maxDiscountAmount"
+                                   class="form-control rounded-3" min="0" step="1000">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="ev-usageLimit" class="form-label fw-semibold small">
+                                Số lượt phát hành <span class="text-danger">*</span>
+                            </label>
+                            <input type="number" id="ev-usageLimit" name="usageLimit" required
+                                   class="form-control rounded-3" min="1">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="ev-endDate" class="form-label fw-semibold small">
+                                Ngày kết thúc <span class="text-danger">*</span>
+                            </label>
+                            <input type="date" id="ev-endDate" name="endDate" required
+                                   class="form-control rounded-3">
+                            <div class="form-text text-success">
+                                <i class="fa-solid fa-circle-info me-1"></i>Có thể gia hạn chiến dịch bằng cách tăng ngày này.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-3" data-bs-dismiss="modal">Huỷ</button>
+                    <button type="submit" class="btn btn-primary rounded-3 fw-semibold">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>Lưu thay đổi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Set default dates
+    // Set default dates for Create Modal
     document.addEventListener('DOMContentLoaded', function () {
         var today = new Date().toISOString().split('T')[0];
         var nextYear = new Date();
@@ -351,8 +438,8 @@
     });
 
     function toggleMaxDiscount(type) {
-        var maxGroup    = document.getElementById('max-discount-group');
-        var unit        = document.getElementById('discount-unit');
+        var maxGroup = document.getElementById('max-discount-group');
+        var unit     = document.getElementById('discount-unit');
         if (type === 'FIXED_AMOUNT') {
             maxGroup.style.display = 'none';
             if (unit) unit.textContent = '₫';
@@ -361,6 +448,18 @@
             if (unit) unit.textContent = '%';
         }
     }
+
+    // Populate Edit Modal từ data-* attributes
+    function openEditModal(btn) {
+        document.getElementById('ev-voucherId').value        = btn.dataset.id    || '';
+        document.getElementById('ev-codeDisplay').textContent= btn.dataset.code  || '';
+        document.getElementById('ev-description').value     = btn.dataset.desc  || '';
+        document.getElementById('ev-endDate').value         = btn.dataset.end   || '';
+        document.getElementById('ev-maxDiscountAmount').value= btn.dataset.maxdisc || '';
+        document.getElementById('ev-minBookingAmount').value = btn.dataset.minbook  || '';
+        document.getElementById('ev-usageLimit').value      = btn.dataset.limit || '';
+    }
 </script>
 
 <jsp:include page="../common/footer.jsp"/>
+
