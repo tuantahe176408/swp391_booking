@@ -92,38 +92,15 @@
                                 <span style="font-weight: normal; cursor: pointer;" onclick="selectLocation('')">Xóa</span>
                             </div>
                             <div class="location-list" id="heroLocationList">
-                                <div class="location-item" onclick="selectLocation('Đà Lạt')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-mountain-sun"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Đà Lạt</div><div class="text-muted small">Lâm Đồng • Xứ sở ngàn hoa</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Đà Nẵng')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-umbrella-beach"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Đà Nẵng</div><div class="text-muted small">Bãi biển Mỹ Khê &amp; Cầu Rồng</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Hội An')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-landmark"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Hội An</div><div class="text-muted small">Quảng Nam • Phố cổ đèn lồng</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Nha Trang')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-water"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Nha Trang</div><div class="text-muted small">Khánh Hòa • Thành phố biển</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Phú Quốc')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-sun"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Phú Quốc</div><div class="text-muted small">Kiên Giang • Đảo ngọc</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Hà Nội')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-city"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Hà Nội</div><div class="text-muted small">Thủ đô nghìn năm văn hiến</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Sapa')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-cloud-sun"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Sapa</div><div class="text-muted small">Lào Cai • Thị trấn sương mù</div></div>
-                                </div>
-                                <div class="location-item" onclick="selectLocation('Vũng Tàu')">
-                                    <div class="location-icon-box"><i class="fa-solid fa-ship"></i></div>
-                                    <div><div class="fw-bold text-dark" style="font-size:0.9rem;">Vũng Tàu</div><div class="text-muted small">Bà Rịa - Vũng Tàu</div></div>
-                                </div>
+                                <c:forEach var="city" items="${cities}">
+                                    <div class="location-item" onclick="selectLocation('${city}')">
+                                        <div class="location-icon-box"><i class="fa-solid fa-location-dot"></i></div>
+                                        <div><div class="fw-bold text-dark" style="font-size:0.9rem;">${city}</div></div>
+                                    </div>
+                                </c:forEach>
+                                <c:if test="${empty cities}">
+                                    <div class="px-3 py-2 text-muted small">Không có dữ liệu thành phố.</div>
+                                </c:if>
                             </div>
                         </div>
                     </div>
@@ -178,13 +155,6 @@
                             <c:forEach var="c" items="${cities}">
                                 <div class="city-chip ${searchLocation == c ? 'active' : ''}" onclick="filterByCity('${c}')">${c}</div>
                             </c:forEach>
-                            <c:if test="${empty cities}">
-                                <div class="city-chip ${searchLocation == 'Đà Nẵng' ? 'active' : ''}" onclick="filterByCity('Đà Nẵng')">Đà Nẵng</div>
-                                <div class="city-chip ${searchLocation == 'Đà Lạt' ? 'active' : ''}" onclick="filterByCity('Đà Lạt')">Đà Lạt</div>
-                                <div class="city-chip ${searchLocation == 'Hội An' ? 'active' : ''}" onclick="filterByCity('Hội An')">Hội An</div>
-                                <div class="city-chip ${searchLocation == 'Nha Trang' ? 'active' : ''}" onclick="filterByCity('Nha Trang')">Nha Trang</div>
-                                <div class="city-chip ${searchLocation == 'Phú Quốc' ? 'active' : ''}" onclick="filterByCity('Phú Quốc')">Phú Quốc</div>
-                            </c:if>
                         </div>
                     </div>
 
