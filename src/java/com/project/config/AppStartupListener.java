@@ -5,6 +5,10 @@ import com.project.service.BookingExpiryJob;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import java.sql.Driver;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.util.Enumeration;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -61,6 +65,7 @@ public class AppStartupListener implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        // 1. Dừng scheduled job
         if (scheduler != null && !scheduler.isShutdown()) {
             scheduler.shutdown();
             try {
@@ -76,6 +81,32 @@ public class AppStartupListener implements ServletContextListener {
                 Thread.currentThread().interrupt();
                 LOGGER.log(Level.WARNING, "[AppStartupListener] Interrupted during shutdown.", e);
             }
+        }
+
+        // 2. Deregister tất cả JDBC drivers do webapp này load để tránh memory leak
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        Enumeration<Driver> drivers = DriverManager.getDrivers();
+        while (drivers.hasMoreElements()) {
+            Driver driver = drivers.nextElement();
+            if (driver.getClass().getClassLoader() == cl) {
+                try {
+                    DriverManager.deregisterDriver(driver);
+                    LOGGER.info("[AppStartupListener] Deregistered JDBC driver: " + driver);
+                } catch (SQLException e) {
+                    LOGGER.log(Level.WARNING, "[AppStartupListener] Failed to deregister JDBC driver: " + driver, e);
+                }
+            }
+        }
+
+        // 3. Dừng MySQL AbandonedConnectionCleanupThread để tránh thread leak
+        try {
+            Class<?> cleanupThreadClass = Class.forName("com.mysql.cj.jdbc.AbandonedConnectionCleanupThread");
+            cleanupThreadClass.getMethod("uncheckedShutdown").invoke(null);
+            LOGGER.info("[AppStartupListener] MySQL AbandonedConnectionCleanupThread stopped.");
+        } catch (ClassNotFoundException e) {
+            // MySQL connector không có trong classpath — bỏ qua
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "[AppStartupListener] Could not stop MySQL cleanup thread.", e);
         }
     }
 }
