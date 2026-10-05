@@ -468,8 +468,8 @@ public class BookingDAOImpl implements BookingDAO {
             conn = DBContext.getConnection();
             conn.setAutoCommit(false);
 
-            // ── Step 1: Find or create a CUSTOMER account for this guest ───────
-            int customerId = findOrCreateWalkInCustomer(conn, guestName, guestPhone, guestEmail);
+            // ── Step 1: Walk-in — customer_id = NULL (khách vãng lai không có tài khoản) ──
+            // Thông tin khách lưu ở guest_name / guest_phone / guest_email, không cần FK users
 
             // ── Step 2: Generate unique booking code ────────────────────────────
             String bookingCode = generateWalkInCode(conn);
@@ -487,7 +487,7 @@ public class BookingDAOImpl implements BookingDAO {
 
             try (PreparedStatement ps = conn.prepareStatement(sqlInsert)) {
                 ps.setString(1,  bookingCode);
-                ps.setInt(2,     customerId);
+                ps.setNull(2,    java.sql.Types.INTEGER);  // customer_id = NULL cho walk-in
                 ps.setInt(3,     homestayId);
                 ps.setInt(4,     roomTypeId);
                 ps.setInt(5,     roomId);
@@ -551,66 +551,6 @@ public class BookingDAOImpl implements BookingDAO {
             LOGGER.log(Level.SEVERE, "Error in cancelExpiredPendingBookings", e);
             return 0;
         }
-    }
-
-    /** Tìm user theo SĐT (hoặc email); nếu chưa có thì tạo tài khoản CUSTOMER mới. */
-    private int findOrCreateWalkInCustomer(Connection conn, String guestName,
-                                            String guestPhone, String guestEmail) throws SQLException {
-        // Tìm theo số điện thoại trước
-        String sqlByPhone = "SELECT user_id FROM users WHERE phone_number = ? LIMIT 1";
-        try (PreparedStatement ps = conn.prepareStatement(sqlByPhone)) {
-            ps.setString(1, guestPhone);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("user_id");
-            }
-        }
-
-        // Tìm theo email nếu có
-        if (guestEmail != null && !guestEmail.trim().isEmpty()) {
-            String sqlByEmail = "SELECT user_id FROM users WHERE email = ? LIMIT 1";
-            try (PreparedStatement ps = conn.prepareStatement(sqlByEmail)) {
-                ps.setString(1, guestEmail.trim());
-                try (ResultSet rs = ps.executeQuery()) {
-                    if (rs.next()) return rs.getInt("user_id");
-                }
-            }
-        }
-
-        // Tạo tài khoản mới cho khách vãng lai
-        // Email: dùng email cung cấp, hoặc fallback phone@walkin.guest
-        String email = (guestEmail != null && !guestEmail.trim().isEmpty())
-                ? guestEmail.trim()
-                : guestPhone + "@walkin.guest";
-
-        // BCrypt placeholder — khách vãng lai không thể đăng nhập bằng tài khoản này
-        String placeholderHash = "$2a$12$hZH1OZp1RO3t4Bk.1Y/0tOc.9dOHW5y39WA1/F7h3UzNfZLzoxzpa";
-
-        String sqlCreate =
-            "INSERT INTO users (email, password_hash, full_name, phone_number, role, " +
-            "                   auth_provider, is_active, is_email_verified) " +
-            "VALUES (?, ?, ?, ?, 'CUSTOMER', 'LOCAL', 1, 0) " +
-            "ON DUPLICATE KEY UPDATE phone_number = VALUES(phone_number)";
-        try (PreparedStatement ps = conn.prepareStatement(sqlCreate, Statement.RETURN_GENERATED_KEYS)) {
-            ps.setString(1, email);
-            ps.setString(2, placeholderHash);
-            ps.setString(3, guestName);
-            ps.setString(4, guestPhone);
-            ps.executeUpdate();
-            try (ResultSet rs = ps.getGeneratedKeys()) {
-                if (rs.next() && rs.getInt(1) > 0) return rs.getInt(1);
-            }
-        }
-
-        // Fallback query (ON DUPLICATE KEY UPDATE trả về 0 keys nếu row đã tồn tại)
-        String sqlFallback = "SELECT user_id FROM users WHERE email = ? LIMIT 1";
-        try (PreparedStatement ps = conn.prepareStatement(sqlFallback)) {
-            ps.setString(1, email);
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt("user_id");
-            }
-        }
-
-        throw new SQLException("Cannot find or create walk-in customer for phone: " + guestPhone);
     }
 
     /** Sinh mã booking walk-in: BK-W{yyyyMMdd}-XXXX (sequential per day). */
