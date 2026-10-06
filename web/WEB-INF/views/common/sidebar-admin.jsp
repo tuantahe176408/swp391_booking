@@ -61,6 +61,13 @@
             <c:if test="${activeTab == 'vouchers'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
 
+        <a class="owner-sidebar__link ${activeTab == 'contacts' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/admin/contacts">
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-inbox"></i></span>
+            <span class="owner-sidebar__link-text">Tin nhắn Liên hệ</span>
+            <c:if test="${activeTab == 'contacts'}"><span class="owner-sidebar__link-dot"></span></c:if>
+        </a>
+
         <div class="owner-sidebar__group-label">Hệ thống &amp; Phân tích</div>
 
         <a class="owner-sidebar__link ${activeTab == 'analytics' ? 'is-active' : ''}"
