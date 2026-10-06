@@ -14,6 +14,9 @@ warn(){ echo -e "${YELLOW}[WARN]${NC} $1"; }
 err(){  echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 step(){ echo -e "\n${CYAN}>>> $1${NC}"; }
 
+# --- Lấy IP thật của WSL (không cần hostname/ip/ifconfig) ---
+wsl_ip(){ awk 'NR==2{printf "%d.%d.%d.%d\n", strtonum("0x"substr($2,7,2)), strtonum("0x"substr($2,5,2)), strtonum("0x"substr($2,3,2)), strtonum("0x"substr($2,1,2))}' /proc/net/tcp 2>/dev/null; }
+
 # --- Cấu hình ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$SCRIPT_DIR"
@@ -137,11 +140,16 @@ done
 
 echo ""
 if [ "$CODE" = "200" ]; then
+    WSL_IP="$(wsl_ip)"
     echo "=============================================="
     echo -e "${GREEN}  REBUILD & DEPLOY THÀNH CÔNG (HTTP $CODE)${NC}"
     echo "=============================================="
     echo ""
     echo "  Truy cập:  $APP_URL"
+    if [ -n "$WSL_IP" ] && [ "$WSL_IP" != "127.0.0.1" ]; then
+    echo -e "  ${YELLOW}Nếu localhost không vào được (đổi mạng):${NC}"
+    echo -e "  ${YELLOW}  http://${WSL_IP}:8080/${APP_NAME}/home${NC}"
+    fi
     echo "  Đăng nhập: http://localhost:8080/${APP_NAME}/login"
     echo ""
     # --- Stream log realtime của Tomcat + app ---
