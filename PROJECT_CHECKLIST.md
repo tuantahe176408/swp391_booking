@@ -246,6 +246,26 @@
 - [x] web.xml: bảo vệ `/customer/review` bằng `AuthenticationFilter`
 - [x] Seed data test UC10: 3 booking CHECKED_OUT chưa review (`seed_review_test.sql`)
 
+#### Nhóm 24: Admin - Quản lý Đơn Liên hệ & Hỗ trợ ✨ **[MỚI]**
+- [x] Table `contact_messages` (`message_id`, `sender_name/email/phone`, `subject`, `message`, `is_resolved`, `resolved_by`, `resolved_at`) — seed 5 tin nhắn mẫu (`seed_contact_messages.sql`)
+- [x] `ContactMessage.java` — model với `isResolved` boolean đơn giản
+- [x] `ContactDAO/Impl` — `insertMessage`, `getMessages(filter+page)`, `countMessages`, `setResolved` (`ContactDAOImpl.java`)
+- [x] `ContactController.doPost()` — lưu tin nhắn vào DB thật (trước chỉ show flash không lưu)
+- [x] Pre-fill form liên hệ tự động khi đã đăng nhập (tên, email, SĐT)
+- [x] `AdminContactController` — GET list với filter (tất cả/chưa xử lý/đã xử lý) + pagination; POST toggle `is_resolved` (`/admin/contacts`)
+- [x] `contact-list.jsp` — layout `owner-shell` match design admin, filter tabs, table với modal xem nội dung đầy đủ, nút Xong/Bỏ xử lý
+- [x] Sidebar admin: thêm nav item "Tin nhắn Liên hệ" với icon 📥
+
+#### Nhóm 25: Fixes & Improvements ✨ **[MỚI]**
+- [x] Walk-in booking: bỏ tạo user account ghost trong bảng `users` — set `customer_id = NULL` (`BookingDAOImpl.java`)
+- [x] Search filter Thành phố/Khu vực: bỏ fallback hardcode, popup gợi ý địa điểm dynamic từ DB (`search.jsp`)
+- [x] Date picker check-in: nếu đã qua giờ check-in (14:00) thì min = ngày mai, không cho chọn hôm nay (`footer.jsp`, `detail.jsp`)
+- [x] Hủy đặt phòng: fix so sánh ngày dùng `LocalDate.toString()` tránh lỗi timezone (`BookingDAOImpl.java`)
+- [x] booking_addons INSERT: fix tên column `subtotal` → `total_price` khớp schema (`BookingService.java`)
+- [x] Booking code generation: dùng `System.nanoTime()` thay `Math.random()` tránh duplicate (`BookingService.java`)
+- [x] VNPay integration: tạo `payment-select.jsp`, `payment-mock.jsp`, lưu Payment record vào DB khi callback, fix HMAC hashData encoding (`PaymentController.java`, `PaymentUtil.java`)
+- [x] VNPay sandbox credentials cấu hình (TmnCode: 1JGR8UF7)
+
 ---
 
 ## 🔑 Tài Khoản Thử Nghiệm Mặc Định (Seed Test Data)

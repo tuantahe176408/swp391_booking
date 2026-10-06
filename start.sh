@@ -25,6 +25,8 @@ APP_URL="http://localhost:8080/${APP_NAME}/home"
 port_listening(){ ss -tln 2>/dev/null | grep -q ":$1 "; }
 # --- Kiểm tra MySQL thực sự nhận kết nối (đáng tin hơn ss trong WSL) ---
 mysql_ready(){ mysqladmin --socket="$MYSQL_SOCK" -u root -p'root@2024' ping 2>/dev/null | grep -q "alive"; }
+# --- Lấy IP thật của WSL (không cần hostname/ip/ifconfig) ---
+wsl_ip(){ awk 'NR==2{printf "%d.%d.%d.%d\n", strtonum("0x"substr($2,7,2)), strtonum("0x"substr($2,5,2)), strtonum("0x"substr($2,3,2)), strtonum("0x"substr($2,1,2))}' /proc/net/tcp 2>/dev/null; }
 
 # --- Theo dõi log realtime: catalina.out + localhost (log app/JUL) + access log ---
 # - Log startup/scheduler (AppStartupListener, BookingExpiryJob) -> catalina.out & catalina.<date>.log
@@ -122,11 +124,16 @@ done
 
 echo ""
 if [ "$CODE" = "200" ]; then
+    WSL_IP="$(wsl_ip)"
     echo "=============================================="
     echo -e "${GREEN}  ỨNG DỤNG ĐANG CHẠY (HTTP $CODE)${NC}"
     echo "=============================================="
     echo ""
     echo "  Truy cập:  $APP_URL"
+    if [ -n "$WSL_IP" ] && [ "$WSL_IP" != "127.0.0.1" ]; then
+    echo -e "  ${YELLOW}Nếu localhost không vào được (đổi mạng):${NC}"
+    echo -e "  ${YELLOW}  http://${WSL_IP}:8080/${APP_NAME}/home${NC}"
+    fi
     echo "  Đăng nhập: http://localhost:8080/${APP_NAME}/login"
     echo ""
     echo "  Dừng ứng dụng:  sudo bash stop.sh"
