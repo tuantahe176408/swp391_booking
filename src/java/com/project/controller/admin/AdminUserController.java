@@ -3,6 +3,7 @@ package com.project.controller.admin;
 import com.project.dao.UserDAO;
 import com.project.dao.UserDAOImpl;
 import com.project.model.User;
+import com.project.util.PasswordUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -111,6 +112,71 @@ public class AdminUserController extends HttpServlet {
                 userDAO.updateLockStatus(userId, true);
             }
         }
+
+        // ── Tạo người dùng mới ──────────────────────────────────────────────
+        if ("create".equals(action)) {
+            request.setCharacterEncoding("UTF-8");
+            String fullName    = trim(request.getParameter("fullName"));
+            String email       = trim(request.getParameter("email"));
+            String phone       = trim(request.getParameter("phone"));
+            String password    = trim(request.getParameter("password"));
+            String roleParam   = trim(request.getParameter("role"));
+
+            // Validate
+            if (fullName.isEmpty() || email.isEmpty() || password.isEmpty() || roleParam.isEmpty()) {
+                session.setAttribute("adminErrorMessage", "Vui lòng điền đầy đủ các trường bắt buộc.");
+                response.sendRedirect(request.getContextPath() + "/admin/users");
+                return;
+            }
+            if (password.length() < 6) {
+                session.setAttribute("adminErrorMessage", "Mật khẩu phải có ít nhất 6 ký tự.");
+                response.sendRedirect(request.getContextPath() + "/admin/users");
+                return;
+            }
+            // Check email duplicate
+            if (userDAO.findByEmail(email).isPresent()) {
+                session.setAttribute("adminErrorMessage", "Email \"" + email + "\" đã tồn tại trong hệ thống.");
+                response.sendRedirect(request.getContextPath() + "/admin/users");
+                return;
+            }
+
+            User.Role newRole;
+            try { newRole = User.Role.valueOf(roleParam.toUpperCase()); }
+            catch (IllegalArgumentException e) {
+                session.setAttribute("adminErrorMessage", "Vai trò không hợp lệ: " + roleParam);
+                response.sendRedirect(request.getContextPath() + "/admin/users");
+                return;
+            }
+
+            User newUser = new User();
+            newUser.setFullName(fullName);
+            newUser.setEmail(email);
+            newUser.setPhoneNumber(phone.isEmpty() ? null : phone);
+            newUser.setPasswordHash(PasswordUtil.hashPassword(password));
+            newUser.setRole(newRole);
+            newUser.setActive(false);          // inactive until OTP verified
+            newUser.setEmailVerified(false);   // unverified until OTP
+            newUser.setMustChangePassword(true); // force change after activation
+
+            boolean ok = userDAO.insertUser(newUser);
+            if (ok) {
+                // Lấy userId vừa tạo để tạo OTP
+                java.util.Optional<User> created = userDAO.findByEmail(email);
+                if (created.isPresent()) {
+                    com.project.dao.OtpDAOImpl otpDAO = new com.project.dao.OtpDAOImpl();
+                    String otpCode = otpDAO.createOtp(created.get().getUserId(), "LOGIN");
+                    com.project.util.EmailUtil.sendActivationOtpEmail(email, fullName, otpCode);
+                }
+                session.setAttribute("adminSuccessMessage",
+                    "Tạo tài khoản thành công cho \"" + fullName + "\" (" + newRole.name() + "). " +
+                    "Email kích hoạt đã gửi đến " + email + ".");
+            } else {
+                session.setAttribute("adminErrorMessage", "Tạo tài khoản thất bại. Vui lòng thử lại.");
+            }
+        }
+
         response.sendRedirect(request.getContextPath() + "/admin/users");
     }
+
+    private String trim(String s) { return s != null ? s.trim() : ""; }
 }

@@ -31,9 +31,15 @@
                         <h4 class="fw-bold mb-1 text-dark"><i class="fa-solid fa-users-gear text-danger me-2"></i>Quản lý Người dùng & Phân quyền</h4>
                         <p class="text-muted mb-0">Quản lý toàn bộ tài khoản (Customer, Receptionist, Owner, Admin) và thực hiện Khóa / Mở khóa</p>
                     </div>
-                    <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 fs-6">
-                        Tổng số: ${totalUsers != null ? totalUsers : 0} người dùng
-                    </span>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-danger-subtle text-danger border border-danger px-3 py-2 fs-6">
+                            Tổng số: ${totalUsers != null ? totalUsers : 0} người dùng
+                        </span>
+                        <button type="button" class="btn btn-danger rounded-3 fw-semibold"
+                                data-bs-toggle="modal" data-bs-target="#createUserModal">
+                            <i class="fa-solid fa-user-plus me-1"></i>Thêm người dùng
+                        </button>
+                    </div>
                 </div>
 
                 <%-- Search & Filter Toolbar --%>
@@ -201,5 +207,98 @@
         </div>
     </div>
 </div>
+
+<%-- Modal: Thêm người dùng mới --%>
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold" id="createUserModalLabel">
+                    <i class="fa-solid fa-user-plus text-danger me-2"></i>Thêm người dùng mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="${pageContext.request.contextPath}/admin/users" id="createUserForm" novalidate>
+                <input type="hidden" name="action" value="create">
+                <div class="modal-body pt-0">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Họ và tên <span class="text-danger">*</span></label>
+                        <input type="text" name="fullName" class="form-control rounded-3"
+                               placeholder="VD: Nguyễn Văn A" required maxlength="150">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email <span class="text-danger">*</span></label>
+                        <input type="email" name="email" class="form-control rounded-3"
+                               placeholder="example@gmail.com" required maxlength="150">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số điện thoại</label>
+                        <input type="tel" name="phone" class="form-control rounded-3"
+                               placeholder="0901234567" maxlength="20">
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Vai trò <span class="text-danger">*</span></label>
+                            <select name="role" class="form-select rounded-3" required>
+                                <option value="">-- Chọn vai trò --</option>
+                                <option value="CUSTOMER">Khách hàng</option>
+                                <option value="OWNER">Chủ nhà</option>
+                                <option value="RECEPTIONIST">Lễ tân</option>
+                                <option value="ADMIN">Quản trị viên</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-semibold">Mật khẩu <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                                <input type="password" name="password" id="newUserPassword"
+                                       class="form-control rounded-start-3"
+                                       placeholder="Tối thiểu 6 ký tự" required minlength="6">
+                                <button type="button" class="btn btn-outline-secondary rounded-end-3"
+                                        onclick="togglePwd()"
+                                        title="Hiện/Ẩn mật khẩu">
+                                    <i class="fa-regular fa-eye" id="eyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="alert alert-info rounded-3 py-2 mb-0" style="font-size:.83rem;">
+                        <i class="fa-solid fa-circle-info me-1"></i>
+                        Tài khoản được tạo bởi Admin sẽ được kích hoạt ngay, không cần xác thực email.
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-outline-secondary rounded-3"
+                            data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-3 fw-semibold px-4">
+                        <i class="fa-solid fa-user-plus me-1"></i>Tạo tài khoản
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function togglePwd() {
+    var input = document.getElementById('newUserPassword');
+    var icon  = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+    }
+}
+
+// Client-side validation
+document.getElementById('createUserForm').addEventListener('submit', function(e) {
+    var pwd = document.getElementById('newUserPassword').value;
+    if (pwd.length < 6) {
+        e.preventDefault();
+        alert('Mật khẩu phải có ít nhất 6 ký tự.');
+    }
+});
+</script>
 
 <jsp:include page="../common/footer.jsp"/>

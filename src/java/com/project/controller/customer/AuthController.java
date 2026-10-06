@@ -19,7 +19,7 @@ import java.util.Optional;
  * Controller: Customer Authentication (Login, Register, Logout) (UC01)
  * Package: com.project.controller.customer
  */
-@WebServlet(name = "AuthController", urlPatterns = {"/login", "/register", "/logout", "/forgot-password", "/force-change-password"})
+@WebServlet(name = "AuthController", urlPatterns = {"/login", "/register", "/logout", "/forgot-password", "/force-change-password", "/verify-activation"})
 public class AuthController extends HttpServlet {
 
     private UserDAO userDAO;
@@ -41,6 +41,19 @@ public class AuthController extends HttpServlet {
                 session.invalidate();
             }
             response.sendRedirect(request.getContextPath() + "/home");
+            return;
+        }
+
+        if ("/verify-activation".equals(path)) {
+            HttpSession session = request.getSession(false);
+            if (session == null || session.getAttribute("pendingActivationUserId") == null) {
+                response.sendRedirect(request.getContextPath() + "/login");
+                return;
+            }
+            String pendingEmail = (String) session.getAttribute("pendingActivationEmail");
+            request.setAttribute("pendingEmail", pendingEmail);
+            request.setAttribute("pageTitle", "Xác thực tài khoản - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/verify-activation.jsp").forward(request, response);
             return;
         }
 
@@ -98,7 +111,9 @@ public class AuthController extends HttpServlet {
 
         String path = request.getServletPath();
 
-        if ("/login".equals(path)) {
+        if ("/verify-activation".equals(path)) {
+            handleVerifyActivation(request, response);
+        } else if ("/login".equals(path)) {
             handleLogin(request, response);
         } else if ("/register".equals(path)) {
             handleRegister(request, response);
@@ -130,6 +145,26 @@ public class AuthController extends HttpServlet {
 
         if (userOpt.isPresent()) {
             User user = userOpt.get();
+
+            // Tài khoản do Admin tạo, chưa kích hoạt — cần xác thực OTP
+            if (!user.isEmailVerified() && !user.isActive()) {
+                if (PasswordUtil.checkPassword(password, user.getPasswordHash())) {
+                    // Gửi OTP mới và redirect sang trang verify
+                    com.project.dao.OtpDAOImpl otpDAO = new com.project.dao.OtpDAOImpl();
+                    String otpCode = otpDAO.createOtp(user.getUserId(), "LOGIN");
+                    com.project.util.EmailUtil.sendActivationOtpEmail(user.getEmail(), user.getFullName(), otpCode);
+                    // Lưu userId tạm vào session để trang verify dùng
+                    HttpSession sess = request.getSession(true);
+                    sess.setAttribute("pendingActivationUserId", user.getUserId());
+                    sess.setAttribute("pendingActivationEmail", user.getEmail());
+                    response.sendRedirect(request.getContextPath() + "/verify-activation");
+                    return;
+                }
+                request.setAttribute("errorMessage", "Email hoặc Mật khẩu không chính xác.");
+                request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
+                return;
+            }
+
             if (!user.isActive()) {
                 request.setAttribute("errorMessage", "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ Admin.");
                 request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
@@ -275,6 +310,79 @@ public class AuthController extends HttpServlet {
             }
         }
         response.sendRedirect(redirectUrl);
+    }
+
+    private void handleVerifyActivation(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        request.setCharacterEncoding("UTF-8");
+        HttpSession session = request.getSession(false);
+        Integer pendingUserId = (session != null)
+                ? (Integer) session.getAttribute("pendingActivationUserId") : null;
+
+        if (pendingUserId == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        String otpInput = request.getParameter("otp");
+
+        // Gửi lại OTP
+        if ("1".equals(request.getParameter("resend"))) {
+            Optional<User> usr = userDAO.findById(pendingUserId);
+            if (usr.isPresent()) {
+                com.project.dao.OtpDAOImpl otpDAO2 = new com.project.dao.OtpDAOImpl();
+                String newCode = otpDAO2.createOtp(pendingUserId, "LOGIN");
+                com.project.util.EmailUtil.sendActivationOtpEmail(
+                        usr.get().getEmail(), usr.get().getFullName(), newCode);
+            }
+            request.setAttribute("successMessage", "Đã gửi lại mã OTP mới.");
+            request.setAttribute("pendingEmail", session.getAttribute("pendingActivationEmail"));
+            request.setAttribute("pageTitle", "Xác thực tài khoản - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/verify-activation.jsp")
+                   .forward(request, response);
+            return;
+        }
+
+        if (otpInput == null || otpInput.trim().isEmpty()) {
+            request.setAttribute("errorMessage", "Vui lòng nhập mã OTP.");
+            request.setAttribute("pendingEmail", session.getAttribute("pendingActivationEmail"));
+            request.setAttribute("pageTitle", "Xác thực tài khoản - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/verify-activation.jsp")
+                   .forward(request, response);
+            return;
+        }
+
+        com.project.dao.OtpDAOImpl otpDAO = new com.project.dao.OtpDAOImpl();
+        boolean valid = otpDAO.verifyOtp(pendingUserId, otpInput.trim(), "LOGIN");
+
+        if (!valid) {
+            request.setAttribute("errorMessage", "Mã OTP không hợp lệ hoặc đã hết hạn.");
+            request.setAttribute("pendingEmail", session.getAttribute("pendingActivationEmail"));
+            request.setAttribute("pageTitle", "Xác thực tài khoản - Smart Booking Platform");
+            request.getRequestDispatcher("/WEB-INF/views/customer/verify-activation.jsp")
+                   .forward(request, response);
+            return;
+        }
+
+        // OTP hợp lệ → kích hoạt tài khoản
+        userDAO.updateLockStatus(pendingUserId, true);   // isActive = true
+        // Set emailVerified = true via UserDAO
+        Optional<User> opt = userDAO.findById(pendingUserId);
+        if (opt.isPresent()) {
+            User user = opt.get();
+            user.setEmailVerified(true);
+            userDAO.updateUser(user);
+
+            // Clean session keys
+            session.removeAttribute("pendingActivationUserId");
+            session.removeAttribute("pendingActivationEmail");
+
+            // Log in user + force change password
+            session.setAttribute("currentUser", user);
+            response.sendRedirect(request.getContextPath() + "/force-change-password");
+        } else {
+            response.sendRedirect(request.getContextPath() + "/login");
+        }
     }
 
     private void handleForgotPassword(HttpServletRequest request, HttpServletResponse response)
