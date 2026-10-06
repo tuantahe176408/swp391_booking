@@ -262,4 +262,51 @@ public class EmailUtil {
                    .replace("\"", "&quot;")
                    .replace("'", "&#39;");
     }
+
+    /**
+     * Gửi email OTP kích hoạt tài khoản được tạo bởi Admin.
+     */
+    public static boolean sendActivationOtpEmail(String recipientEmail, String recipientName, String otpCode) {
+        if (recipientEmail == null || recipientEmail.trim().isEmpty()) return false;
+        String displayName = (recipientName != null && !recipientName.trim().isEmpty()) ? recipientName : "Quý khách";
+        String subject = "Smart Booking - Mã xác thực kích hoạt tài khoản";
+        String htmlBody =
+            "<!DOCTYPE html><html><head><meta charset='UTF-8'></head>" +
+            "<body style='font-family:Arial,sans-serif;background:#f8fafc;padding:20px;color:#333;'>" +
+            "<div style='max-width:520px;margin:0 auto;background:#fff;border-radius:12px;padding:30px;" +
+            "box-shadow:0 4px 15px rgba(0,0,0,.05);border:1px solid #e2e8f0;'>" +
+            "<h2 style='color:#4f46e5;margin:0 0 4px;'>Smart Booking Platform</h2>" +
+            "<p style='color:#64748b;font-size:13px;margin:0 0 20px;'>Hệ thống Đặt phòng Homestay &amp; Khách sạn</p>" +
+            "<hr style='border:none;border-top:1px solid #e2e8f0;margin:0 0 20px;'/>" +
+            "<p>Xin chào <strong>" + escapeHtml(displayName) + "</strong>,</p>" +
+            "<p style='line-height:1.6;'>Tài khoản của bạn đã được tạo trên <strong>Smart Booking Platform</strong>." +
+            " Vui lòng nhập mã OTP dưới đây để xác thực và kích hoạt tài khoản:</p>" +
+            "<div style='background:#f1f5f9;border-left:4px solid #4f46e5;padding:18px;border-radius:6px;" +
+            "margin:20px 0;text-align:center;'>" +
+            "<span style='font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:1px;" +
+            "display:block;margin-bottom:8px;'>Mã xác thực (OTP)</span>" +
+            "<span style='font-size:36px;font-family:monospace;font-weight:900;color:#4f46e5;" +
+            "letter-spacing:8px;'>" + escapeHtml(otpCode) + "</span>" +
+            "<p style='font-size:12px;color:#94a3b8;margin:8px 0 0;'>Mã có hiệu lực trong <strong>10 phút</strong></p>" +
+            "</div>" +
+            "<div style='background:#fffbeb;border:1px solid #fef3c7;border-radius:8px;padding:12px 16px;margin-bottom:20px;'>" +
+            "<p style='color:#92400e;font-size:13px;margin:0;'><strong>Lưu ý:</strong> Sau khi xác thực, " +
+            "bạn sẽ được yêu cầu đặt mật khẩu mới cho tài khoản.</p>" +
+            "</div>" +
+            "<p style='font-size:13px;color:#64748b;'>Nếu bạn không yêu cầu điều này, vui lòng bỏ qua email này.</p>" +
+            "<hr style='border:none;border-top:1px solid #e2e8f0;margin:20px 0 0;'/>" +
+            "<p style='font-size:11px;color:#94a3b8;text-align:center;margin:10px 0 0;'>" +
+            "© Smart Booking Platform. Mọi quyền được bảo lưu.</p>" +
+            "</div></body></html>";
+
+        LOGGER.info(String.format("[EMAIL OTP] To: %s | OTP: %s", recipientEmail, otpCode));
+
+        if (MailConfig.isConfigured()) {
+            boolean sent = sendSmtpEmail(recipientEmail, subject, htmlBody);
+            if (sent) LOGGER.info("Activation OTP email sent to " + recipientEmail);
+            return sent;
+        }
+        LOGGER.warning("[SMTP CHƯA CẤU HÌNH] OTP=" + otpCode + " cho " + recipientEmail);
+        return true;
+    }
 }
