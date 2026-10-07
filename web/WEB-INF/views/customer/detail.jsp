@@ -83,6 +83,16 @@
                     <p class="text-muted lh-lg">${not empty homestay.description ? homestay.description : 'Không có mô tả.'}</p>
                 </div>
 
+                <!-- Sold out / Error Banner -->
+                <c:if test="${param.error == 'sold_out' || totalAvailableRooms le 0}">
+                    <div class="alert alert-danger d-flex align-items-center mb-4 rounded-4 shadow-sm" role="alert">
+                        <i class="fa-solid fa-circle-exclamation fs-4 me-3 text-danger"></i>
+                        <div>
+                            <strong>Thông báo:</strong> Homestay này hiện không còn phòng trống khả dụng trong khoảng thời gian đã chọn. Quý khách vui lòng chọn ngày khác hoặc tham khảo homestay khác.
+                        </div>
+                    </div>
+                </c:if>
+
                 <!-- Room Types -->
                 <c:if test="${not empty homestay.roomTypes}">
                     <div class="mb-4">
@@ -93,6 +103,7 @@
                         <c:forEach var="rt" items="${homestay.roomTypes}">
                             <%-- Kiểm tra còn phòng trống trong khoảng ngày đã chọn --%>
                             <c:set var="isUnavailable" value="false"/>
+                            <c:set var="avail" value="0"/>
                             <c:if test="${not empty availMap}">
                                 <c:set var="avail" value="${availMap[rt.roomTypeId]}"/>
                                 <c:if test="${avail le 0}">
@@ -118,15 +129,20 @@
                                     <div class="flex-grow-1">
                                         <div class="d-flex align-items-center gap-2 mb-1">
                                             <h6 class="fw-bold mb-0 text-dark">${rt.name}</h6>
-                                            <%-- Badge: Hết phòng hoặc Phổ biến --%>
+                                            <%-- Badge: Hết phòng hoặc Còn X phòng --%>
                                             <c:choose>
                                                 <c:when test="${isUnavailable}">
                                                     <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0 small" style="font-size:0.72rem;">
                                                         <i class="fa-solid fa-ban me-1"></i>Hết phòng
                                                     </span>
                                                 </c:when>
+                                                <c:when test="${avail > 0 and avail <= 3}">
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-0 small" style="font-size:0.72rem;">
+                                                        <i class="fa-solid fa-fire me-1"></i>Chỉ còn ${avail} phòng!
+                                                    </span>
+                                                </c:when>
                                                 <c:otherwise>
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-0 small" style="font-size:0.72rem;">Phổ biến</span>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-0 small" style="font-size:0.72rem;">Còn ${avail} phòng</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
@@ -667,14 +683,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Tự động chọn hạng phòng đầu tiên nếu có
-    const firstRoomCard = document.querySelector('.room-type-card');
-    if (firstRoomCard) {
-        firstRoomCard.click();
+    // Tự động chọn hạng phòng khả dụng đầu tiên nếu có
+    const firstAvailableRoomCard = document.querySelector('.room-type-card:not([style*="not-allowed"])');
+    if (firstAvailableRoomCard) {
+        firstAvailableRoomCard.click();
     } else {
         const bookBtn = document.getElementById('bookBtn');
         if (bookBtn) {
-            bookBtn.disabled = false;
+            bookBtn.disabled = true;
         }
     }
 });
