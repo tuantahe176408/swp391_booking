@@ -19,8 +19,9 @@
 .homestay-card .card-title { font-size:1rem; font-weight:700; line-height:22px; margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; }
 .homestay-card .card-address { height:20px; line-height:20px; color:#6b7280; font-size:0.82rem; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
 .homestay-card .card-amenities-wrap { height:28px; display:flex; align-items:center; gap:4px; overflow:hidden; margin-bottom:0.75rem; flex-wrap:nowrap; }
-.homestay-card .card-amenities-wrap .badge { white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:120px; font-weight:500; font-size:0.72rem; padding:4px 8px; }
-.homestay-card .card-amenities-wrap .badge-more { background:rgba(99,102,241,0.08); color:#4f46e5; border:1px solid rgba(99,102,241,0.2); font-weight:700; flex-shrink:0; }
+.homestay-card .card-amenities-wrap .badge { cursor:default; white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:120px; font-weight:500; font-size:0.72rem; padding:4px 8px; }
+.homestay-card .card-amenities-wrap .badge-more { cursor:pointer; background:rgba(99,102,241,0.08); color:#4f46e5; border:1px solid rgba(99,102,241,0.2); font-weight:700; flex-shrink:0; transition:all 0.2s ease; }
+.homestay-card .card-amenities-wrap .badge-more:hover { background:rgba(99,102,241,0.18); transform:scale(1.05); }
 .homestay-card .card-footer-row { height:50px; display:flex; justify-content:space-between; align-items:center; margin-top:auto; pt-2; border-top:1px solid #f1f5f9; }
 .badge-city { background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2); border-radius:6px; padding:2px 8px; font-size:0.75rem; font-weight:600; }
 .sort-bar { background:#fff; border-radius:12px; border:1px solid rgba(0,0,0,0.07); padding:0.75rem 1rem; margin-bottom:1.25rem; }
@@ -302,10 +303,14 @@
                                                 <c:choose>
                                                     <c:when test="${not empty h.amenityNames}">
                                                         <c:forEach var="am" items="${h.amenityNames}" begin="0" end="1">
-                                                            <span class="badge bg-light text-muted border">${am}</span>
+                                                            <span class="badge bg-light text-muted border" data-bs-toggle="tooltip" data-bs-placement="top" title="${am}">${am}</span>
                                                         </c:forEach>
                                                         <c:if test="${h.amenityNames.size() > 2}">
-                                                            <span class="badge badge-more" title="${h.amenityNames.size() - 2} tiện ích khác">+${h.amenityNames.size() - 2}</span>
+                                                            <c:set var="moreAmenities" value="" />
+                                                            <c:forEach var="am" items="${h.amenityNames}" begin="2" varStatus="st">
+                                                                <c:set var="moreAmenities" value="${moreAmenities}${am}${!st.last ? ', ' : ''}" />
+                                                            </c:forEach>
+                                                            <span class="badge badge-more" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiện ích khác: ${moreAmenities}">+${h.amenityNames.size() - 2}</span>
                                                         </c:if>
                                                     </c:when>
                                                     <c:otherwise>
@@ -528,3 +533,17 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <jsp:include page="/WEB-INF/views/common/footer.jsp" />
+
+<script>
+// Initialize Bootstrap Tooltips after bootstrap bundle is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof bootstrap !== 'undefined' && bootstrap.Tooltip) {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl, {
+                delay: { show: 100, hide: 100 }
+            });
+        });
+    }
+});
+</script>
