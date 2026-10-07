@@ -125,59 +125,59 @@
                                 </c:otherwise>
                             </c:choose>
 
-                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
-                                    <div class="flex-grow-1">
-                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                    <div class="flex-grow-1" style="min-width: 0;">
+                                        <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
                                             <h6 class="fw-bold mb-0 text-dark">${rt.name}</h6>
                                             <%-- Badge: Hết phòng hoặc Còn X phòng --%>
                                             <c:choose>
                                                 <c:when test="${isUnavailable}">
-                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-0 small" style="font-size:0.72rem;">
+                                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1 small" style="font-size:0.72rem;">
                                                         <i class="fa-solid fa-ban me-1"></i>Hết phòng
                                                     </span>
                                                 </c:when>
                                                 <c:when test="${avail > 0 and avail <= 3}">
-                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-0 small" style="font-size:0.72rem;">
+                                                    <span class="badge bg-warning-subtle text-warning-emphasis border border-warning px-2 py-1 small" style="font-size:0.72rem;">
                                                         <i class="fa-solid fa-fire me-1"></i>Chỉ còn ${avail} phòng!
                                                     </span>
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-0 small" style="font-size:0.72rem;">Còn ${avail} phòng</span>
+                                                    <span class="badge bg-primary-subtle text-primary border border-primary px-2 py-1 small" style="font-size:0.72rem;">Còn ${avail} phòng</span>
                                                 </c:otherwise>
                                             </c:choose>
                                         </div>
-                                        <div class="text-muted small mb-2 d-flex flex-wrap gap-2">
+                                        <div class="text-muted small mb-1.5 d-flex align-items-center flex-wrap gap-2">
                                             <span><i class="fa-solid fa-bed text-primary me-1"></i>${rt.bedCount} giường</span>
-                                            <span>•</span>
+                                            <span class="text-muted opacity-50">•</span>
                                             <span><i class="fa-solid fa-user-group text-primary me-1"></i>Tối đa ${rt.maxOccupancy} khách</span>
                                             <c:if test="${rt.roomSizeSqm != null}">
-                                                <span>•</span>
+                                                <span class="text-muted opacity-50">•</span>
                                                 <span><i class="fa-solid fa-vector-square text-primary me-1"></i>${rt.roomSizeSqm} m²</span>
                                             </c:if>
                                         </div>
-                                        <p class="text-secondary small mb-2 text-truncate" style="max-width: 500px;">${rt.description}</p>
+                                        <p class="text-secondary small mb-1.5 text-truncate" style="max-width: 520px;">${rt.description}</p>
                                         <div>
-                                            <button type="button" class="btn btn-link text-primary p-0 small fw-semibold text-decoration-none" onclick="event.stopPropagation(); showRoomDetail(${rt.roomTypeId}, '${rt.name}', '${rt.description}', ${rt.basePrice}, ${rt.maxOccupancy}, ${rt.bedCount}, '${rt.roomSizeSqm != null ? rt.roomSizeSqm : 25}')">
+                                            <button type="button" class="btn btn-link text-primary p-0 small fw-semibold text-decoration-none text-nowrap" onclick="event.stopPropagation(); showRoomDetail(${rt.roomTypeId}, '${rt.name}', '${rt.description}', ${rt.basePrice}, ${rt.maxOccupancy}, ${rt.bedCount}, '${rt.roomSizeSqm != null ? rt.roomSizeSqm : 25}')">
                                                 <i class="fa-solid fa-circle-info me-1"></i>Xem chi tiết phòng &amp; tiện nghi
                                             </button>
                                         </div>
                                     </div>
-                                    <div class="text-md-end d-flex flex-column justify-content-between align-items-md-end w-100 w-md-auto">
-                                        <div>
-                                            <div class="price-big fw-bold fs-4 ${isUnavailable ? 'text-muted' : 'text-primary'}">
+                                    <div class="text-md-end d-flex flex-column justify-content-center align-items-md-end flex-shrink-0" style="min-width: 175px;">
+                                        <div class="d-flex align-items-baseline justify-content-md-end gap-1">
+                                            <span class="price-big fw-bold fs-4 ${isUnavailable ? 'text-muted' : 'text-primary'}">
                                                 <fmt:formatNumber value="${rt.basePrice}" type="number" groupingUsed="true"/>₫
-                                            </div>
-                                            <div class="text-muted small">/ đêm</div>
+                                            </span>
+                                            <span class="text-muted small">/ đêm</span>
                                         </div>
                                         <%-- Nút Chọn phòng / Hết phòng --%>
                                         <c:choose>
                                             <c:when test="${isUnavailable}">
-                                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mt-2 px-3 fw-semibold" disabled>
-                                                    <i class="fa-solid fa-calendar-xmark me-1"></i>Hết phòng trong ngày này
+                                                <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill mt-1.5 px-3 fw-semibold text-nowrap" disabled>
+                                                    <i class="fa-solid fa-calendar-xmark me-1"></i>Hết phòng
                                                 </button>
                                             </c:when>
                                             <c:otherwise>
-                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill mt-2 px-3 fw-semibold">
+                                                <button type="button" class="btn btn-outline-primary btn-sm rounded-pill mt-1.5 px-3 fw-semibold text-nowrap">
                                                     <i class="fa-solid fa-check me-1"></i>Chọn phòng
                                                 </button>
                                             </c:otherwise>
