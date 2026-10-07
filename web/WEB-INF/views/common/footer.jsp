@@ -4,7 +4,26 @@
     <div class="container">
         <div class="row gy-4">
             <div class="col-lg-4 col-md-6">
-                <h5 class="text-white mb-3"><i class="fa-solid fa-hotel me-2 text-primary"></i>Smart Booking</h5>
+                <h5 class="text-white d-flex align-items-center mb-3">
+                    <svg width="24" height="24" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2 rounded-3">
+                        <defs>
+                            <linearGradient id="footerLogoGradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#818cf8" />
+                                <stop offset="1" stop-color="#4338ca" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="32" height="32" rx="8" fill="url(#footerLogoGradient)"/>
+                        <!-- Roof -->
+                        <path d="M16 6L5 15M16 6L27 15" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Walls and Floor -->
+                        <path d="M8 13.5V22H24V13.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Letter S -->
+                        <path d="M15 13C15 11.2 11 11.2 11 13C11 14.8 15 15.2 15 17C15 18.8 11 18.8 11 17.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <!-- Letter B -->
+                        <path d="M17 11.5V18.5M17 11.5H19C20.5 11.5 20.5 15 19 15H17M17 15H19.5C21 15 21 18.5 19.5 18.5H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Smart Booking
+                </h5>
                 <p>Nền tảng đặt phòng Homestay & Hotel thông minh hàng đầu. Tích hợp AI khuyến nghị, thanh toán cổng trực tuyến và quản lý check-in OCR nhanh chóng.</p>
             </div>
             <div class="col-lg-2 col-md-6">

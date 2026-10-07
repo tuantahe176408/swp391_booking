@@ -3,8 +3,24 @@
 <nav class="navbar navbar-expand-lg navbar-custom">
     <div class="container-fluid px-4">
         <a class="navbar-brand d-flex align-items-center me-4" href="${pageContext.request.contextPath}/home">
-            <i class="fa-solid fa-hotel me-2 text-primary"></i>
-            <span class="fw-bold">Smart Booking</span>
+            <svg width="30" height="30" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" class="me-2 shadow-sm rounded-3">
+                <defs>
+                    <linearGradient id="logoGradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+                        <stop stop-color="#818cf8" />
+                        <stop offset="1" stop-color="#4338ca" />
+                    </linearGradient>
+                </defs>
+                <rect width="32" height="32" rx="8" fill="url(#logoGradient)"/>
+                <!-- Roof -->
+                <path d="M16 6L5 15M16 6L27 15" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Walls and Floor -->
+                <path d="M8 13.5V22H24V13.5" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Letter S -->
+                <path d="M15 13C15 11.2 11 11.2 11 13C11 14.8 15 15.2 15 17C15 18.8 11 18.8 11 17.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <!-- Letter B -->
+                <path d="M17 11.5V18.5M17 11.5H19C20.5 11.5 20.5 15 19 15H17M17 15H19.5C21 15 21 18.5 19.5 18.5H17" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="fw-bold" style="letter-spacing: -0.3px;">Smart Booking</span>
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
