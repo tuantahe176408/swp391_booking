@@ -158,14 +158,14 @@ if [ "$SKIP_DB" = false ]; then
 
     if [ "$DB_EXISTS" -eq 0 ]; then
         log_info "Import schema.sql..."
-        mysql -u "$DB_USER" -p"$DB_PASS" < "$PROJECT_DIR/schema.sql" 2>/dev/null || \
+        mysql -u "$DB_USER" -p"$DB_PASS" < "$PROJECT_DIR/sql/schema.sql" 2>/dev/null || \
             log_error "Lỗi import schema.sql. Kiểm tra mật khẩu MySQL root tại biến DB_PASS trong script."
         log_success "Import schema.sql xong."
 
         # Import seed data nếu có
-        if [ -f "$PROJECT_DIR/seed_search_data.sql" ]; then
+        if [ -f "$PROJECT_DIR/sql/seeds/seed_search_data.sql" ]; then
             log_info "Import seed_search_data.sql..."
-            mysql -u "$DB_USER" -p"$DB_PASS" < "$PROJECT_DIR/seed_search_data.sql" 2>/dev/null || \
+            mysql -u "$DB_USER" -p"$DB_PASS" < "$PROJECT_DIR/sql/seeds/seed_search_data.sql" 2>/dev/null || \
                 log_warn "Lỗi import seed data. Có thể bỏ qua."
             log_success "Import seed data xong."
         fi

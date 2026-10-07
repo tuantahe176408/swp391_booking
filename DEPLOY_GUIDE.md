@@ -57,8 +57,8 @@ sudo bash deploy.sh
 ```
 
 Script sẽ tự động:
-- ✅ Import `schema.sql` → tạo database `smart_booking_db`
-- ✅ Import `seed_search_data.sql` → thêm dữ liệu mẫu
+- ✅ Import `sql/schema.sql` → tạo database `smart_booking_db`
+- ✅ Import `sql/seeds/seed_search_data.sql` → thêm dữ liệu mẫu
 - ✅ Tạo DB user `booking_user` / `booking@2024`
 - ✅ Build file WAR bằng Ant
 - ✅ Deploy WAR lên Tomcat 9

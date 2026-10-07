@@ -8,15 +8,25 @@
 <style>
 .search-filter-sidebar { background:#fff; border-radius:16px; border:1px solid rgba(0,0,0,0.07); padding:1.5rem; position:sticky; top:80px; }
 .filter-section-title { font-weight:700; font-size:0.82rem; text-transform:uppercase; letter-spacing:0.5px; color:#6b7280; margin-bottom:0.75rem; }
-.homestay-card { background:#fff; border-radius:16px; border:1px solid rgba(0,0,0,0.07); overflow:hidden; transition:transform 0.25s ease, box-shadow 0.25s ease; }
+.homestay-card { background:#fff; border-radius:16px; border:1px solid rgba(0,0,0,0.07); overflow:hidden; transition:transform 0.25s ease, box-shadow 0.25s ease; display:flex; flex-direction:column; height:100%; min-height:430px; box-shadow:0 2px 8px rgba(0,0,0,0.03); }
 .homestay-card:hover { transform:translateY(-4px); box-shadow:0 16px 48px rgba(0,0,0,0.1); }
-.homestay-card img { width:100%; height:200px; object-fit:cover; transition:transform 0.4s ease; }
-.homestay-card:hover img { transform:scale(1.04); }
-.badge-city { background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2); border-radius:6px; padding:2px 8px; font-size:0.75rem; }
+.homestay-card .card-img-wrap { width:100%; height:190px; position:relative; overflow:hidden; background:#eef2ff; flex-shrink:0; }
+.homestay-card .card-img-wrap img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.4s ease; }
+.homestay-card:hover .card-img-wrap img { transform:scale(1.04); }
+.homestay-card .card-body-content { padding:1.15rem; display:flex; flex-direction:column; flex-grow:1; justify-content:space-between; }
+.homestay-card .card-meta-row { height:24px; display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.homestay-card .card-title-box { height:44px; margin-bottom:4px; overflow:hidden; }
+.homestay-card .card-title { font-size:1rem; font-weight:700; line-height:22px; margin:0; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; text-overflow:ellipsis; }
+.homestay-card .card-address { height:20px; line-height:20px; color:#6b7280; font-size:0.82rem; margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; display:block; }
+.homestay-card .card-amenities-wrap { height:28px; display:flex; align-items:center; gap:4px; overflow:hidden; margin-bottom:0.75rem; flex-wrap:nowrap; }
+.homestay-card .card-amenities-wrap .badge { white-space:nowrap; text-overflow:ellipsis; overflow:hidden; max-width:120px; font-weight:500; font-size:0.72rem; padding:4px 8px; }
+.homestay-card .card-amenities-wrap .badge-more { background:rgba(99,102,241,0.08); color:#4f46e5; border:1px solid rgba(99,102,241,0.2); font-weight:700; flex-shrink:0; }
+.homestay-card .card-footer-row { height:50px; display:flex; justify-content:space-between; align-items:center; margin-top:auto; pt-2; border-top:1px solid #f1f5f9; }
+.badge-city { background:rgba(99,102,241,0.1); color:#6366f1; border:1px solid rgba(99,102,241,0.2); border-radius:6px; padding:2px 8px; font-size:0.75rem; font-weight:600; }
 .sort-bar { background:#fff; border-radius:12px; border:1px solid rgba(0,0,0,0.07); padding:0.75rem 1rem; margin-bottom:1.25rem; }
 .search-hero { background:linear-gradient(135deg,#1a1a2e,#16213e); padding:40px 0 30px; color:#fff; }
-.rating-star { color:#f59e0b; }
-.price-tag { font-size:1.2rem; font-weight:800; color:#6366f1; }
+.rating-star { color:#f59e0b; font-size:0.85rem; }
+.price-tag { font-size:1.15rem; font-weight:800; color:#4f46e5; }
 
 /* Smart Price Filter Styles */
 .price-preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
@@ -261,14 +271,14 @@
                         <c:forEach var="h" items="${results}">
                             <div class="col-md-6 col-xl-4">
                                 <div class="homestay-card h-100">
-                                    <div style="overflow:hidden; position:relative;">
+                                    <div class="card-img-wrap">
                                         <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}">
                                             <c:choose>
                                                 <c:when test="${not empty h.primaryImageUrl}">
                                                     <img src="${h.primaryImageUrl}" alt="${h.name}" loading="lazy" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                                                 </c:when>
                                                 <c:otherwise>
-                                                    <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" alt="${h.name}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&w=600&q=80';">
+                                                    <img src="${pageContext.request.contextPath}/assets/images/default-homestay.svg" alt="${h.name}" loading="lazy" onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg';">
                                                 </c:otherwise>
                                             </c:choose>
                                         </a>
@@ -276,29 +286,41 @@
                                             <span style="position:absolute;top:10px;right:12px;"><i class="fa-solid fa-heart text-danger fs-5"></i></span>
                                         </c:if>
                                     </div>
-                                    <div class="p-3">
-                                        <div class="d-flex justify-content-between align-items-start mb-1">
-                                            <span class="badge-city">${h.city}</span>
-                                            <span class="small rating-star"><i class="fa-solid fa-star"></i> <strong>${h.ratingAvg}</strong> <span class="text-muted">(${h.reviewCount})</span></span>
-                                        </div>
-                                        <h6 class="fw-bold mb-1 mt-2">
-                                            <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}" class="text-dark text-decoration-none">${h.name}</a>
-                                        </h6>
-                                        <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-1"></i>${h.address}</p>
-                                        <c:if test="${not empty h.amenityNames}">
-                                            <div class="mb-2">
-                                                <c:forEach var="am" items="${h.amenityNames}" end="2">
-                                                    <span class="badge bg-light text-muted border me-1 small">${am}</span>
-                                                </c:forEach>
+                                    <div class="card-body-content">
+                                        <div>
+                                            <div class="card-meta-row">
+                                                <span class="badge-city">${h.city}</span>
+                                                <span class="small rating-star"><i class="fa-solid fa-star"></i> <strong>${h.ratingAvg}</strong> <span class="text-muted">(${h.reviewCount})</span></span>
                                             </div>
-                                        </c:if>
-                                        <div class="d-flex justify-content-between align-items-center mt-2">
+                                            <div class="card-title-box">
+                                                <h6 class="card-title">
+                                                    <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}" class="text-dark text-decoration-none" title="${h.name}">${h.name}</a>
+                                                </h6>
+                                            </div>
+                                            <span class="card-address" title="${h.address}"><i class="fa-solid fa-location-dot me-1 text-primary"></i>${h.address}</span>
+                                            <div class="card-amenities-wrap">
+                                                <c:choose>
+                                                    <c:when test="${not empty h.amenityNames}">
+                                                        <c:forEach var="am" items="${h.amenityNames}" begin="0" end="1">
+                                                            <span class="badge bg-light text-muted border">${am}</span>
+                                                        </c:forEach>
+                                                        <c:if test="${h.amenityNames.size() > 2}">
+                                                            <span class="badge badge-more" title="${h.amenityNames.size() - 2} tiện ích khác">+${h.amenityNames.size() - 2}</span>
+                                                        </c:if>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge bg-light text-muted border fst-italic">Tiện nghi cơ bản</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </div>
+                                        <div class="card-footer-row">
                                             <div>
                                                 <span class="price-tag"><fmt:formatNumber value="${h.minPrice}" type="number" groupingUsed="true"/>₫</span>
                                                 <span class="text-muted small"> / đêm</span>
                                             </div>
                                             <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}"
-                                               class="btn btn-sm btn-primary-custom">Xem phòng</a>
+                                               class="btn btn-sm btn-primary-custom px-3">Xem phòng</a>
                                         </div>
                                     </div>
                                 </div>
