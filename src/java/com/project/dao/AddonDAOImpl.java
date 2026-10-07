@@ -28,6 +28,8 @@ public class AddonDAOImpl implements AddonDAO {
         a.setUnit(rs.getString("unit"));
         a.setAvailable(rs.getBoolean("is_available"));
         a.setCreatedAt(rs.getTimestamp("created_at"));
+        // populated only when query JOINs homestays
+        try { a.setHomestayName(rs.getString("homestay_name")); } catch (SQLException ignored) {}
         return a;
     }
 
@@ -45,6 +47,73 @@ public class AddonDAOImpl implements AddonDAO {
             LOGGER.log(Level.SEVERE, "Error in getAddonsByHomestayId: " + homestayId, e);
         }
         return list;
+    }
+
+    @Override
+    public List<Addon> getAllAddonsByOwnerId(int ownerId) {
+        List<Addon> list = new ArrayList<>();
+        String sql = "SELECT a.*, h.name AS homestay_name " +
+                     "FROM addons a " +
+                     "JOIN homestays h ON h.homestay_id = a.homestay_id " +
+                     "WHERE h.owner_id = ? " +
+                     "ORDER BY h.name ASC, a.name ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, ownerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapAddon(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getAllAddonsByOwnerId: " + ownerId, e);
+        }
+        return list;
+    }
+
+    @Override
+    public boolean isAddonOwnedBy(int addonId, int ownerId) {
+        String sql = "SELECT 1 FROM addons a JOIN homestays h ON h.homestay_id = a.homestay_id " +
+                     "WHERE a.addon_id = ? AND h.owner_id = ? LIMIT 1";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, addonId);
+            ps.setInt(2, ownerId);
+            try (ResultSet rs = ps.executeQuery()) { return rs.next(); }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in isAddonOwnedBy", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean hasActiveBookings(int addonId) {
+        String sql = "SELECT COUNT(*) FROM booking_addons ba " +
+                     "JOIN bookings b ON ba.booking_id = b.booking_id " +
+                     "WHERE ba.addon_id = ? " +
+                     "  AND b.booking_status NOT IN ('CANCELLED','CHECKED_OUT','REFUNDED')";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, addonId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in hasActiveBookings", e);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean toggleAvailable(int addonId, boolean available) {
+        String sql = "UPDATE addons SET is_available = ? WHERE addon_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setBoolean(1, available);
+            ps.setInt(2, addonId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in toggleAvailable", e);
+        }
+        return false;
     }
 
     @Override

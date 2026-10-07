@@ -45,18 +45,22 @@
                 <%-- Filter toolbar --%>
                 <div class="d-flex gap-2 mb-4 flex-wrap align-items-center">
                     <a href="${pageContext.request.contextPath}/admin/contacts"
-                       class="btn rounded-3 ${filterParam == 'all' || empty filterParam ? 'btn-dark' : 'btn-outline-secondary'}">
-                        Tất cả <span class="badge bg-secondary ms-1">${countAll}</span>
+                       class="btn btn-sm rounded-pill px-4 fw-semibold
+                              ${filterParam == 'all' || empty filterParam ? 'btn-primary' : 'btn-outline-secondary'}">
+                        Tất cả
+                        <span class="badge rounded-pill ms-1 bg-white text-dark">${countAll}</span>
                     </a>
                     <a href="${pageContext.request.contextPath}/admin/contacts?filter=pending"
-                       class="btn rounded-3 ${filterParam == 'pending' ? 'btn-warning' : 'btn-outline-warning'}">
+                       class="btn btn-sm rounded-pill px-4 fw-semibold
+                              ${filterParam == 'pending' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}">
                         <i class="fa-solid fa-clock me-1"></i>Chưa xử lý
-                        <span class="badge ms-1 ${filterParam == 'pending' ? 'bg-white text-warning' : 'bg-warning text-white'}">${countPending}</span>
+                        <span class="badge rounded-pill ms-1 bg-white text-dark">${countPending}</span>
                     </a>
                     <a href="${pageContext.request.contextPath}/admin/contacts?filter=resolved"
-                       class="btn rounded-3 ${filterParam == 'resolved' ? 'btn-success' : 'btn-outline-success'}">
+                       class="btn btn-sm rounded-pill px-4 fw-semibold
+                              ${filterParam == 'resolved' ? 'btn-success text-white' : 'btn-outline-success'}">
                         <i class="fa-solid fa-circle-check me-1"></i>Đã xử lý
-                        <span class="badge ms-1 ${filterParam == 'resolved' ? 'bg-white text-success' : 'bg-success text-white'}">${countResolved}</span>
+                        <span class="badge rounded-pill ms-1 bg-white text-dark">${countResolved}</span>
                     </a>
                 </div>
 

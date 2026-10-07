@@ -77,19 +77,23 @@
             <c:if test="${activeTab == 'analytics'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
 
+        <%-- DEFERRED UC24: Cấu hình Hệ thống tạm ẩn
         <a class="owner-sidebar__link ${activeTab == 'config' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/admin/config">
             <span class="owner-sidebar__link-icon"><i class="fa-solid fa-sliders"></i></span>
             <span class="owner-sidebar__link-text">Cấu hình Hệ thống</span>
             <c:if test="${activeTab == 'config'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
+        --%>
 
+        <%-- REMOVED: Kiểm thử Tích hợp đã bị xóa khỏi scope
         <a class="owner-sidebar__link ${activeTab == 'tests' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/admin/tests">
             <span class="owner-sidebar__link-icon"><i class="fa-solid fa-vial-circle-check"></i></span>
             <span class="owner-sidebar__link-text">Kiểm thử Tích hợp</span>
             <c:if test="${activeTab == 'tests'}"><span class="owner-sidebar__link-dot"></span></c:if>
         </a>
+        --%>
     </nav>
 
     <!-- Footer -->

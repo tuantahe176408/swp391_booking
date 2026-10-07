@@ -20,6 +20,8 @@ public class Addon implements Serializable {
     private String unit;   // "per_night", "per_person", "per_booking"
     private boolean available;
     private Timestamp createdAt;
+    /** Transient — populated by JOIN queries in owner management view. */
+    private String homestayName;
 
     public Addon() {
         this.price = BigDecimal.ZERO;
@@ -50,4 +52,7 @@ public class Addon implements Serializable {
 
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(Timestamp createdAt) { this.createdAt = createdAt; }
+
+    public String getHomestayName() { return homestayName; }
+    public void setHomestayName(String homestayName) { this.homestayName = homestayName; }
 }
