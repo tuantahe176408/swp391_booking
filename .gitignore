@@ -28,6 +28,9 @@ bin/
 .vscode/
 .factorypath
 
+# Kiro AI steering files (local dev environment rules, not for sharing)
+.kiro/steering/no-shell-no-admin.md
+
 # Log & Temporary Files
 *.log
 *.tmp

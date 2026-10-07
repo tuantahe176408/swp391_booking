@@ -130,7 +130,16 @@
 #### Nhóm 12: Chủ Homestay - Quản lý Dịch vụ Bổ sung, Đơn đặt phòng & Nhân viên (Khoa - UC20, UC21)
 - [x] Danh sách dịch vụ đi kèm (Đưa đón, Thuê xe, Ăn sáng...) (`Addon.java`, `AddonDAO.java`, `AddonDAOImpl.java`, `OwnerAddonController.java`, `addons.jsp`)
 - [x] Thêm/Sửa/Xóa Dịch vụ bổ sung của Homestay (`OwnerAddonController.java`)
-- [x] Quản lý tài khoản Lễ tân / Nhân viên phục vụ (`OwnerStaffController.java`, `staff-list.jsp`)
+- [x] **[MỚI - UC21 ✅ Hoàn chỉnh]** Quản lý Nhân viên Lễ tân — thật từ DB (`StaffInfo.java`, `StaffDAO.java`, `StaffDAOImpl.java`, `OwnerStaffController.java`, `staff-list.jsp`)
+- [x] **[MỚI]** Model `StaffInfo` DTO với `getStatusLabel()`: "Hoạt động" / "Chờ kích hoạt" / "Đã khoá"
+- [x] **[MỚI]** `StaffDAO/Impl`: `getStaffByOwnerId`, `isStaffAssignedToOwner` (security guard), `assignToHomestay` (INSERT ON DUPLICATE KEY UPDATE), 3 count stats
+- [x] **[MỚI]** Stats cards: Đang hoạt động / Cơ sở được quản lý / Chờ kích hoạt — đếm từ DB
+- [x] **[MỚI]** Tạo tài khoản Lễ tân mới: modal chọn cơ sở, auto-gen password, gửi email kích hoạt, `mustChangePassword=true`
+- [x] **[MỚI]** Reset password: sinh password mới, gửi email, set `must_change_password=true`
+- [x] **[MỚI]** Khoá / Mở khoá tài khoản lễ tân với ownership security check
+- [x] **[MỚI]** Đổi cơ sở phân công: modal reassign homestay, double security check (staff + homestay đều thuộc owner)
+- [x] **[MỚI]** Client-side search real-time theo tên / email / cơ sở
+- [x] **[MỚI]** DB migration: `ALTER TABLE users ADD COLUMN must_change_password` (`alter_users_must_change_password.sql`)
 - [x] **[MỚI]** Trang Đơn đặt phòng — **thật từ DB** (`OwnerBookingController.java`, `booking-list.jsp`)
 - [x] Filter theo cơ sở, trạng thái, khoảng ngày check-in với pagination
 - [x] BookingDAO mở rộng: `getBookingsByOwner()` + `countBookingsByOwner()` với dynamic WHERE
@@ -175,7 +184,8 @@
 #### Nhóm 16: Admin - Báo cáo Thống kê & Phân tích (Thành - UC25, UC26)
 - [x] Thống kê tổng doanh thu, số lượt đặt phòng (`AdminAnalyticsController.java`, `analytics.jsp`)
 - [x] Biểu đồ phân tích doanh thu theo thời gian (`analytics.jsp`)
-- [x] Quản lý cấu hình tham số hệ thống (`AdminConfigController.java`, `config.jsp`)
+- [ ] ~~**[DEFERRED - UC24]** Cấu hình Hệ thống động từ DB~~ — tạm hoãn, xem ghi chú bên dưới
+- [x] Bỏ menu "Kiểm thử Tích hợp" khỏi sidebar admin (`sidebar-admin.jsp`)
 
 #### Nhóm 17: Khách hàng - Đặt phòng & Áp dụng Voucher (Sáng - UC07)
 - [x] Giao diện Xác nhận Đặt phòng (Checkout) (`checkout.jsp`)
@@ -311,4 +321,31 @@
 | Đơn đặt phòng | `/owner/bookings` | ✅ Thật | Filter + pagination |
 | Doanh thu | `/owner/analytics` | ⚠️ Mock JS | KPI + chart = mock data |
 | Dịch vụ bổ sung | `/owner/addons` | ⚠️ Mock | Chưa connect DB |
-| Nhân viên Lễ tân | `/owner/staffs` | ⚠️ Mock | Chưa connect DB |
+| Nhân viên Lễ tân | `/owner/staffs` | ✅ Thật | UC21 đầy đủ: CRUD, reset, lock, reassign |
+| Cấu hình HT (Admin) | `/admin/config` | ⚠️ Mock | UC24 DEFERRED — xem ghi chú cuối file |
+
+---
+
+## 🕐 Tính Năng Tạm Hoãn (DEFERRED)
+
+### UC24 — Cấu hình Hệ thống động
+
+**Trạng thái:** Code đã implement đầy đủ nhưng bị deactivate. UI hiện tại là static mock.
+
+**Lý do tạm hoãn:** `PLATFORM_COMMISSION_RATE` chưa có nơi consume (invoice creation chưa implement). Activating config UI khi chưa có full business flow sẽ gây nhầm lẫn.
+
+**Files đã implement (giữ nguyên, không xóa):**
+
+| File | Trạng thái | Ghi chú |
+|---|---|---|
+| `SystemConfigDAO.java` | ✅ Giữ, có DEFERRED header | Interface đầy đủ |
+| `SystemConfigDAOImpl.java` | ✅ Giữ, có DEFERRED header | JDBC impl đầy đủ |
+| `AdminConfigController.java` | ⏸ Reverted về stub | Chỉ GET → forward JSP |
+| `config.jsp` | ⏸ Reverted về static mock | Input disabled |
+| `BookingService.java` | ⏸ Hardcode `DEFAULT_HOLD_MINUTES = 15` | Comment hướng dẫn restore |
+
+**Để tái kích hoạt (khi invoice flow đã xong):**
+1. `AdminConfigController`: inject `SystemConfigDAOImpl`, thêm `doGet` load DB + `doPost` save
+2. `config.jsp`: bind `value="${platformCommissionRate}"` / `"${bookingHoldMinutes}"`, bỏ `disabled`, thêm `method="post"`
+3. `BookingService`: thay `DEFAULT_HOLD_MINUTES` bằng `new SystemConfigDAOImpl().getBookingHoldMinutes()`
+4. `PaymentService` (khi tạo invoice): dùng `new SystemConfigDAOImpl().getCommissionRate()`

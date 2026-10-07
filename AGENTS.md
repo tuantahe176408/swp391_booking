@@ -15,6 +15,24 @@ Before answering or acting on any request that involves creating, editing, revie
 - If a user request conflicts with a project rule, clearly identify the conflict before proceeding and follow higher-priority system or user instructions.
 - In the completion report, briefly confirm that the applicable project rules were reviewed and followed. Mention any rule that could not be satisfied and explain why.
 
+## 0. Local Development Environment
+
+**MySQL (chạy trên WSL):**
+- Host: `localhost`
+- Port: `3306`
+- Database: `smart_booking_db`
+- Root user: `root` / Password: `root@2024`
+- App user: `booking_user` / Password: `booking@2024`
+
+Lệnh kết nối nhanh:
+```bash
+mysql -u root -p'root@2024' smart_booking_db
+```
+
+**App credentials mặc định trong `DBContext.java`:** `root / 123456` (fallback, không dùng cho local WSL).
+
+---
+
 ## 1. Scope and priorities
 
 These rules apply to the entire repository of the Smart Booking Platform, covering 26 Use Cases divided across 5 core actors: Customer, Receptionist, Homestay Owner, System Admin, and System Services.
