@@ -1,41 +1,75 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="100%" height="100%">
   <defs>
+    <!-- Background Gradient: Rich Indigo & Electric Violet -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#4f46e5" />
-      <stop offset="50%" stop-color="#6366f1" />
-      <stop offset="100%" stop-color="#818cf8" />
+      <stop offset="0%" stop-color="#3730a3" />
+      <stop offset="45%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#6366f1" />
     </linearGradient>
-    <linearGradient id="cardGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.25)" />
-      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.1)" />
+    
+    <!-- Glassmorphism Container Gradient -->
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.28)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.12)" />
     </linearGradient>
-  </defs>
-  <!-- Background with gradient -->
-  <rect width="800" height="500" fill="url(#bgGrad)" />
-  
-  <!-- Subtle background patterns -->
-  <circle cx="150" cy="120" r="180" fill="white" opacity="0.05" />
-  <circle cx="700" cy="380" r="220" fill="white" opacity="0.06" />
-  <circle cx="400" cy="250" r="300" fill="none" stroke="white" stroke-width="2" opacity="0.08" />
 
-  <!-- Center Card / Icon Container -->
-  <rect x="250" y="110" width="300" height="280" rx="24" fill="url(#cardGrad)" stroke="rgba(255,255,255,0.4)" stroke-width="2" />
+    <!-- Icon Gradient -->
+    <linearGradient id="iconGlow" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e0e7ff" />
+    </linearGradient>
+
+    <!-- Shadow filter for floating card -->
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#1e1b4b" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background Base -->
+  <rect width="800" height="500" fill="url(#bgGrad)" />
+
+  <!-- Geometric & Ambient Decor -->
+  <circle cx="120" cy="90" r="140" fill="white" opacity="0.04" />
+  <circle cx="720" cy="410" r="180" fill="white" opacity="0.05" />
+  <circle cx="680" cy="110" r="70" fill="none" stroke="white" stroke-width="2" opacity="0.08" />
+  <circle cx="100" cy="420" r="90" fill="none" stroke="white" stroke-width="2" opacity="0.06" />
   
-  <!-- Hotel / Homestay House Icon -->
-  <g transform="translate(350, 160)" fill="white">
-    <!-- Roof -->
-    <path d="M50 5 L95 45 L5 45 Z" fill="#ffffff" />
-    <path d="M78 15 L78 30 L88 30 L88 23 Z" fill="#e0e7ff" />
-    <!-- Building Body -->
-    <rect x="15" y="45" width="70" height="55" rx="4" fill="#ffffff" />
-    <!-- Windows -->
-    <rect x="26" y="55" width="16" height="16" rx="2" fill="#4f46e5" />
-    <rect x="58" y="55" width="16" height="16" rx="2" fill="#4f46e5" />
-    <!-- Door -->
-    <path d="M42 80 L42 100 L58 100 L58 80 Q50 75 42 80 Z" fill="#4338ca" />
+  <!-- Subtle Grid Line -->
+  <path d="M 0,250 L 800,250" stroke="white" stroke-width="1" stroke-dasharray="8 12" opacity="0.06" />
+
+  <!-- Center Floating Glass Badge -->
+  <rect x="270" y="85" width="260" height="330" rx="32" fill="url(#glassGrad)" stroke="rgba(255, 255, 255, 0.45)" stroke-width="2" filter="url(#dropShadow)" />
+
+  <!-- House / Homestay Icon Group -->
+  <g transform="translate(400, 205)">
+    <!-- Roof with Chimney -->
+    <path d="M 0,-68 L 56,-24 L -56,-24 Z" fill="url(#iconGlow)" />
+    <path d="M 28,-50 L 28,-30 L 40,-30 L 40,-40 Z" fill="#c7d2fe" />
+
+    <!-- House Main Body -->
+    <rect x="-44" y="-24" width="88" height="66" rx="6" fill="url(#iconGlow)" />
+
+    <!-- Windows (4-pane glow) -->
+    <rect x="-32" y="-12" width="22" height="22" rx="4" fill="#4338ca" />
+    <line x1="-21" y1="-12" x2="-21" y2="10" stroke="white" stroke-width="2" opacity="0.6" />
+    <line x1="-32" y1="-1" x2="-10" y2="-1" stroke="white" stroke-width="2" opacity="0.6" />
+
+    <rect x="10" y="-12" width="22" height="22" rx="4" fill="#4338ca" />
+    <line x1="21" y1="-12" x2="21" y2="10" stroke="white" stroke-width="2" opacity="0.6" />
+    <line x1="10" y1="-1" x2="32" y2="-1" stroke="white" stroke-width="2" opacity="0.6" />
+
+    <!-- Rounded Arch Doorway -->
+    <path d="M -13,42 L -13,22 A 13,13 0 0 1 13,22 L 13,42 Z" fill="#312e81" />
+    <circle cx="7" cy="30" r="2.5" fill="#fbbf24" />
   </g>
 
-  <!-- Text -->
-  <text x="400" y="325" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="22" font-weight="700" fill="#ffffff" letter-spacing="1">SMART BOOKING</text>
-  <text x="400" y="355" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="500" fill="#e0e7ff">Homestay &amp; Hotel Image</text>
+  <!-- Star Badge on Top-Right of Card -->
+  <g transform="translate(485, 120)">
+    <circle cx="0" cy="0" r="16" fill="#fbbf24" opacity="0.9" />
+    <path d="M 0,-8 L 2.4,-2.4 L 8,-2.4 L 3.5,1.2 L 5.2,7 L 0,3.6 L -5.2,7 L -3.5,1.2 L -8,-2.4 L -2.4,-2.4 Z" fill="#ffffff" />
+  </g>
+
+  <!-- Typography -->
+  <text x="400" y="340" text-anchor="middle" font-family="'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="20" font-weight="800" fill="#ffffff" letter-spacing="1.5">SMART BOOKING</text>
+  <text x="400" y="370" text-anchor="middle" font-family="'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="600" fill="#e0e7ff" letter-spacing="0.5">Homestay &amp; Hotel Experience</text>
 </svg>
