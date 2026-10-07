@@ -16,6 +16,7 @@ import java.sql.Date;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -29,6 +30,7 @@ public class BookingController extends HttpServlet {
     private AddonDAO addonDAO;
     private VoucherDAO voucherDAO;
     private BookingDAO bookingDAO;
+    private RoomDAO roomDAO;
     private BookingService bookingService;
 
     @Override
@@ -37,6 +39,7 @@ public class BookingController extends HttpServlet {
         this.addonDAO     = new AddonDAOImpl();
         this.voucherDAO   = new VoucherDAOImpl();
         this.bookingDAO   = new BookingDAOImpl();
+        this.roomDAO      = new RoomDAOImpl();
         this.bookingService = new BookingService();
     }
 
@@ -102,6 +105,11 @@ public class BookingController extends HttpServlet {
             }
         }
 
+        if (selectedRoomType == null) {
+            response.sendRedirect(request.getContextPath() + "/homestay/detail?id=" + homestayId + "&error=sold_out");
+            return;
+        }
+
         // Parse ngày checkin / checkout an toàn không cho chọn quá khứ
         LocalDate today = LocalDate.now();
         LocalDate checkin;
@@ -122,6 +130,14 @@ public class BookingController extends HttpServlet {
         }
         if (!checkout.isAfter(checkin)) {
             checkout = checkin.plusDays(1);
+        }
+
+        // Check availability
+        Map<Integer, Integer> availMap = roomDAO.getAvailableCountByType(homestayId, checkin.toString(), checkout.toString());
+        int avail = (availMap != null) ? availMap.getOrDefault(selectedRoomType.getRoomTypeId(), 0) : 0;
+        if (avail <= 0) {
+            response.sendRedirect(request.getContextPath() + "/homestay/detail?id=" + homestayId + "&checkin=" + checkin + "&checkout=" + checkout + "&error=sold_out");
+            return;
         }
 
         long totalNights = ChronoUnit.DAYS.between(checkin, checkout);
@@ -174,6 +190,22 @@ public class BookingController extends HttpServlet {
             RoomType rt = optH.get().getRoomTypes().stream()
                     .filter(r -> r.getRoomTypeId() == roomTypeId).findFirst().orElse(null);
             if (rt == null) { response.sendRedirect(request.getContextPath() + "/search"); return; }
+
+            // Check availability count
+            Map<Integer, Integer> availMap = roomDAO.getAvailableCountByType(homestayId, checkin, checkout);
+            int avail = (availMap != null) ? availMap.getOrDefault(roomTypeId, 0) : 0;
+            if (avail <= 0) {
+                List<Addon> addons2 = addonDAO.getAddonsByHomestayId(homestayId);
+                request.setAttribute("homestay",          optH.get());
+                request.setAttribute("selectedRoomType",  rt);
+                request.setAttribute("addons",            addons2);
+                request.setAttribute("checkin",           checkin);
+                request.setAttribute("checkout",          checkout);
+                request.setAttribute("totalNights",       totalNights);
+                request.setAttribute("errorMsg", "Hạng phòng này đã hết phòng trong thời gian bạn chọn. Vui lòng chọn thời gian khác.");
+                request.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(request, response);
+                return;
+            }
 
             BigDecimal roomTotal = rt.getBasePrice().multiply(BigDecimal.valueOf(totalNights));
 

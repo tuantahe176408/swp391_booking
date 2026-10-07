@@ -282,7 +282,7 @@
                                             <span class="small rating-star"><i class="fa-solid fa-star"></i> <strong>${h.ratingAvg}</strong> <span class="text-muted">(${h.reviewCount})</span></span>
                                         </div>
                                         <h6 class="fw-bold mb-1 mt-2">
-                                            <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}" class="text-dark text-decoration-none">${h.name}</a>
+                                            <a href="${pageContext.request.contextPath}/homestay/detail?id=${h.homestayId}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}" class="text-dark text-decoration-none">${h.name}</a>
                                         </h6>
                                         <p class="text-muted small mb-2"><i class="fa-solid fa-location-dot me-1"></i>${h.address}</p>
                                         <c:if test="${not empty h.amenityNames}">

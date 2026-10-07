@@ -209,8 +209,8 @@ public class RoomDAOImpl implements RoomDAO {
         String sql =
             "SELECT rt.room_type_id, " +
             "  GREATEST(0, " +
-            "    GREATEST(1, COALESCE((SELECT COUNT(*) FROM rooms r " +
-            "              WHERE r.room_type_id = rt.room_type_id), 0)) " +   // ≥1 nếu room_type chưa có physical rooms
+            "    COALESCE((SELECT COUNT(*) FROM rooms r " +
+            "              WHERE r.room_type_id = rt.room_type_id AND r.status != 'MAINTENANCE'), 0) " +
             "    - " +
             "    COALESCE((SELECT COUNT(*) FROM bookings b " +
             "              WHERE b.room_type_id   = rt.room_type_id " +

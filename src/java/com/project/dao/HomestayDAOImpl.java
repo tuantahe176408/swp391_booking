@@ -14,6 +14,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Time;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,19 +53,61 @@ public class HomestayDAOImpl implements HomestayDAO {
             params.add(searchPattern);
         }
 
-        if (guests != null && guests > 0) {
-            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id AND rt.max_occupancy >= ?) ");
-            params.add(guests);
+        // Parse checkin/checkout dates if available
+        LocalDate ciDate = null;
+        LocalDate coDate = null;
+        if (checkin != null && !checkin.trim().isEmpty()) {
+            try {
+                ciDate = LocalDate.parse(checkin.trim());
+                if (checkout != null && !checkout.trim().isEmpty()) {
+                    coDate = LocalDate.parse(checkout.trim());
+                }
+                if (coDate == null || !coDate.isAfter(ciDate)) {
+                    coDate = ciDate.plusDays(1);
+                }
+            } catch (Exception ignored) {
+                ciDate = null;
+                coDate = null;
+            }
         }
 
-        if (minPrice != null && minPrice > 0) {
-            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id AND rt.base_price >= ?) ");
-            params.add(minPrice);
-        }
-
-        if (maxPrice != null && maxPrice > 0) {
-            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id AND rt.base_price <= ?) ");
-            params.add(maxPrice);
+        // Only show homestay if it has rooms > 0 (and available in date range if dates are provided)
+        if (ciDate != null && coDate != null) {
+            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id ");
+            if (guests != null && guests > 0) {
+                sql.append("AND rt.max_occupancy >= ? ");
+                params.add(guests);
+            }
+            if (minPrice != null && minPrice > 0) {
+                sql.append("AND rt.base_price >= ? ");
+                params.add(minPrice);
+            }
+            if (maxPrice != null && maxPrice > 0) {
+                sql.append("AND rt.base_price <= ? ");
+                params.add(maxPrice);
+            }
+            sql.append("AND ( (SELECT COUNT(*) FROM rooms r WHERE r.room_type_id = rt.room_type_id AND r.status != 'MAINTENANCE') ")
+               .append("- (SELECT COUNT(*) FROM bookings b WHERE b.room_type_id = rt.room_type_id AND b.homestay_id = h.homestay_id ")
+               .append("   AND b.checkin_date < ? AND b.checkout_date > ? ")
+               .append("   AND (b.booking_status IN ('CONFIRMED', 'CHECKED_IN') OR (b.booking_status = 'PENDING' AND (b.hold_expires_at IS NULL OR b.hold_expires_at > NOW())))) ")
+               .append(") > 0) ");
+            params.add(coDate.toString());
+            params.add(ciDate.toString());
+        } else {
+            sql.append("AND EXISTS (SELECT 1 FROM room_types rt JOIN rooms r ON rt.room_type_id = r.room_type_id WHERE rt.homestay_id = h.homestay_id AND r.status != 'MAINTENANCE' ");
+            if (guests != null && guests > 0) {
+                sql.append("AND rt.max_occupancy >= ? ");
+                params.add(guests);
+            }
+            if (minPrice != null && minPrice > 0) {
+                sql.append("AND rt.base_price >= ? ");
+                params.add(minPrice);
+            }
+            if (maxPrice != null && maxPrice > 0) {
+                sql.append("AND rt.base_price <= ? ");
+                params.add(maxPrice);
+            }
+            sql.append(") ");
         }
 
         if (amenityIds != null && !amenityIds.isEmpty()) {
@@ -131,19 +174,61 @@ public class HomestayDAOImpl implements HomestayDAO {
             params.add(searchPattern);
         }
 
-        if (guests != null && guests > 0) {
-            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id AND rt.max_occupancy >= ?) ");
-            params.add(guests);
+        // Parse checkin/checkout dates if available
+        LocalDate ciDate = null;
+        LocalDate coDate = null;
+        if (checkin != null && !checkin.trim().isEmpty()) {
+            try {
+                ciDate = LocalDate.parse(checkin.trim());
+                if (checkout != null && !checkout.trim().isEmpty()) {
+                    coDate = LocalDate.parse(checkout.trim());
+                }
+                if (coDate == null || !coDate.isAfter(ciDate)) {
+                    coDate = ciDate.plusDays(1);
+                }
+            } catch (Exception ignored) {
+                ciDate = null;
+                coDate = null;
+            }
         }
 
-        if (minPrice != null && minPrice > 0) {
-            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id AND rt.base_price >= ?) ");
-            params.add(minPrice);
-        }
-
-        if (maxPrice != null && maxPrice > 0) {
-            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id AND rt.base_price <= ?) ");
-            params.add(maxPrice);
+        // Only count homestay if it has rooms > 0 (and available in date range if dates are provided)
+        if (ciDate != null && coDate != null) {
+            sql.append("AND EXISTS (SELECT 1 FROM room_types rt WHERE rt.homestay_id = h.homestay_id ");
+            if (guests != null && guests > 0) {
+                sql.append("AND rt.max_occupancy >= ? ");
+                params.add(guests);
+            }
+            if (minPrice != null && minPrice > 0) {
+                sql.append("AND rt.base_price >= ? ");
+                params.add(minPrice);
+            }
+            if (maxPrice != null && maxPrice > 0) {
+                sql.append("AND rt.base_price <= ? ");
+                params.add(maxPrice);
+            }
+            sql.append("AND ( (SELECT COUNT(*) FROM rooms r WHERE r.room_type_id = rt.room_type_id AND r.status != 'MAINTENANCE') ")
+               .append("- (SELECT COUNT(*) FROM bookings b WHERE b.room_type_id = rt.room_type_id AND b.homestay_id = h.homestay_id ")
+               .append("   AND b.checkin_date < ? AND b.checkout_date > ? ")
+               .append("   AND (b.booking_status IN ('CONFIRMED', 'CHECKED_IN') OR (b.booking_status = 'PENDING' AND (b.hold_expires_at IS NULL OR b.hold_expires_at > NOW())))) ")
+               .append(") > 0) ");
+            params.add(coDate.toString());
+            params.add(ciDate.toString());
+        } else {
+            sql.append("AND EXISTS (SELECT 1 FROM room_types rt JOIN rooms r ON rt.room_type_id = r.room_type_id WHERE rt.homestay_id = h.homestay_id AND r.status != 'MAINTENANCE' ");
+            if (guests != null && guests > 0) {
+                sql.append("AND rt.max_occupancy >= ? ");
+                params.add(guests);
+            }
+            if (minPrice != null && minPrice > 0) {
+                sql.append("AND rt.base_price >= ? ");
+                params.add(minPrice);
+            }
+            if (maxPrice != null && maxPrice > 0) {
+                sql.append("AND rt.base_price <= ? ");
+                params.add(maxPrice);
+            }
+            sql.append(") ");
         }
 
         if (amenityIds != null && !amenityIds.isEmpty()) {
@@ -183,6 +268,7 @@ public class HomestayDAOImpl implements HomestayDAO {
                      "(SELECT image_url FROM homestay_images hi WHERE hi.homestay_id = h.homestay_id ORDER BY hi.is_primary DESC, hi.display_order ASC LIMIT 1) AS primary_image, " +
                      "(SELECT MIN(base_price) FROM room_types rt WHERE rt.homestay_id = h.homestay_id) AS min_price " +
                      "FROM homestays h WHERE h.status = 'ACTIVE' " +
+                     "AND EXISTS (SELECT 1 FROM room_types rt JOIN rooms r ON rt.room_type_id = r.room_type_id WHERE rt.homestay_id = h.homestay_id AND r.status != 'MAINTENANCE') " +
                      "ORDER BY h.rating_avg DESC, h.review_count DESC LIMIT ?";
 
         try (Connection conn = DBContext.getConnection();

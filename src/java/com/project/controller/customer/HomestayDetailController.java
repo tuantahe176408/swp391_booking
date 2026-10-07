@@ -105,23 +105,43 @@ public class HomestayDetailController extends HttpServlet {
         String checkout = request.getParameter("checkout");
         String guests   = request.getParameter("guests");
 
-        // UC03: Tính số phòng còn trống theo loại khi có ngày check-in
-        // Nếu checkout rỗng, mặc định checkin + 1 ngày để vẫn chạy được check tồn kho
-        Map<Integer, Integer> availMap = null;
-        if (checkin != null && !checkin.trim().isEmpty()) {
-            String coDate = (checkout != null && !checkout.trim().isEmpty())
-                    ? checkout.trim()
-                    : java.time.LocalDate.parse(checkin.trim()).plusDays(1).toString();
-            availMap = roomDAO.getAvailableCountByType(homestayId, checkin.trim(), coDate);
+        // UC03: Tính số phòng còn trống theo loại
+        java.time.LocalDate ciDate;
+        try {
+            ciDate = (checkin != null && !checkin.trim().isEmpty())
+                    ? java.time.LocalDate.parse(checkin.trim())
+                    : java.time.LocalDate.now();
+        } catch (Exception e) {
+            ciDate = java.time.LocalDate.now();
+        }
+        java.time.LocalDate coDate;
+        try {
+            coDate = (checkout != null && !checkout.trim().isEmpty())
+                    ? java.time.LocalDate.parse(checkout.trim())
+                    : ciDate.plusDays(1);
+        } catch (Exception e) {
+            coDate = ciDate.plusDays(1);
+        }
+        if (!coDate.isAfter(ciDate)) {
+            coDate = ciDate.plusDays(1);
         }
 
-        request.setAttribute("homestay",  homestay);
-        request.setAttribute("addons",    addons);
-        request.setAttribute("checkin",   checkin);
-        request.setAttribute("checkout",  checkout);
-        request.setAttribute("guests",    guests);
-        request.setAttribute("availMap",  availMap);
-        request.setAttribute("pageTitle", homestay.getName() + " - Smart Booking Platform");
+        Map<Integer, Integer> availMap = roomDAO.getAvailableCountByType(homestayId, ciDate.toString(), coDate.toString());
+        int totalAvailableRooms = 0;
+        if (availMap != null) {
+            for (int count : availMap.values()) {
+                totalAvailableRooms += Math.max(0, count);
+            }
+        }
+
+        request.setAttribute("homestay",            homestay);
+        request.setAttribute("addons",              addons);
+        request.setAttribute("checkin",             checkin);
+        request.setAttribute("checkout",            checkout);
+        request.setAttribute("guests",              guests);
+        request.setAttribute("availMap",            availMap);
+        request.setAttribute("totalAvailableRooms", totalAvailableRooms);
+        request.setAttribute("pageTitle",           homestay.getName() + " - Smart Booking Platform");
 
         request.getRequestDispatcher("/WEB-INF/views/customer/detail.jsp").forward(request, response);
     }

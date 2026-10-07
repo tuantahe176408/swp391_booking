@@ -41,6 +41,30 @@ public class BookingService {
             booking.setBookingCode(bookingCode);
             LOGGER.info("Creating booking with code: " + bookingCode);
 
+            // Kiểm tra số lượng phòng khả dụng trong khoảng ngày trước khi ghi nhận
+            String checkAvailSql = "SELECT " +
+                    " (SELECT COUNT(*) FROM rooms r WHERE r.room_type_id = ? AND r.status != 'MAINTENANCE') - " +
+                    " (SELECT COUNT(*) FROM bookings b WHERE b.room_type_id = ? AND b.homestay_id = ? " +
+                    "   AND b.checkin_date < ? AND b.checkout_date > ? " +
+                    "   AND (b.booking_status IN ('CONFIRMED', 'CHECKED_IN') OR (b.booking_status = 'PENDING' AND (b.hold_expires_at IS NULL OR b.hold_expires_at > NOW())))) AS remaining";
+            try (PreparedStatement psAvail = conn.prepareStatement(checkAvailSql)) {
+                psAvail.setInt(1, booking.getRoomTypeId());
+                psAvail.setInt(2, booking.getRoomTypeId());
+                psAvail.setInt(3, booking.getHomestayId());
+                psAvail.setDate(4, booking.getCheckoutDate());
+                psAvail.setDate(5, booking.getCheckinDate());
+                try (ResultSet rsAvail = psAvail.executeQuery()) {
+                    if (rsAvail.next()) {
+                        int remaining = rsAvail.getInt("remaining");
+                        if (remaining <= 0) {
+                            LOGGER.warning("Booking rejected: no available rooms for room_type_id=" + booking.getRoomTypeId());
+                            conn.rollback();
+                            return -1;
+                        }
+                    }
+                }
+            }
+
             // 2. Insert booking
             String sqlBooking = "INSERT INTO bookings (booking_code, customer_id, homestay_id, room_type_id, " +
                     "guest_name, guest_email, guest_phone, checkin_date, checkout_date, total_nights, " +
