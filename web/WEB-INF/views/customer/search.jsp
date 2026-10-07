@@ -29,6 +29,50 @@
 .rating-star { color:#f59e0b; font-size:0.85rem; }
 .price-tag { font-size:1.15rem; font-weight:800; color:#4f46e5; }
 
+/* Rich Popover Tooltip for Amenities */
+.amenities-rich-tooltip .tooltip-inner {
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: 1px solid rgba(0, 0, 0, 0.08) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 12px 36px rgba(0, 0, 0, 0.16) !important;
+    padding: 10px 12px !important;
+    max-width: 280px !important;
+    text-align: left !important;
+}
+.amenities-rich-tooltip .tooltip-arrow::before {
+    border-top-color: #ffffff !important;
+    border-bottom-color: #ffffff !important;
+}
+.popover-amenities-header {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #475569;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+}
+.popover-amenities-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.popover-amenities-grid .badge {
+    background: #f8fafc !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    font-size: 0.72rem !important;
+    font-weight: 500 !important;
+    padding: 4px 8px !important;
+    border-radius: 6px !important;
+    white-space: normal !important;
+    text-align: left !important;
+    display: inline-flex !important;
+    align-items: center !important;
+}
+
 /* Smart Price Filter Styles */
 .price-preset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 12px; }
 .price-chip { background: #f8f9fc; color: #4b5563; border: 1px solid #e2e8f0; border-radius: 20px; font-size: 0.76rem; font-weight: 600; padding: 5px 8px; text-align: center; cursor: pointer; transition: all 0.2s; user-select: none; }
@@ -306,11 +350,12 @@
                                                             <span class="badge bg-light text-muted border" data-bs-toggle="tooltip" data-bs-placement="top" title="${am}">${am}</span>
                                                         </c:forEach>
                                                         <c:if test="${h.amenityNames.size() > 2}">
-                                                            <c:set var="moreAmenities" value="" />
-                                                            <c:forEach var="am" items="${h.amenityNames}" begin="2" varStatus="st">
-                                                                <c:set var="moreAmenities" value="${moreAmenities}${am}${!st.last ? ', ' : ''}" />
+                                                            <c:set var="moreAmenitiesHtml" value="<div class='popover-amenities-header'><i class='fa-solid fa-sparkles text-primary me-1'></i>Tiện ích khác (${h.amenityNames.size() - 2})</div><div class='popover-amenities-grid'>" />
+                                                            <c:forEach var="am" items="${h.amenityNames}" begin="2">
+                                                                <c:set var="moreAmenitiesHtml" value="${moreAmenitiesHtml}<span class='badge'>${am}</span>" />
                                                             </c:forEach>
-                                                            <span class="badge badge-more" data-bs-toggle="tooltip" data-bs-placement="top" title="Tiện ích khác: ${moreAmenities}">+${h.amenityNames.size() - 2}</span>
+                                                            <c:set var="moreAmenitiesHtml" value="${moreAmenitiesHtml}</div>" />
+                                                            <span class="badge badge-more" data-bs-toggle="tooltip" data-bs-custom-class="amenities-rich-tooltip" data-bs-html="true" data-bs-placement="top" data-bs-title="${moreAmenitiesHtml}">+${h.amenityNames.size() - 2}</span>
                                                         </c:if>
                                                     </c:when>
                                                     <c:otherwise>
@@ -541,7 +586,9 @@ document.addEventListener('DOMContentLoaded', function() {
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl, {
-                delay: { show: 100, hide: 100 }
+                html: true,
+                sanitize: false,
+                delay: { show: 50, hide: 100 }
             });
         });
     }
