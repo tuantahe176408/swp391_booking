@@ -69,3 +69,8 @@ src/java/mail.properties
 .env.*
 config.local.properties
 
+
+# Kiro IDE session store points
+tore_point*
+store_point*
+*store_point*
