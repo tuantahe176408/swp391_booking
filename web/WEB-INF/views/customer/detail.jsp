@@ -208,95 +208,218 @@
                     </div>
                 </c:if>
 
-                <!-- Reviews -->
+                <!-- ═══════════════════════════════════════════════════════
+                     ĐÁNH GIÁ KHÁCH HÀNG  (A+C combined)
+                     ═══════════════════════════════════════════════════════ -->
                 <c:if test="${not empty homestay.reviews}">
-                    <div class="mb-4">
-                        <hr class="my-4">
+                <style>
+                /* ══ Review Section: A+C Combined ══════════════════════════ */
+                .rv-section { margin-top:2rem; padding-top:1.75rem; border-top:1px solid #e9ecef; }
 
-                        <%-- Header: tổng quan điểm --%>
-                        <div class="d-flex align-items-center gap-3 mb-4">
-                            <div class="text-center px-3 py-2 rounded-4 bg-warning-subtle border border-warning-subtle" style="min-width:80px;">
-                                <div class="fs-2 fw-bold text-warning lh-1">${homestay.ratingAvg}</div>
-                                <div class="text-muted small mt-1">/ 5.0</div>
-                            </div>
+                /* ── Header: big score + progress bars (Option C) ── */
+                .rv-header        { display:flex; align-items:flex-start; gap:28px; margin-bottom:1.75rem; flex-wrap:wrap; }
+                .rv-score-area    { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+                .rv-big-num       { font-size:3.5rem; font-weight:900; color:#1e293b; line-height:1; }
+                .rv-big-star      { color:#f59e0b; font-size:1.4rem; line-height:1; }
+                .rv-big-count     { font-size:.78rem; color:#94a3b8; margin-top:3px; }
+                .rv-bars          { flex:1; min-width:200px; padding-top:4px; }
+                .rv-bar-row       { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+                .rv-bar-label     { font-size:.8rem; color:#475569; min-width:65px; }
+                .rv-bar-track     { flex:1; height:6px; background:#e9ecef; border-radius:50px; overflow:hidden; }
+                .rv-bar-fill      { height:100%; background:linear-gradient(90deg,#6366f1,#8b5cf6);
+                                    border-radius:50px; transition:width .9s ease; width:0; }
+                .rv-bar-val       { font-size:.78rem; color:#64748b; min-width:26px; text-align:right; font-weight:600; }
+
+                /* ── Cards: masonry 2 col (Option A) ── */
+                .rv-grid          { columns:2; column-gap:14px; margin-top:1.25rem; }
+                @media(max-width:767px){ .rv-grid{ columns:1; } }
+
+                .rv-card          { break-inside:avoid; background:#fafafa; border:1px solid #e9ecef;
+                                    border-radius:16px; padding:1.1rem 1.2rem 1rem 1.4rem;
+                                    margin-bottom:14px; position:relative;
+                                    transition:box-shadow .2s, transform .2s; }
+                .rv-card:hover    { box-shadow:0 4px 18px rgba(99,102,241,.10); transform:translateY(-2px); }
+                /* dấu ngoặc kép trang trí */
+                .rv-card::before  { content:'\201C'; position:absolute; top:8px; left:11px;
+                                    font-size:2.4rem; color:#6366f1; opacity:.13;
+                                    font-family:Georgia,serif; line-height:1; pointer-events:none; }
+                .rv-card.rv-hidden{ display:none; }
+                .rv-card.rv-new   { animation:rvPop .3s ease both; }
+                @keyframes rvPop  { from{opacity:0;transform:scale(.97)} to{opacity:1;transform:scale(1)} }
+
+                /* avatar gradient random per initial */
+                .rv-av            { width:36px; height:36px; border-radius:50%; flex-shrink:0;
+                                    background:linear-gradient(135deg,#6366f1,#a78bfa);
+                                    color:#fff; font-weight:700; font-size:.85rem;
+                                    display:flex; align-items:center; justify-content:center;
+                                    border:2px solid #fff; box-shadow:0 0 0 2px #c7d2fe; }
+                .rv-name          { font-weight:600; font-size:.88rem; color:#1e293b; }
+                .rv-date          { font-size:.72rem; color:#94a3b8; }
+                /* rating pill (Option A style) */
+                .rv-pill          { background:#ede9fe; color:#7c3aed; font-size:.72rem; font-weight:700;
+                                    border-radius:50px; padding:2px 9px; flex-shrink:0;
+                                    display:inline-flex; align-items:center; gap:3px; }
+                .rv-comment       { font-size:.84rem; color:#475569; line-height:1.6;
+                                    margin:8px 0 0; padding-left:4px; }
+
+                /* ── Nút Xem thêm (gradient Option A) ── */
+                .rv-more-wrap     { text-align:center; margin-top:10px; display:none; }
+                .rv-more-btn      { display:inline-flex; align-items:center; gap:8px;
+                                    border:none; border-radius:12px;
+                                    background:linear-gradient(135deg,#6366f1,#8b5cf6);
+                                    color:#fff; padding:10px 28px; font-size:.875rem;
+                                    font-weight:600; cursor:pointer;
+                                    box-shadow:0 4px 14px rgba(99,102,241,.35);
+                                    transition:box-shadow .2s, transform .2s; }
+                .rv-more-btn:hover{ box-shadow:0 6px 20px rgba(99,102,241,.45); transform:translateY(-1px); }
+                .rv-more-badge    { background:rgba(255,255,255,.25); border-radius:50px;
+                                    padding:1px 9px; font-size:.72rem; font-weight:700; }
+                </style>
+
+                <div class="rv-section" id="reviewSection">
+
+                    <%-- ── Header: score + bars ── --%>
+                    <div class="rv-header">
+                        <div class="rv-score-area">
+                            <div class="rv-big-num">${homestay.ratingAvg}</div>
                             <div>
-                                <h5 class="fw-bold mb-1">Đánh giá từ khách hàng</h5>
-                                <div class="text-warning mb-1">
-                                    <c:set var="hFullStars" value="${homestay.ratingAvg - (homestay.ratingAvg mod 1)}"/>
-                                    <c:set var="hHasHalf"   value="${(homestay.ratingAvg mod 1) >= 0.3}"/>
-                                    <c:forEach begin="1" end="${hFullStars}"><i class="fa-solid fa-star"></i></c:forEach>
-                                    <c:if test="${hHasHalf}"><i class="fa-solid fa-star-half-stroke"></i></c:if>
-                                </div>
-                                <span class="text-muted small">${homestay.reviewCount} đánh giá từ khách thực tế</span>
+                                <div class="rv-big-star"><i class="fa-solid fa-star"></i></div>
+                                <div class="rv-big-count">${homestay.reviewCount} đánh giá</div>
                             </div>
                         </div>
+                        <div class="rv-bars">
+                            <%-- Tính trung bình từng tiêu chí trực tiếp từ reviews list --%>
+                            <c:set var="sumC" value="0"/>
+                            <c:set var="sumS" value="0"/>
+                            <c:set var="sumL" value="0"/>
+                            <c:set var="sumV" value="0"/>
+                            <c:set var="cnt"  value="0"/>
+                            <c:forEach var="rv" items="${homestay.reviews}">
+                                <c:set var="sumC" value="${sumC + rv.ratingCleanliness}"/>
+                                <c:set var="sumS" value="${sumS + rv.ratingService}"/>
+                                <c:set var="sumL" value="${sumL + rv.ratingLocation}"/>
+                                <c:set var="sumV" value="${sumV + rv.ratingValue}"/>
+                                <c:set var="cnt"  value="${cnt  + 1}"/>
+                            </c:forEach>
+                            <c:set var="avgC" value="${cnt > 0 ? sumC / cnt : homestay.ratingAvg}"/>
+                            <c:set var="avgS" value="${cnt > 0 ? sumS / cnt : homestay.ratingAvg}"/>
+                            <c:set var="avgL" value="${cnt > 0 ? sumL / cnt : homestay.ratingAvg}"/>
+                            <c:set var="avgV" value="${cnt > 0 ? sumV / cnt : homestay.ratingAvg}"/>
 
-                        <%-- Individual review cards — tất cả render server-side,
-                             ẩn từ index 5 trở đi, JS sẽ show dần khi bấm "Xem thêm" --%>
-                        <c:forEach var="rv" items="${homestay.reviews}" varStatus="rvStatus">
-                            <div class="review-card d-flex gap-3 mb-3 p-3 rounded-4 border bg-light"
-                                 <c:if test="${rvStatus.index >= 5}">style="display:none;"</c:if>>
-                                <div class="review-avatar flex-shrink-0">${not empty rv.customerName ? rv.customerName.substring(0,1).toUpperCase() : 'K'}</div>
-                                <div class="flex-grow-1 min-width-0">
-                                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-1 mb-1">
-                                        <span class="fw-semibold">${rv.customerName}</span>
-                                        <span class="text-muted small"><fmt:formatDate value="${rv.createdAt}" pattern="dd/MM/yyyy"/></span>
-                                    </div>
-                                    <div class="text-warning small mb-2">
-                                        <c:set var="fullStars" value="${rv.ratingOverall - (rv.ratingOverall mod 1)}"/>
-                                        <c:set var="hasHalf"   value="${(rv.ratingOverall mod 1) >= 0.3}"/>
-                                        <c:forEach begin="1" end="${fullStars}"><i class="fa-solid fa-star"></i></c:forEach>
-                                        <c:if test="${hasHalf}"><i class="fa-solid fa-star-half-stroke"></i></c:if>
-                                        <span class="text-muted ms-1 fw-normal">${rv.ratingOverall}</span>
-                                    </div>
-                                    <p class="text-secondary small mb-0 lh-base">${rv.comment}</p>
-                                </div>
+                            <div class="rv-bar-row">
+                                <span class="rv-bar-label">Sạch sẽ</span>
+                                <div class="rv-bar-track"><div class="rv-bar-fill" data-val="<fmt:formatNumber value="${avgC}" maxFractionDigits="1"/>"></div></div>
+                                <span class="rv-bar-val"><fmt:formatNumber value="${avgC}" maxFractionDigits="1"/></span>
                             </div>
-                        </c:forEach>
-
-                        <%-- Load-more button (ẩn nếu ≤ 5 review) --%>
-                        <c:if test="${homestay.reviewCount > 5}">
-                            <div class="text-center mt-3" id="reviewLoadMoreWrap">
-                                <button type="button" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm"
-                                        id="reviewLoadMoreBtn" onclick="loadMoreReviews()">
-                                    <i class="fa-solid fa-chevron-down me-1"></i>
-                                    Xem thêm đánh giá
-                                    <span class="badge bg-secondary ms-1" id="reviewRemaining">
-                                        ${homestay.reviewCount - 5}
-                                    </span>
-                                </button>
+                            <div class="rv-bar-row">
+                                <span class="rv-bar-label">Dịch vụ</span>
+                                <div class="rv-bar-track"><div class="rv-bar-fill" data-val="<fmt:formatNumber value="${avgS}" maxFractionDigits="1"/>"></div></div>
+                                <span class="rv-bar-val"><fmt:formatNumber value="${avgS}" maxFractionDigits="1"/></span>
                             </div>
-                        </c:if>
+                            <div class="rv-bar-row">
+                                <span class="rv-bar-label">Vị trí</span>
+                                <div class="rv-bar-track"><div class="rv-bar-fill" data-val="<fmt:formatNumber value="${avgL}" maxFractionDigits="1"/>"></div></div>
+                                <span class="rv-bar-val"><fmt:formatNumber value="${avgL}" maxFractionDigits="1"/></span>
+                            </div>
+                            <div class="rv-bar-row">
+                                <span class="rv-bar-label">Giá trị</span>
+                                <div class="rv-bar-track"><div class="rv-bar-fill" data-val="<fmt:formatNumber value="${avgV}" maxFractionDigits="1"/>"></div></div>
+                                <span class="rv-bar-val"><fmt:formatNumber value="${avgV}" maxFractionDigits="1"/></span>
+                            </div>
+                        </div>
                     </div>
 
-                    <script>
-                    (function () {
-                        var BATCH      = 5;
-                        var visible    = 5;
-                        var allCards   = document.querySelectorAll('.review-card');
-                        var total      = allCards.length;
-                        var wrap       = document.getElementById('reviewLoadMoreWrap');
-                        var badge      = document.getElementById('reviewRemaining');
+                    <%-- ── Danh sách review cards (masonry 2 cột) ── --%>
+                    <div class="rv-grid" id="rvList">
+                        <c:forEach var="rv" items="${homestay.reviews}">
+                            <div class="rv-card">
+                                <%-- avatar + tên + ngày + rating pill --%>
+                                <div style="display:flex;align-items:center;gap:9px;margin-bottom:6px;">
+                                    <div class="rv-av">${not empty rv.customerName ? rv.customerName.substring(0,1).toUpperCase() : 'K'}</div>
+                                    <div style="flex:1;min-width:0;">
+                                        <div class="rv-name">${rv.customerName}</div>
+                                        <div class="rv-date"><fmt:formatDate value="${rv.createdAt}" pattern="dd/MM/yyyy"/></div>
+                                    </div>
+                                    <span class="rv-pill">
+                                        <i class="fa-solid fa-star" style="font-size:.6rem;"></i>${rv.ratingOverall}
+                                    </span>
+                                </div>
+                                <%-- comment --%>
+                                <p class="rv-comment">${rv.comment}</p>
+                            </div>
+                        </c:forEach>
+                    </div>
 
-                        window.loadMoreReviews = function () {
-                            var limit = Math.min(visible + BATCH, total);
-                            for (var i = visible; i < limit; i++) {
-                                allCards[i].style.display = '';
-                                // Fade-in nhẹ
-                                allCards[i].style.opacity = '0';
-                                allCards[i].style.transition = 'opacity .25s';
-                                (function(el){ setTimeout(function(){ el.style.opacity = '1'; }, 20); })(allCards[i]);
-                            }
-                            visible = limit;
+                    <%-- ── Nút Xem thêm / Thu gọn ── --%>
+                    <div class="rv-more-wrap" id="rvMoreWrap">
+                        <button type="button" class="rv-more-btn" id="rvMoreBtn">
+                            <i class="fa-solid fa-chevron-down" id="rvMoreIcon"></i>
+                            <span id="rvMoreLabel">Xem thêm đánh giá</span>
+                            <span class="rv-more-badge" id="rvMoreBadge"></span>
+                        </button>
+                    </div>
 
-                            if (visible >= total) {
-                                if (wrap) wrap.style.display = 'none';
-                            } else {
-                                if (badge) badge.textContent = total - visible;
+                </div><%-- /rv-section --%>
+
+                <script>
+                (function () {
+                    /* ── Animate progress bars khi section scroll vào view ── */
+                    var fills = document.querySelectorAll('#reviewSection .rv-bar-fill');
+                    fills.forEach(function (el) {
+                        var val = parseFloat(el.getAttribute('data-val')) || 0;
+                        el.style.width = (val / 5 * 100).toFixed(1) + '%';
+                    });
+
+                    /* ── Show-more logic ── */
+                    var INIT  = 4; /* 2 hàng × 2 cột */
+                    var list  = document.getElementById('rvList');
+                    var wrap  = document.getElementById('rvMoreWrap');
+                    var btn   = document.getElementById('rvMoreBtn');
+                    var icon  = document.getElementById('rvMoreIcon');
+                    var lbl   = document.getElementById('rvMoreLabel');
+                    var badge = document.getElementById('rvMoreBadge');
+
+                    /* children trực tiếp = các rv-card, không bị nhiễu bởi card khác trên trang */
+                    var cards = Array.prototype.slice.call(list.children);
+                    var total = cards.length;
+                    var open  = false;
+
+                    if (total <= INIT) return; /* ≤ 4 review: hiện hết, ẩn nút */
+
+                    /* Ẩn cards thừa bằng display:none qua class — không đụng Bootstrap */
+                    for (var i = INIT; i < total; i++) {
+                        cards[i].classList.add('rv-hidden');
+                    }
+                    badge.textContent = total - INIT;
+                    wrap.style.display = 'block';
+
+                    btn.addEventListener('click', function () {
+                        open = !open;
+                        if (open) {
+                            for (var i = INIT; i < total; i++) {
+                                cards[i].classList.remove('rv-hidden');
+                                cards[i].classList.remove('rv-new');
+                                void cards[i].offsetWidth; /* reflow để restart animation */
+                                cards[i].classList.add('rv-new');
                             }
-                        };
-                    }());
-                    </script>
+                            icon.className    = 'fa-solid fa-chevron-up';
+                            lbl.textContent   = 'Thu gọn';
+                            badge.style.display = 'none';
+                        } else {
+                            for (var i = INIT; i < total; i++) {
+                                cards[i].classList.remove('rv-new');
+                                cards[i].classList.add('rv-hidden');
+                            }
+                            icon.className    = 'fa-solid fa-chevron-down';
+                            lbl.textContent   = 'Xem thêm đánh giá';
+                            badge.textContent = total - INIT;
+                            badge.style.display = '';
+                            document.getElementById('reviewSection')
+                                    .scrollIntoView({ behavior:'smooth', block:'start' });
+                        }
+                    });
+                }());
+                </script>
                 </c:if>
             </div>
 
