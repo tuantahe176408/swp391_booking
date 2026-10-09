@@ -42,7 +42,8 @@ import java.util.logging.Logger;
         "/owner/homestays/toggle",
         "/owner/homestays/new",
         "/owner/homestays/delete-image",
-        "/owner/homestays/set-primary"
+        "/owner/homestays/set-primary",
+        "/owner/homestays/delete"
     }
 )
 @MultipartConfig(
@@ -128,6 +129,12 @@ public class OwnerHomestayEditController extends HttpServlet {
             return;
         }
 
+        // ── Delete entire homestay ───────────────────────────────────────────
+        if (uri.endsWith("/delete")) {
+            handleDeleteHomestay(request, response, currentUser);
+            return;
+        }
+
         // ── Save: NEW or EDIT ────────────────────────────────────────────────
         boolean isNew = "true".equals(request.getParameter("isNew"));
 
@@ -193,6 +200,50 @@ public class OwnerHomestayEditController extends HttpServlet {
             }
         }
         res.sendRedirect(req.getContextPath() + "/owner/homestays/edit?id=" + homestayId);
+    }
+
+    /** POST /delete — permanently delete a homestay if no active bookings exist */
+    private void handleDeleteHomestay(HttpServletRequest req, HttpServletResponse res, User owner)
+            throws IOException {
+        int homestayId = parseId(req.getParameter("homestayId"), 0);
+        if (homestayId <= 0) {
+            res.sendRedirect(req.getContextPath() + "/owner/homestays");
+            return;
+        }
+
+        // Security: verify ownership before checking bookings
+        java.util.Optional<com.project.model.Homestay> opt = homestayDAO.getHomestayById(homestayId);
+        if (opt.isEmpty() || opt.get().getOwnerId() != owner.getUserId()) {
+            req.getSession().setAttribute("flash_error", "Cơ sở không tồn tại hoặc bạn không có quyền xóa.");
+            res.sendRedirect(req.getContextPath() + "/owner/homestays");
+            return;
+        }
+
+        // Block delete if active bookings exist
+        if (homestayDAO.hasActiveBookings(homestayId)) {
+            req.getSession().setAttribute("flash_error",
+                "Không thể xóa cơ sở \"" + opt.get().getName() + "\" vì còn đặt phòng chưa hoàn thành. " +
+                "Hãy hủy hoặc hoàn tất tất cả đặt phòng trước khi xóa.");
+            res.sendRedirect(req.getContextPath() + "/owner/homestays");
+            return;
+        }
+
+        // Delete all Cloudinary images first
+        java.util.List<com.project.model.HomestayImage> images = homestayDAO.getHomestayImages(homestayId);
+        for (com.project.model.HomestayImage img : images) {
+            CloudinaryUtil.deleteImage(img.getImageUrl());
+        }
+
+        String homestayName = opt.get().getName();
+        boolean deleted = homestayDAO.deleteHomestay(homestayId, owner.getUserId());
+        if (deleted) {
+            req.getSession().setAttribute("flash_success",
+                "Đã xóa cơ sở \"" + homestayName + "\" thành công.");
+        } else {
+            req.getSession().setAttribute("flash_error",
+                "Xóa cơ sở thất bại. Vui lòng thử lại.");
+        }
+        res.sendRedirect(req.getContextPath() + "/owner/homestays");
     }
 
     /** POST /edit (isNew=true) — insert new homestay then upload images */

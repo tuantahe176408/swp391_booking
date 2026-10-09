@@ -18,6 +18,32 @@
     width: 100%; max-width: 520px; max-height: 90vh;
     overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,.2);
 }
+/* Pagination */
+#staffPagination {
+    display: flex; gap: .35rem; flex-wrap: wrap;
+    justify-content: center; margin-top: 1rem;
+}
+#staffPagination .pg-btn {
+    min-width: 34px; height: 34px; border-radius: 9px;
+    border: 1px solid #e2e8f0; background: #fff; color: #475569;
+    font-size: .82rem; display: inline-flex; align-items: center;
+    justify-content: center; cursor: pointer; padding: 0 .5rem;
+    transition: all .15s ease;
+}
+#staffPagination .pg-btn:hover:not(.active):not(:disabled) {
+    background: #eef2ff; border-color: #6366f1; color: #6366f1;
+}
+#staffPagination .pg-btn.active {
+    background: #6366f1; border-color: #6366f1; color: #fff; font-weight: 700;
+}
+#staffPagination .pg-btn:disabled {
+    opacity: .38; cursor: default;
+}
+#staffPagination .pg-ellipsis {
+    min-width: 34px; height: 34px; display: inline-flex;
+    align-items: center; justify-content: center;
+    color: #94a3b8; font-size: .82rem;
+}
 </style>
 
 <div class="owner-shell">
@@ -252,6 +278,8 @@
                     </table>
                 </div>
 
+                <div id="staffPagination"></div>
+
                 <div class="px-4 py-3 border-top d-flex align-items-center justify-content-between">
                     <small class="text-muted" id="staffCountLabel">Hiển thị ${fn:length(staffList)} nhân viên</small>
                     <c:if test="${not empty myHomestays}">
@@ -358,17 +386,123 @@ document.querySelectorAll('.owner-modal-overlay').forEach(function(el) {
 function filterStaffTable(query) {
     var q = query.trim().toLowerCase();
     var rows = document.querySelectorAll('#staffTable .staff-row');
-    var noRes = document.getElementById('staffNoResults');
-    var label = document.getElementById('staffCountLabel');
-    var visible = 0;
+    staffFiltered = [];
     rows.forEach(function(row) {
         var match = q === '' || (row.dataset.name||'').includes(q) || (row.dataset.email||'').includes(q) || (row.dataset.homestay||'').includes(q);
-        row.style.display = match ? '' : 'none';
-        if (match) visible++;
+        if (match) staffFiltered.push(row);
     });
-    if (noRes) noRes.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
-    if (label) label.textContent = 'Hiển thị ' + visible + ' / ' + rows.length + ' nhân viên';
+    staffCurrentPage = 1;
+    renderStaffPage();
 }
+
+/* ===== Client-side pagination ===== */
+var STAFF_PAGE_SIZE = 10;
+var staffCurrentPage = 1;
+var staffFiltered = [];
+
+function buildPageNumbers(total, current) {
+    if (total <= 7) {
+        var all = [];
+        for (var i = 1; i <= total; i++) all.push(i);
+        return all;
+    }
+    var pages = [];
+    var winStart = Math.max(2, current - 1);
+    var winEnd   = Math.min(total - 1, current + 1);
+    pages.push(1);
+    if (winStart > 2) pages.push('…');
+    for (var p = winStart; p <= winEnd; p++) pages.push(p);
+    if (winEnd < total - 1) pages.push('…');
+    pages.push(total);
+    return pages;
+}
+
+function renderStaffPage() {
+    var allRows = document.querySelectorAll('#staffTable .staff-row');
+    var noRes   = document.getElementById('staffNoResults');
+    var label   = document.getElementById('staffCountLabel');
+    var pagEl   = document.getElementById('staffPagination');
+
+    var totalRows = staffFiltered.length;
+    var totalPages = Math.max(1, Math.ceil(totalRows / STAFF_PAGE_SIZE));
+    if (staffCurrentPage > totalPages) staffCurrentPage = totalPages;
+    if (staffCurrentPage < 1) staffCurrentPage = 1;
+
+    var startIdx = (staffCurrentPage - 1) * STAFF_PAGE_SIZE;
+    var endIdx   = startIdx + STAFF_PAGE_SIZE;
+
+    // Hide every row first, then show only the slice for this page.
+    allRows.forEach(function(row) { row.style.display = 'none'; });
+    staffFiltered.forEach(function(row, idx) {
+        row.style.display = (idx >= startIdx && idx < endIdx) ? '' : 'none';
+    });
+
+    if (noRes) noRes.style.display = (allRows.length > 0 && totalRows === 0) ? '' : 'none';
+
+    if (label) {
+        if (totalRows === 0) {
+            label.textContent = 'Hiển thị 0 / ' + allRows.length + ' nhân viên';
+        } else {
+            var from = startIdx + 1;
+            var to   = Math.min(endIdx, totalRows);
+            label.textContent = 'Hiển thị ' + from + '-' + to + ' / ' + totalRows +
+                                ' nhân viên (Trang ' + staffCurrentPage + '/' + totalPages + ')';
+        }
+    }
+
+    if (!pagEl) return;
+    pagEl.innerHTML = '';
+    if (totalRows === 0 || totalPages <= 1) return;
+
+    // Prev button
+    pagEl.appendChild(makeIconBtn('fa-chevron-left', staffCurrentPage === 1, function() {
+        gotoStaffPage(staffCurrentPage - 1);
+    }));
+
+    // Page numbers
+    buildPageNumbers(totalPages, staffCurrentPage).forEach(function(p) {
+        if (p === '…') {
+            var span = document.createElement('span');
+            span.className = 'pg-ellipsis';
+            span.textContent = '…';
+            pagEl.appendChild(span);
+        } else {
+            var btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'pg-btn' + (p === staffCurrentPage ? ' active' : '');
+            btn.textContent = p;
+            btn.addEventListener('click', function() { gotoStaffPage(p); });
+            pagEl.appendChild(btn);
+        }
+    });
+
+    // Next button
+    pagEl.appendChild(makeIconBtn('fa-chevron-right', staffCurrentPage === totalPages, function() {
+        gotoStaffPage(staffCurrentPage + 1);
+    }));
+}
+
+function makeIconBtn(iconClass, disabled, handler) {
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'pg-btn';
+    btn.disabled = disabled;
+    btn.innerHTML = '<i class="fa-solid ' + iconClass + '"></i>';
+    if (!disabled) btn.addEventListener('click', handler);
+    return btn;
+}
+
+function gotoStaffPage(p) {
+    staffCurrentPage = p;
+    renderStaffPage();
+}
+
+// Initialise pagination on load with all rows visible.
+(function initStaffPagination() {
+    staffFiltered = Array.prototype.slice.call(document.querySelectorAll('#staffTable .staff-row'));
+    staffCurrentPage = 1;
+    renderStaffPage();
+})();
 setTimeout(function() {
     document.querySelectorAll('.alert-dismissible').forEach(function(el) {
         var a = bootstrap && bootstrap.Alert ? new bootstrap.Alert(el) : null;

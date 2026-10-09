@@ -138,4 +138,26 @@ public interface HomestayDAO {
      * @return true if a row was updated
      */
     boolean adminUpdateHomestayStatus(int homestayId, Homestay.Status newStatus, String rejectionReason);
+
+    // ── UC17: Owner Delete Homestay ───────────────────────────────────────────
+
+    /**
+     * UC17: Permanently delete a homestay owned by the given ownerId.
+     * Returns false (blocked) if the homestay has any non-cancelled bookings,
+     * or if it doesn't belong to ownerId (security check).
+     * All images and room types must be deleted first (CASCADE from DB or pre-delete).
+     *
+     * @param homestayId ID of the homestay to delete
+     * @param ownerId    must match homestay.owner_id
+     * @return {@code true} if the row was deleted, {@code false} if blocked or not found
+     */
+    boolean deleteHomestay(int homestayId, int ownerId);
+
+    /**
+     * UC17: Check if a homestay has any active (non-cancelled) bookings.
+     * Used as a pre-flight guard before deleteHomestay.
+     *
+     * @return true if at least one active booking exists
+     */
+    boolean hasActiveBookings(int homestayId);
 }

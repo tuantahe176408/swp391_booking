@@ -303,10 +303,68 @@
                             <span class="text-muted ms-auto" style="font-size:.78rem;">
                                 ID: #${homestay.homestayId}
                             </span>
+                            <!-- Delete button — only show on edit page, not new -->
+                            <button type="button"
+                                    class="btn btn-outline-danger btn-sm px-3"
+                                    onclick="openDeleteModal()"
+                                    title="Xóa cơ sở này vĩnh viễn">
+                                <i class="fa-solid fa-trash-can me-1"></i>Xóa cơ sở
+                            </button>
                         </c:if>
                     </div>
                 </form>
             </div>
+
+            <%-- ── Delete Homestay Modal (only for edit pages) ── --%>
+            <c:if test="${not isNew}">
+                <div class="owner-modal-overlay" id="deleteHomestayModal"
+                     style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:1050;align-items:center;justify-content:center;padding:1rem;"
+                     onclick="if(event.target===this)closeDeleteModal()">
+                    <div style="background:#fff;border-radius:18px;padding:2rem;width:100%;max-width:460px;box-shadow:0 24px 64px rgba(15,23,42,.2);animation:modalIn .18s ease;">
+                        <style>@keyframes modalIn{from{opacity:0;transform:scale(.96) translateY(-10px)}to{opacity:1;transform:scale(1) translateY(0)}}</style>
+
+                        <div class="text-center mb-3">
+                            <div style="width:60px;height:60px;border-radius:50%;background:#fef2f2;display:flex;align-items:center;justify-content:center;margin:0 auto .75rem;font-size:1.6rem;color:#ef4444;">
+                                <i class="fa-solid fa-trash-can"></i>
+                            </div>
+                            <h5 class="fw-bold mb-1">Xóa cơ sở Homestay?</h5>
+                            <p class="text-muted mb-0" style="font-size:.88rem;">
+                                Bạn đang xóa: <strong>${homestay.name}</strong>
+                            </p>
+                        </div>
+                        <div class="alert alert-danger py-2 px-3 rounded-3 mb-3" style="font-size:.82rem;">
+                            <i class="fa-solid fa-triangle-exclamation me-1"></i>
+                            <strong>Không thể hoàn tác.</strong> Tất cả ảnh, loại phòng và phòng vật lý sẽ bị xóa vĩnh viễn.
+                            Không thể xóa nếu còn đặt phòng đang hoạt động.
+                        </div>
+
+                        <form method="post"
+                              action="${pageContext.request.contextPath}/owner/homestays/delete"
+                              id="deleteHomestayForm">
+                            <input type="hidden" name="homestayId" value="${homestay.homestayId}">
+                            <div class="mb-3">
+                                <label class="form-label" style="font-size:.83rem;">
+                                    Nhập <strong>XÓA</strong> để xác nhận:
+                                </label>
+                                <input type="text" id="deleteConfirmInput"
+                                       class="form-control form-control-sm"
+                                       placeholder='Gõ "XÓA" để xác nhận'
+                                       autocomplete="off"
+                                       oninput="updateDeleteBtn()">
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button type="submit" id="deleteConfirmBtn"
+                                        class="btn btn-danger flex-fill" disabled>
+                                    <i class="fa-solid fa-trash-can me-1"></i>Xóa cơ sở
+                                </button>
+                                <button type="button"
+                                        class="btn btn-outline-secondary flex-fill"
+                                        onclick="closeDeleteModal()">Hủy bỏ</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </c:if>
 
         </div><%-- /.owner-content --%>
     </div><%-- /.owner-main --%>
@@ -364,6 +422,29 @@ function previewNewImages(input) {
         container.appendChild(wrapper);
     });
 }
+
+// ── Delete modal helpers ──────────────────────────────────────────────────────
+function openDeleteModal() {
+    var modal = document.getElementById('deleteHomestayModal');
+    if (!modal) return;
+    document.getElementById('deleteConfirmInput').value = '';
+    document.getElementById('deleteConfirmBtn').disabled = true;
+    modal.style.display = 'flex';
+    setTimeout(function() {
+        document.getElementById('deleteConfirmInput').focus();
+    }, 200);
+}
+function closeDeleteModal() {
+    var modal = document.getElementById('deleteHomestayModal');
+    if (modal) modal.style.display = 'none';
+}
+function updateDeleteBtn() {
+    var val = document.getElementById('deleteConfirmInput').value.trim().toUpperCase();
+    document.getElementById('deleteConfirmBtn').disabled = (val !== 'XÓA');
+}
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeDeleteModal();
+});
 </script>
 
 <jsp:include page="../common/footer.jsp"/>
