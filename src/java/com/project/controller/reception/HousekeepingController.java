@@ -103,13 +103,7 @@ public class HousekeepingController extends HttpServlet {
      * Lấy homestay_id từ session (cache), nếu chưa có thì query DB và lưu vào session.
      */
     private Integer resolveHomestayId(HttpSession session, int userId) {
-        Integer homestayId = (Integer) session.getAttribute("assignedHomestayId");
-        if (homestayId == null) {
-            homestayId = receptionDAO.getAssignedHomestayId(userId);
-            if (homestayId != null) {
-                session.setAttribute("assignedHomestayId", homestayId);
-            }
-        }
-        return homestayId;
+        session.removeAttribute("assignedHomestayId");
+        return receptionDAO.getAssignedHomestayId(userId);
     }
 }
