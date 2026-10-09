@@ -1058,4 +1058,43 @@ public class HomestayDAOImpl implements HomestayDAO {
             return false;
         }
     }
+
+    // ── UC17: Owner Delete Homestay ───────────────────────────────────────────
+
+    @Override
+    public boolean hasActiveBookings(int homestayId) {
+        String sql = "SELECT COUNT(*) FROM bookings b " +
+                     "INNER JOIN rooms r ON b.room_id = r.room_id " +
+                     "INNER JOIN room_types rt ON r.room_type_id = rt.room_type_id " +
+                     "WHERE rt.homestay_id = ? " +
+                     "AND b.booking_status NOT IN ('CANCELLED', 'REFUNDED')";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, homestayId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getInt(1) > 0;
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in hasActiveBookings for homestayId=" + homestayId, e);
+            return true; // fail-safe: treat as having active bookings to prevent accidental deletion
+        }
+    }
+
+    @Override
+    public boolean deleteHomestay(int homestayId, int ownerId) {
+        // Security + guard: only delete if owned by ownerId and no active bookings
+        if (hasActiveBookings(homestayId)) {
+            return false;
+        }
+        String sql = "DELETE FROM homestays WHERE homestay_id = ? AND owner_id = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, homestayId);
+            ps.setInt(2, ownerId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in deleteHomestay id=" + homestayId, e);
+            return false;
+        }
+    }
 }

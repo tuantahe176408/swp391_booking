@@ -88,6 +88,26 @@
 .hs-chip--off .dot { background:#94a3b8; }
 .hs-chip-btn { background:none; border:none; padding:0 0 0 3px; cursor:pointer; line-height:1; opacity:.7; }
 .hs-chip-btn:hover { opacity:1; }
+
+/* ── Pagination ───────────────────────────────────────────── */
+#addonPagination { display:flex; gap:.35rem; flex-wrap:wrap; justify-content:center; padding:.75rem 1rem; }
+#addonPagination .pg-btn {
+    min-width:34px; height:34px; border-radius:9px;
+    border:1px solid #e2e8f0; background:#fff; color:#475569;
+    font-size:.82rem; display:inline-flex; align-items:center; justify-content:center;
+    cursor:pointer; transition:all .12s;
+}
+#addonPagination .pg-btn:hover:not(:disabled):not(.active) {
+    background:#eef2ff; border-color:#6366f1; color:#6366f1;
+}
+#addonPagination .pg-btn.active {
+    background:#6366f1; border-color:#6366f1; color:#fff; font-weight:700;
+}
+#addonPagination .pg-btn:disabled { opacity:.38; cursor:default; }
+#addonPagination .pg-ellipsis {
+    min-width:34px; height:34px; display:inline-flex;
+    align-items:center; justify-content:center; color:#94a3b8; font-size:.82rem;
+}
 </style>
 
 <div class="owner-shell">
@@ -321,6 +341,8 @@
                         </tbody>
                     </table>
                 </div>
+
+                <div id="addonPagination"></div>
 
                 <div class="px-4 py-3 border-top d-flex align-items-center justify-content-between">
                     <small class="text-muted" id="addonCountLabel">
@@ -637,26 +659,135 @@ function filterByHomestay(homestayId, btn) {
 
 function filterAddonTable(q) { applyFilters(q); }
 
+/* ── Pagination state ─────────────────────────────────────── */
+var ADDON_PAGE_SIZE = 10;
+var _addonPage      = 1;
+var _addonVisible   = [];   // rows passing current filters
+
 function applyFilters(q) {
     if (q === undefined) q = (document.getElementById('addonSearch') || {}).value || '';
     q = q.trim().toLowerCase();
-    var rows    = document.querySelectorAll('#addonTable .addon-row');
-    var noRes   = document.getElementById('addonNoResults');
-    var label   = document.getElementById('addonCountLabel');
-    var visible = 0;
+    var rows  = document.querySelectorAll('#addonTable .addon-row');
 
+    _addonVisible = [];
     rows.forEach(function(row) {
-        var ids     = (row.dataset.groupHomestayIds || '').trim().split(/\s+/);
-        var hsMatch = !_activeHomestayId || ids.includes(String(_activeHomestayId));
+        var ids       = (row.dataset.groupHomestayIds || '').trim().split(/\s+/);
+        var hsMatch   = !_activeHomestayId || ids.includes(String(_activeHomestayId));
         var textMatch = !q || (row.dataset.name||'').includes(q);
-        var show      = hsMatch && textMatch;
-        row.style.display = show ? '' : 'none';
-        if (show) visible++;
+        if (hsMatch && textMatch) {
+            _addonVisible.push(row);
+        } else {
+            row.style.display = 'none';
+        }
     });
 
-    if (noRes) noRes.style.display = (rows.length > 0 && visible === 0) ? '' : 'none';
-    if (label) label.textContent   = 'Hiển thị ' + visible + ' / ' + rows.length + ' dịch vụ';
+    // Any filter change resets to page 1
+    _addonPage = 1;
+    renderAddonPage();
 }
+
+/* ── Render current page slice + pagination bar ───────────── */
+function renderAddonPage() {
+    var noRes = document.getElementById('addonNoResults');
+    var label = document.getElementById('addonCountLabel');
+    var total = _addonVisible.length;
+    var pageCount = Math.max(1, Math.ceil(total / ADDON_PAGE_SIZE));
+
+    if (_addonPage > pageCount) _addonPage = pageCount;
+    if (_addonPage < 1)         _addonPage = 1;
+
+    var start = (_addonPage - 1) * ADDON_PAGE_SIZE;
+    var end   = start + ADDON_PAGE_SIZE;
+
+    _addonVisible.forEach(function(row, i) {
+        row.style.display = (i >= start && i < end) ? '' : 'none';
+    });
+
+    // Empty-state row (only shown when there ARE rows but none match)
+    var allRows = document.querySelectorAll('#addonTable .addon-row');
+    if (noRes) noRes.style.display = (allRows.length > 0 && total === 0) ? '' : 'none';
+
+    // Count label: 'Hiển thị X-Y / Z dịch vụ (Trang P/T)'
+    if (label) {
+        if (total === 0) {
+            label.textContent = 'Hiển thị 0 / 0 dịch vụ';
+        } else {
+            var from = start + 1;
+            var to   = Math.min(end, total);
+            label.textContent = 'Hiển thị ' + from + '-' + to + ' / ' + total +
+                                ' dịch vụ (Trang ' + _addonPage + '/' + pageCount + ')';
+        }
+    }
+
+    renderAddonPagination(pageCount);
+}
+
+/* ── Build page-number sequence ───────────────────────────── */
+function buildPageNumbers(total, current) {
+    if (total <= 7) {
+        var all = [];
+        for (var i = 1; i <= total; i++) all.push(i);
+        return all;
+    }
+    var pages = [];
+    var winStart = Math.max(2, current - 1);
+    var winEnd   = Math.min(total - 1, current + 1);
+    pages.push(1);
+    if (winStart > 2) pages.push('…');
+    for (var p = winStart; p <= winEnd; p++) pages.push(p);
+    if (winEnd < total - 1) pages.push('…');
+    pages.push(total);
+    return pages;
+}
+
+/* ── Render the pagination bar ────────────────────────────── */
+function renderAddonPagination(pageCount) {
+    var bar = document.getElementById('addonPagination');
+    if (!bar) return;
+    bar.innerHTML = '';
+
+    if (pageCount <= 1) return;  // nothing to paginate
+
+    // Prev
+    var prev = document.createElement('button');
+    prev.className = 'pg-btn';
+    prev.innerHTML = '<i class="fa-solid fa-chevron-left"></i>';
+    prev.disabled  = _addonPage === 1;
+    prev.onclick   = function() { gotoAddonPage(_addonPage - 1); };
+    bar.appendChild(prev);
+
+    // Page numbers
+    buildPageNumbers(pageCount, _addonPage).forEach(function(p) {
+        if (p === '…') {
+            var el = document.createElement('span');
+            el.className   = 'pg-ellipsis';
+            el.textContent = '…';
+            bar.appendChild(el);
+            return;
+        }
+        var btn = document.createElement('button');
+        btn.className   = 'pg-btn' + (p === _addonPage ? ' active' : '');
+        btn.textContent = p;
+        btn.onclick     = function() { gotoAddonPage(p); };
+        bar.appendChild(btn);
+    });
+
+    // Next
+    var next = document.createElement('button');
+    next.className = 'pg-btn';
+    next.innerHTML = '<i class="fa-solid fa-chevron-right"></i>';
+    next.disabled  = _addonPage === pageCount;
+    next.onclick   = function() { gotoAddonPage(_addonPage + 1); };
+    bar.appendChild(next);
+}
+
+function gotoAddonPage(p) {
+    _addonPage = p;
+    renderAddonPage();
+}
+
+/* ── Initial render ───────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', function() { applyFilters(); });
 
 /* ── Auto-dismiss flash alerts ────────────────────────────── */
 setTimeout(function() {

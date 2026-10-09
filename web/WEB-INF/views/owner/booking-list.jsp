@@ -209,61 +209,91 @@
                 </div>
 
                 <!-- Pagination footer -->
+                <style>
+                    .bk-pager { display: flex; align-items: center; gap: 6px; }
+                    .bk-pager .bk-page {
+                        display: inline-flex; align-items: center; justify-content: center;
+                        min-width: 34px; height: 34px; padding: 0 8px;
+                        border-radius: 9px; border: 1px solid #e2e8f0;
+                        background: #fff; color: #475569; font-size: 14px; line-height: 1;
+                        text-decoration: none; transition: all .15s ease;
+                    }
+                    .bk-pager .bk-page:hover {
+                        background: #eef2ff; border-color: #6366f1; color: #6366f1;
+                    }
+                    .bk-pager .bk-page.active {
+                        background: #6366f1; border-color: #6366f1; color: #fff;
+                        pointer-events: none;
+                    }
+                    .bk-pager .bk-page.disabled {
+                        opacity: .38; pointer-events: none;
+                    }
+                    .bk-pager .bk-ellipsis {
+                        display: inline-flex; align-items: center; justify-content: center;
+                        min-width: 34px; height: 34px; color: #94a3b8; font-size: 14px;
+                        user-select: none;
+                    }
+                </style>
                 <div class="d-flex align-items-center justify-content-between px-4 py-3 border-top flex-wrap gap-2">
                     <small class="text-muted">
                         Trang ${currentPage} / ${totalPages} &nbsp;·&nbsp; ${totalRows} đơn
                     </small>
-                    <nav>
-                        <ul class="pagination pagination-sm mb-0">
+                    <nav aria-label="Phân trang danh sách đơn">
+                        <div class="bk-pager">
                             <!-- Prev -->
-                            <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                                <a class="page-link rounded-3 me-1"
-                                   href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage - 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
-                                    <i class="fa-solid fa-chevron-left"></i>
-                                </a>
-                            </li>
+                            <a class="bk-page ${currentPage <= 1 ? 'disabled' : ''}"
+                               aria-label="Trang trước"
+                               href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage - 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
 
-                            <!-- Page numbers (show up to 5 around current) -->
-                            <c:set var="startPage" value="${currentPage - 2 > 1 ? currentPage - 2 : 1}"/>
-                            <c:set var="endPage"   value="${startPage + 4 < totalPages ? startPage + 4 : totalPages}"/>
+                            <c:choose>
+                                <%-- Few pages: show all --%>
+                                <c:when test="${totalPages <= 7}">
+                                    <c:forEach begin="1" end="${totalPages}" var="p">
+                                        <a class="bk-page ${p == currentPage ? 'active' : ''}"
+                                           href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">${p}</a>
+                                    </c:forEach>
+                                </c:when>
+                                <%-- Many pages: sliding window around currentPage --%>
+                                <%-- Window: [max(2,cur-1) .. min(total-1,cur+1)]  --%>
+                                <c:otherwise>
+                                    <c:set var="winStart" value="${currentPage - 1 > 2 ? currentPage - 1 : 2}"/>
+                                    <c:set var="winEnd"   value="${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}"/>
 
-                            <c:if test="${startPage > 1}">
-                                <li class="page-item">
-                                    <a class="page-link rounded-3 me-1"
+                                    <%-- Page 1 always --%>
+                                    <a class="bk-page ${1 == currentPage ? 'active' : ''}"
                                        href="${pageContext.request.contextPath}/owner/bookings?page=1&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">1</a>
-                                </li>
-                                <c:if test="${startPage > 2}">
-                                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                                </c:if>
-                            </c:if>
 
-                            <c:forEach begin="${startPage}" end="${endPage}" var="p">
-                                <li class="page-item ${p == currentPage ? 'active' : ''}">
-                                    <a class="page-link rounded-3 me-1"
-                                       href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
-                                        ${p}
-                                    </a>
-                                </li>
-                            </c:forEach>
+                                    <%-- Left ellipsis if window doesn't start at 2 --%>
+                                    <c:if test="${winStart > 2}">
+                                        <span class="bk-ellipsis">…</span>
+                                    </c:if>
 
-                            <c:if test="${endPage < totalPages}">
-                                <c:if test="${endPage < totalPages - 1}">
-                                    <li class="page-item disabled"><span class="page-link">…</span></li>
-                                </c:if>
-                                <li class="page-item">
-                                    <a class="page-link rounded-3 me-1"
+                                    <%-- Window pages --%>
+                                    <c:forEach begin="${winStart}" end="${winEnd}" var="p">
+                                        <a class="bk-page ${p == currentPage ? 'active' : ''}"
+                                           href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">${p}</a>
+                                    </c:forEach>
+
+                                    <%-- Right ellipsis if window doesn't reach totalPages-1 --%>
+                                    <c:if test="${winEnd < totalPages - 1}">
+                                        <span class="bk-ellipsis">…</span>
+                                    </c:if>
+
+                                    <%-- Last page always --%>
+                                    <a class="bk-page ${totalPages == currentPage ? 'active' : ''}"
                                        href="${pageContext.request.contextPath}/owner/bookings?page=${totalPages}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">${totalPages}</a>
-                                </li>
-                            </c:if>
+                                </c:otherwise>
+                            </c:choose>
 
                             <!-- Next -->
-                            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                                <a class="page-link rounded-3"
-                                   href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage + 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
-                                    <i class="fa-solid fa-chevron-right"></i>
-                                </a>
-                            </li>
-                        </ul>
+                            <a class="bk-page ${currentPage >= totalPages ? 'disabled' : ''}"
+                               aria-label="Trang sau"
+                               href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage + 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </div>
                     </nav>
                 </div>
             </div>
