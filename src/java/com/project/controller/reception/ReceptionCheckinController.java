@@ -208,16 +208,10 @@ public class ReceptionCheckinController extends HttpServlet {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /**
-     * Lấy homestay_id từ session (cache), nếu chưa có thì query DB và lưu vào session.
+     * Luôn query DB để lấy homestay_id mới nhất — tránh stale cache khi Owner reassign.
      */
     private Integer resolveHomestayId(HttpSession session, int userId) {
-        Integer homestayId = (Integer) session.getAttribute("assignedHomestayId");
-        if (homestayId == null) {
-            homestayId = receptionDAO.getAssignedHomestayId(userId);
-            if (homestayId != null) {
-                session.setAttribute("assignedHomestayId", homestayId);
-            }
-        }
-        return homestayId;
+        session.removeAttribute("assignedHomestayId");
+        return receptionDAO.getAssignedHomestayId(userId);
     }
 }

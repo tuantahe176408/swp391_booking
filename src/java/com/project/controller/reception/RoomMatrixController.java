@@ -138,17 +138,13 @@ public class RoomMatrixController extends HttpServlet {
     // ── Helpers ──────────────────────────────────────────────────────────────
 
     /**
-     * Lấy homestay_id từ session (cache), nếu chưa có thì query DB và lưu vào session.
+     * Luôn query DB để lấy homestay_id mới nhất — tránh stale cache khi Owner reassign.
+     * Session cache đã bị bỏ để đảm bảo thay đổi reassign có hiệu lực ngay.
      */
     private Integer resolveHomestayId(HttpSession session, int userId) {
-        Integer homestayId = (Integer) session.getAttribute("assignedHomestayId");
-        if (homestayId == null) {
-            homestayId = receptionDAO.getAssignedHomestayId(userId);
-            if (homestayId != null) {
-                session.setAttribute("assignedHomestayId", homestayId);
-            }
-        }
-        return homestayId;
+        // Xóa cache cũ (nếu còn) để tránh stale data
+        session.removeAttribute("assignedHomestayId");
+        return receptionDAO.getAssignedHomestayId(userId);
     }
 
     private static String jsonStr(String s) {
