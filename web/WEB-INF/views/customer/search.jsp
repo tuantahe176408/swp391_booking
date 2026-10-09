@@ -380,20 +380,92 @@
 
                     <!-- Pagination -->
                     <c:if test="${totalPages > 1}">
-                        <nav class="mt-4">
-                            <ul class="pagination justify-content-center">
-                                <c:if test="${currentPage > 1}">
-                                    <li class="page-item"><a class="page-link" href="?location=${searchLocation}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}&page=${currentPage-1}">«</a></li>
-                                </c:if>
-                                <c:forEach var="p" begin="1" end="${totalPages}">
-                                    <li class="page-item ${p == currentPage ? 'active' : ''}">
-                                        <a class="page-link" href="?location=${searchLocation}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}&page=${p}">${p}</a>
-                                    </li>
-                                </c:forEach>
-                                <c:if test="${currentPage < totalPages}">
-                                    <li class="page-item"><a class="page-link" href="?location=${searchLocation}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}&page=${currentPage+1}">»</a></li>
-                                </c:if>
-                            </ul>
+                        <style>
+                        .search-pager { display:flex; align-items:center; justify-content:center; gap:.35rem; flex-wrap:wrap; margin-top:2rem; }
+                        .search-pager a, .search-pager span {
+                            display:inline-flex; align-items:center; justify-content:center;
+                            min-width:36px; height:36px; border-radius:10px; font-size:.85rem;
+                            border:1px solid #e2e8f0; background:#fff; color:#475569;
+                            text-decoration:none; font-weight:500; transition:all .15s ease; padding:0 .5rem;
+                        }
+                        .search-pager a:hover { background:#eef2ff; border-color:#6366f1; color:#6366f1; }
+                        .search-pager a.active { background:#6366f1; border-color:#6366f1; color:#fff; font-weight:700; pointer-events:none; }
+                        .search-pager a.disabled { opacity:.38; pointer-events:none; cursor:default; }
+                        .search-pager span.ellipsis { border:none; background:none; color:#94a3b8; min-width:20px; }
+                        </style>
+
+                        <%-- Build base query string (without page param) --%>
+                        <c:set var="baseQ" value="location=${searchLocation}&checkin=${searchCheckin}&checkout=${searchCheckout}&guests=${searchGuests}&sortBy=${searchSortBy}&minPrice=${searchMinPrice}&maxPrice=${searchMaxPrice}"/>
+
+                        <nav aria-label="Phân trang kết quả tìm kiếm">
+                            <div class="search-pager">
+
+                                <%-- Prev --%>
+                                <a href="?${baseQ}&page=${currentPage - 1}"
+                                   class="${currentPage <= 1 ? 'disabled' : ''}"
+                                   aria-label="Trang trước">
+                                    <i class="fa-solid fa-chevron-left" style="font-size:.7rem;"></i>
+                                </a>
+
+                                <c:choose>
+                                    <%-- Total pages <= 7: show all --%>
+                                    <c:when test="${totalPages <= 7}">
+                                        <c:forEach begin="1" end="${totalPages}" var="p">
+                                            <a href="?${baseQ}&page=${p}"
+                                               class="${p == currentPage ? 'active' : ''}"
+                                               aria-label="Trang ${p}"
+                                               aria-current="${p == currentPage ? 'page' : ''}">${p}</a>
+                                        </c:forEach>
+                                    </c:when>
+                                    <%-- Sliding window: 1 ... cur-1 cur cur+1 ... n --%>
+                                    <c:otherwise>
+                                        <c:set var="winStart" value="${currentPage - 1 > 2 ? currentPage - 1 : 2}"/>
+                                        <c:set var="winEnd"   value="${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}"/>
+
+                                        <%-- Page 1 always --%>
+                                        <a href="?${baseQ}&page=1"
+                                           class="${1 == currentPage ? 'active' : ''}"
+                                           aria-label="Trang 1">1</a>
+
+                                        <%-- Left ellipsis --%>
+                                        <c:if test="${winStart > 2}">
+                                            <span class="ellipsis" aria-hidden="true">…</span>
+                                        </c:if>
+
+                                        <%-- Window pages --%>
+                                        <c:forEach begin="${winStart}" end="${winEnd}" var="p">
+                                            <a href="?${baseQ}&page=${p}"
+                                               class="${p == currentPage ? 'active' : ''}"
+                                               aria-label="Trang ${p}"
+                                               aria-current="${p == currentPage ? 'page' : ''}">${p}</a>
+                                        </c:forEach>
+
+                                        <%-- Right ellipsis --%>
+                                        <c:if test="${winEnd < totalPages - 1}">
+                                            <span class="ellipsis" aria-hidden="true">…</span>
+                                        </c:if>
+
+                                        <%-- Last page always --%>
+                                        <a href="?${baseQ}&page=${totalPages}"
+                                           class="${totalPages == currentPage ? 'active' : ''}"
+                                           aria-label="Trang ${totalPages}">${totalPages}</a>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <%-- Next --%>
+                                <a href="?${baseQ}&page=${currentPage + 1}"
+                                   class="${currentPage >= totalPages ? 'disabled' : ''}"
+                                   aria-label="Trang tiếp">
+                                    <i class="fa-solid fa-chevron-right" style="font-size:.7rem;"></i>
+                                </a>
+
+                            </div>
+
+                            <%-- Page info text --%>
+                            <p class="text-center text-muted mt-2 mb-0" style="font-size:.78rem;">
+                                Trang <strong>${currentPage}</strong> / ${totalPages}
+                                &nbsp;·&nbsp; ${totalResults} homestay
+                            </p>
                         </nav>
                     </c:if>
                 </c:when>

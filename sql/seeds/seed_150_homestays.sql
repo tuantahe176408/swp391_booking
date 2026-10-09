@@ -12,6 +12,9 @@ USE smart_booking_db;
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
+-- MySQL 8 / 9 compatibility: disable strict mode and ONLY_FULL_GROUP_BY for this session
+SET SESSION sql_mode = 'NO_ENGINE_SUBSTITUTION';
+
 -- ====================================================================================
 -- PHẦN 1: OWNERS MỚI (10 chủ nhà, phân bổ quản lý 15 tỉnh thành)
 -- Password: Abc@12345 (BCrypt $2a$12$...)
@@ -1033,10 +1036,10 @@ SELECT h.homestay_id,
        TRUE, 0
 FROM (
   SELECT homestay_id,
-         LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+         LEFT(LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(name,
            ' ','_'),'đ','d'),'Đ','d'),'ă','a'),'â','a'),'ê','e'),'ô','o'),'ơ','o'),'ư','u'),
-           'á','a'),'à','a'),'ả','a'),'ã','a'),'ạ','a'),'ắ','a'),'ặ','a'), 50) AS slug
+           'á','a'),'à','a'),'ả','a'),'ã','a'),'ạ','a'),'ắ','a'),'ặ','a')), 50) AS slug
   FROM homestays
   WHERE name IN (
     'Xuân Hương Lakeside Cottage','Thái Phiên Flower Farm Stay','Valley of Love Hideaway',
@@ -1119,10 +1122,10 @@ SELECT h.homestay_id,
        FALSE, 1
 FROM (
   SELECT homestay_id,
-         LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+         LEFT(LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(name,
            ' ','_'),'đ','d'),'Đ','d'),'ă','a'),'â','a'),'ê','e'),'ô','o'),'ơ','o'),'ư','u'),
-           'á','a'),'à','a'),'ả','a'),'ã','a'),'ạ','a'),'ắ','a'),'ặ','a'), 50) AS slug
+           'á','a'),'à','a'),'ả','a'),'ã','a'),'ạ','a'),'ắ','a'),'ặ','a')), 50) AS slug
   FROM homestays
   WHERE city IN ('Đà Lạt','Hội An','Phú Quốc','Hà Nội','Nha Trang','Sa Pa','Đà Nẵng','Huế',
                  'Phan Thiết','Hà Giang','Ninh Bình','Quy Nhơn','Hạ Long','Bảo Lộc','Vũng Tàu')
@@ -1138,10 +1141,10 @@ SELECT h.homestay_id,
        FALSE, 2
 FROM (
   SELECT homestay_id,
-         LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+         LEFT(LOWER(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(name,
            ' ','_'),'đ','d'),'Đ','d'),'ă','a'),'â','a'),'ê','e'),'ô','o'),'ơ','o'),'ư','u'),
-           'á','a'),'à','a'),'ả','a'),'ã','a'),'ạ','a'),'ắ','a'),'ặ','a'), 50) AS slug
+           'á','a'),'à','a'),'ả','a'),'ã','a'),'ạ','a'),'ắ','a'),'ặ','a')), 50) AS slug
   FROM homestays
   WHERE city IN ('Đà Lạt','Hội An','Phú Quốc','Hà Nội','Nha Trang','Sa Pa','Đà Nẵng','Huế',
                  'Phan Thiết','Hà Giang','Ninh Bình','Quy Nhơn','Hạ Long','Bảo Lộc','Vũng Tàu')
@@ -1376,7 +1379,7 @@ WHERE h.city = 'Vũng Tàu' AND h.name = 'The Grand Vũng Tàu Ocean Villa';
 -- ====================================================================================
 -- PHẦN 5: ROOM TYPES (1-2 loại phòng mỗi homestay)
 -- ====================================================================================
-INSERT INTO room_types (homestay_id, name, description, base_price, max_occupancy, bed_count, room_size_sqm)
+INSERT IGNORE INTO room_types (homestay_id, name, description, base_price, max_occupancy, bed_count, room_size_sqm)
 
 -- ĐÀ LẠT
 SELECT homestay_id, 'Phòng Standard', 'Phòng tiêu chuẩn có ban công, view thiên nhiên', 480000, 2, 1, 22
@@ -1755,34 +1758,37 @@ FROM homestays WHERE name = 'Côn Đảo Historic Island Guesthouse';
 -- ====================================================================================
 -- PHẦN 6: ROOMS (dùng stored logic đơn giản - 2 phòng cho mỗi room_type)
 -- ====================================================================================
-INSERT INTO rooms (room_type_id, room_number, status, housekeeping_status)
-SELECT rt.room_type_id,
-       CONCAT(
-         CASE WHEN rt.base_price >= 3000000 THEN 'V'
-              WHEN rt.base_price >= 1000000 THEN 'D'
-              ELSE 'S' END,
-         LPAD(ROW_NUMBER() OVER (PARTITION BY rt.room_type_id ORDER BY rt.room_type_id), 2, '0')
-       ),
-       'AVAILABLE',
-       'CLEAN'
-FROM room_types rt
-JOIN homestays h ON rt.homestay_id = h.homestay_id
-WHERE h.city IN ('Đà Lạt','Hội An','Phú Quốc','Hà Nội','Nha Trang','Sa Pa','Đà Nẵng','Huế',
-                 'Phan Thiết','Hà Giang','Ninh Bình','Quy Nhơn','Hạ Long','Bảo Lộc','Vũng Tàu')
-  AND h.name NOT IN (
-    'Đà Lạt Pine Valley Homestay','Ana Garden Villa Đà Lạt',
-    'Hội An Ancient Town Boutique','Riverside Retreat Hội An',
-    'Sunset Bay Resort Phú Quốc','Phú Quốc Backpacker Haven',
-    'Hà Nội Old Quarter Heritage Hotel','West Lake Garden Homestay HN',
-    'Ocean Breeze Hotel Nha Trang','Nha Trang Budget Stay',
-    'Sapa Cloud Ridge Retreat','Bản Làng H''Mông Homestay Sapa',
-    'Da Nang Beachfront Luxury Villa','Dragon Bridge City View Hostel',
-    'Da Nang Mountain View Guesthouse',
-    'Đà Lạt Misty Valley Homestay','Đà Lạt Sunset Ridge Villa','Đà Lạt Rose Garden Bungalow'
-  );
+INSERT IGNORE INTO rooms (room_type_id, room_number, status, housekeeping_status)
+SELECT room_type_id, room_number, status, housekeeping_status
+FROM (
+  SELECT rt.room_type_id,
+         CONCAT(
+           CASE WHEN rt.base_price >= 3000000 THEN 'V'
+                WHEN rt.base_price >= 1000000 THEN 'D'
+                ELSE 'S' END,
+           LPAD(ROW_NUMBER() OVER (PARTITION BY rt.room_type_id ORDER BY rt.room_type_id), 2, '0')
+         ) AS room_number,
+         'AVAILABLE' AS status,
+         'CLEAN' AS housekeeping_status
+  FROM room_types rt
+  JOIN homestays h ON rt.homestay_id = h.homestay_id
+  WHERE h.city IN ('Đà Lạt','Hội An','Phú Quốc','Hà Nội','Nha Trang','Sa Pa','Đà Nẵng','Huế',
+                   'Phan Thiết','Hà Giang','Ninh Bình','Quy Nhơn','Hạ Long','Bảo Lộc','Vũng Tàu')
+    AND h.name NOT IN (
+      'Đà Lạt Pine Valley Homestay','Ana Garden Villa Đà Lạt',
+      'Hội An Ancient Town Boutique','Riverside Retreat Hội An',
+      'Sunset Bay Resort Phú Quốc','Phú Quốc Backpacker Haven',
+      'Hà Nội Old Quarter Heritage Hotel','West Lake Garden Homestay HN',
+      'Ocean Breeze Hotel Nha Trang','Nha Trang Budget Stay',
+      'Sapa Cloud Ridge Retreat','Bản Làng H''Mông Homestay Sapa',
+      'Da Nang Beachfront Luxury Villa','Dragon Bridge City View Hostel',
+      'Da Nang Mountain View Guesthouse',
+      'Đà Lạt Misty Valley Homestay','Đà Lạt Sunset Ridge Villa','Đà Lạt Rose Garden Bungalow'
+    )
+) sub_rooms;
 
 -- Thêm 1 phòng thứ 2 cho mỗi room_type (room number 02)
-INSERT INTO rooms (room_type_id, room_number, status, housekeeping_status)
+INSERT IGNORE INTO rooms (room_type_id, room_number, status, housekeeping_status)
 SELECT rt.room_type_id,
        CONCAT(
          CASE WHEN rt.base_price >= 3000000 THEN 'V'
@@ -1809,6 +1815,9 @@ WHERE h.city IN ('Đà Lạt','Hội An','Phú Quốc','Hà Nội','Nha Trang','
   );
 
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- Restore default sql_mode
+SET SESSION sql_mode = DEFAULT;
 
 -- ====================================================================================
 -- VERIFICATION
