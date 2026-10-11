@@ -7,6 +7,7 @@ import com.project.dao.PaymentDAOImpl;
 import com.project.model.Booking;
 import com.project.model.Payment;
 import com.project.model.User;
+import com.project.util.EmailUtil;
 import com.project.util.PaymentUtil;
 
 import javax.servlet.ServletException;
@@ -25,11 +26,13 @@ import java.util.logging.Logger;
 /**
  * Controller: Thanh toán Cổng VNPay / MoMo (UC08, UC10)
  * GET /payment/create?bookingId=X          — trang chọn phương thức
- * GET /payment/create?bookingId=X&confirm=1&method=VNPAY — redirect sang cổng
+ * GET /payment/create?bookingId=X&confirm=1&method=VNPAY — redirect sang cổng VNPay
+ * GET /payment/create?bookingId=X&confirm=1&method=MOMO  — redirect sang cổng MoMo
  * GET /payment/return                      — callback từ VNPay
+ * GET /payment/momo-return                 — callback từ MoMo (redirect)
  * Package: com.project.controller.customer
  */
-@WebServlet(name = "PaymentController", urlPatterns = {"/payment/create", "/payment/return"})
+@WebServlet(name = "PaymentController", urlPatterns = {"/payment/create", "/payment/return", "/payment/momo-return"})
 public class PaymentController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(PaymentController.class.getName());
@@ -49,6 +52,8 @@ public class PaymentController extends HttpServlet {
         String path = request.getServletPath();
         if ("/payment/create".equals(path)) {
             handleCreatePayment(request, response);
+        } else if ("/payment/momo-return".equals(path)) {
+            handleMoMoReturn(request, response);
         } else {
             handlePaymentReturn(request, response);
         }
@@ -114,23 +119,53 @@ public class PaymentController extends HttpServlet {
             // Store paymentId in session for callback lookup
             session.setAttribute("pendingPaymentId_" + booking.getBookingCode(), payment.getPaymentId());
 
-            String returnUrl = request.getScheme() + "://" + request.getServerName()
+            String baseUrl = request.getScheme() + "://" + request.getServerName()
                     + ":" + request.getServerPort()
-                    + request.getContextPath() + "/payment/return";
+                    + request.getContextPath();
 
+            // ── MoMo ────────────────────────────────────────────────────────
+            if ("MOMO".equalsIgnoreCase(method)) {
+                String momoReturnUrl  = baseUrl + "/payment/momo-return";
+                String momoNotifyUrl  = momoReturnUrl; // same endpoint for sandbox
+
+                if (PaymentUtil.hasMoMoCredentials()) {
+                    String payUrl = PaymentUtil.createMoMoUrl(booking, momoReturnUrl, momoNotifyUrl);
+                    if (payUrl != null) {
+                        LOGGER.info("Redirecting to MoMo: " + booking.getBookingCode());
+                        response.sendRedirect(payUrl);
+                    } else {
+                        LOGGER.warning("MoMo payUrl null — falling back to mock page");
+                        request.setAttribute("booking",   booking);
+                        request.setAttribute("method",    method);
+                        request.setAttribute("returnUrl", momoReturnUrl);
+                        request.setAttribute("pageTitle", "Thanh toán MoMo (Demo)");
+                        request.getRequestDispatcher("/WEB-INF/views/customer/payment-mock-momo.jsp")
+                               .forward(request, response);
+                    }
+                } else {
+                    // No credentials → mock page
+                    request.setAttribute("booking",   booking);
+                    request.setAttribute("method",    method);
+                    request.setAttribute("returnUrl", momoReturnUrl);
+                    request.setAttribute("pageTitle", "Thanh toán MoMo (Demo)");
+                    request.getRequestDispatcher("/WEB-INF/views/customer/payment-mock-momo.jsp")
+                           .forward(request, response);
+                }
+                return;
+            }
+
+            // ── VNPay ────────────────────────────────────────────────────────
+            String returnUrl = baseUrl + "/payment/return";
             LOGGER.info("ReturnUrl being sent to VNPay: " + returnUrl);
 
-            // ── Check if real VNPay credentials are configured ──────────────
             boolean hasRealCredentials = PaymentUtil.hasRealCredentials();
 
             if (hasRealCredentials) {
-                // Redirect to actual VNPay sandbox
-                String bankCode    = request.getParameter("bankCode");
-                String paymentUrl  = PaymentUtil.createVnPayUrl(booking, getClientIp(request), returnUrl, bankCode);
+                String bankCode   = request.getParameter("bankCode");
+                String paymentUrl = PaymentUtil.createVnPayUrl(booking, getClientIp(request), returnUrl, bankCode);
                 LOGGER.info("Redirecting to VNPay: " + booking.getBookingCode());
                 response.sendRedirect(paymentUrl);
             } else {
-                // Use mock payment page for demo/development
                 LOGGER.info("Using mock payment (no real credentials) for: " + booking.getBookingCode());
                 request.setAttribute("booking",    booking);
                 request.setAttribute("method",     method);
@@ -147,6 +182,100 @@ public class PaymentController extends HttpServlet {
         request.setAttribute("pageTitle", "Thanh toán - Smart Booking Platform");
         request.getRequestDispatcher("/WEB-INF/views/customer/payment-select.jsp")
                .forward(request, response);
+    }
+
+    // ── Step 3: Handle MoMo return callback ──────────────────────────────────
+
+    private void handleMoMoReturn(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+
+        String resultCode = request.getParameter("resultCode");
+        String orderId    = request.getParameter("orderId");    // bookingCode_ts
+        String transId    = request.getParameter("transId");    // MoMo transaction ID
+        String amount     = request.getParameter("amount");
+        String message    = request.getParameter("message");
+
+        // Demo bypass: resultCode=0 với signature=DEMO_BYPASS
+        boolean isDemoMode = "DEMO_BYPASS".equals(request.getParameter("signature"));
+        boolean isValid = isDemoMode || PaymentUtil.verifyMoMoReturn(request.getParameterMap());
+
+        LOGGER.info("MoMo callback — orderId=" + orderId + " resultCode=" + resultCode + " isValid=" + isValid);
+
+        String bookingCode = PaymentUtil.extractBookingCodeFromMoMoOrderId(orderId);
+
+        if (isValid && "0".equals(resultCode) && bookingCode != null) {
+            // ── Thanh toán thành công ─────────────────────────────────────
+            Optional<Booking> optB = bookingDAO.getBookingByCode(bookingCode);
+            if (optB.isPresent()) {
+                Booking b = optB.get();
+
+                bookingDAO.updateBookingStatus(b.getBookingId(), "CONFIRMED");
+                updatePendingPaymentMoMo(request, b, transId, "SUCCESS", amount);
+                EmailUtil.sendBookingConfirmation(b);
+
+                request.setAttribute("booking",        b);
+                request.setAttribute("paymentSuccess", true);
+                request.setAttribute("momoTransId",    transId);
+                request.setAttribute("momoMessage",    message);
+            } else {
+                LOGGER.warning("MoMo callback — booking not found for code: " + bookingCode);
+                request.setAttribute("paymentSuccess", false);
+                request.setAttribute("momoMessage", "Không tìm thấy đơn đặt phòng.");
+            }
+            request.setAttribute("pageTitle", "Thanh toán MoMo thành công");
+
+        } else {
+            // ── Thanh toán thất bại / hủy ────────────────────────────────
+            if (bookingCode != null) {
+                Optional<Booking> optB = bookingDAO.getBookingByCode(bookingCode);
+                optB.ifPresent(b -> updatePendingPaymentMoMo(request, b, transId, "FAILED", amount));
+            }
+            request.setAttribute("paymentSuccess",   false);
+            request.setAttribute("momoResultCode",   resultCode);
+            request.setAttribute("momoMessage",      message);
+            request.setAttribute("pageTitle", "Thanh toán MoMo thất bại");
+
+            LOGGER.warning("MoMo payment failed — orderId=" + orderId + " code=" + resultCode + " msg=" + message);
+        }
+
+        request.getRequestDispatcher("/WEB-INF/views/customer/payment-result.jsp")
+               .forward(request, response);
+    }
+
+    /** Update pending payment record after MoMo callback. */
+    private void updatePendingPaymentMoMo(HttpServletRequest request, Booking booking,
+                                           String transId, String newStatus, String amountStr) {
+        try {
+            HttpSession session = request.getSession(false);
+            Integer paymentId  = (session != null)
+                    ? (Integer) session.getAttribute("pendingPaymentId_" + booking.getBookingCode())
+                    : null;
+
+            if (paymentId != null && paymentId > 0) {
+                paymentDAO.updatePaymentStatus(paymentId, newStatus,
+                        transId != null ? transId : "");
+                session.removeAttribute("pendingPaymentId_" + booking.getBookingCode());
+            } else {
+                BigDecimal amt = booking.getFinalTotal();
+                if (amountStr != null) {
+                    try { amt = new BigDecimal(amountStr); } catch (NumberFormatException ignored) {}
+                }
+                Payment p = new Payment();
+                p.setBookingId(booking.getBookingId());
+                p.setTransactionCode(transId != null ? transId : "");
+                p.setPaymentMethod("MOMO");
+                p.setPaymentType("FULL_PAYMENT");
+                p.setAmount(amt);
+                p.setPaymentStatus(newStatus);
+                p.setGatewayChecksum("");
+                if ("SUCCESS".equals(newStatus)) {
+                    p.setPaidAt(new java.sql.Timestamp(System.currentTimeMillis()));
+                }
+                paymentDAO.insertPayment(p);
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error updating MoMo payment for booking " + booking.getBookingCode(), e);
+        }
     }
 
     // ── Step 2: Handle VNPay return callback ─────────────────────────────────
@@ -180,6 +309,9 @@ public class PaymentController extends HttpServlet {
 
                 // 2. Update payment record → SUCCESS + store transaction code
                 updatePendingPayment(request, b, vnpTransactionNo, vnpSecureHash, "SUCCESS", vnpAmount);
+
+                // 3. Gửi email xác nhận đặt phòng kèm QR code
+                EmailUtil.sendBookingConfirmation(b);
 
                 request.setAttribute("booking",          b);
                 request.setAttribute("paymentSuccess",   true);
