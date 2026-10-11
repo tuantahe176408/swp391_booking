@@ -5,6 +5,9 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 <jsp:include page="/WEB-INF/views/common/navbar.jsp" />
 
+<%-- QR code library (pure JS, no backend needed) --%>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+
 <style>
 .result-hero { padding:80px 0; text-align:center; }
 .result-icon { width:100px; height:100px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:2.8rem; margin:0 auto 1.5rem; }
@@ -13,6 +16,22 @@
 .info-table td { padding:0.6rem 0; border-bottom:1px solid rgba(0,0,0,0.05); }
 .info-table td:first-child { color:#6b7280; width:45%; }
 .info-table td:last-child { font-weight:600; }
+
+/* QR section */
+.qr-wrapper {
+    display:flex; flex-direction:column; align-items:center; gap:.75rem;
+    background:#f8fafc; border:1.5px dashed #cbd5e1; border-radius:16px;
+    padding:1.25rem 1.5rem; margin-top:1.25rem;
+}
+.qr-wrapper canvas, .qr-wrapper img { border-radius:8px; }
+.qr-label {
+    font-size:.72rem; font-weight:700; text-transform:uppercase;
+    letter-spacing:.06em; color:#64748b;
+}
+.qr-code-text {
+    font-family:monospace; font-size:.82rem; color:#4f46e5;
+    background:#eef2ff; padding:3px 10px; border-radius:6px;
+}
 </style>
 
 <div class="result-hero">
@@ -24,15 +43,21 @@
                 <p class="text-muted mb-4">Đơn đặt phòng của bạn đã được xác nhận. Kiểm tra email để nhận vé điện tử.</p>
 
                 <c:if test="${not empty booking}">
-                    <div class="card border-0 shadow-sm rounded-4 p-4 mx-auto" style="max-width:480px;">
-                        <h6 class="fw-bold text-center mb-3"><i class="fa-solid fa-receipt text-primary me-2"></i>Chi tiết giao dịch</h6>
+                    <div class="card border-0 shadow-sm rounded-4 p-4 mx-auto" style="max-width:520px;">
+                        <h6 class="fw-bold text-center mb-3">
+                            <i class="fa-solid fa-receipt text-primary me-2"></i>Chi tiết giao dịch
+                        </h6>
                         <table class="info-table w-100">
                             <tr><td>Mã đặt phòng</td><td class="font-monospace text-primary">${booking.bookingCode}</td></tr>
                             <tr><td>Homestay</td><td>${booking.homestayName}</td></tr>
                             <tr><td>Hạng phòng</td><td>${booking.roomTypeName}</td></tr>
                             <tr><td>Nhận phòng</td><td>${booking.checkinDate}</td></tr>
                             <tr><td>Trả phòng</td><td>${booking.checkoutDate}</td></tr>
-                            <tr><td>Tổng thanh toán</td><td class="text-success"><fmt:formatNumber value="${booking.finalTotal}" type="number"/>₫</td></tr>
+                            <tr><td>Tổng thanh toán</td>
+                                <td class="text-success">
+                                    <fmt:formatNumber value="${booking.finalTotal}" type="number"/>₫
+                                </td>
+                            </tr>
                             <c:if test="${not empty vnpBankCode}">
                                 <tr><td>Ngân hàng</td><td>${vnpBankCode}</td></tr>
                             </c:if>
@@ -40,7 +65,32 @@
                                 <tr><td>Mã GD VNPay</td><td class="font-monospace">${vnpTransactionNo}</td></tr>
                             </c:if>
                         </table>
+
+                        <%-- QR Code section --%>
+                        <div class="qr-wrapper">
+                            <div class="qr-label">
+                                <i class="fa-solid fa-qrcode me-1"></i>Mã QR check-in — xuất trình cho lễ tân
+                            </div>
+                            <canvas id="bookingQrCanvas"></canvas>
+                            <div class="qr-code-text">${booking.bookingCode}</div>
+                            <small class="text-muted" style="font-size:.72rem;">
+                                Lễ tân sẽ quét mã này để xác nhận check-in nhanh
+                            </small>
+                        </div>
                     </div>
+
+                    <script>
+                    (function() {
+                        var code = '${booking.bookingCode}';
+                        if (!code) return;
+                        QRCode.toCanvas(
+                            document.getElementById('bookingQrCanvas'),
+                            code,
+                            { width: 180, margin: 2, color: { dark: '#1e1b4b', light: '#ffffff' } },
+                            function(err) { if (err) console.error('QR gen error:', err); }
+                        );
+                    })();
+                    </script>
                 </c:if>
 
                 <div class="d-flex justify-content-center gap-3 mt-4 flex-wrap">

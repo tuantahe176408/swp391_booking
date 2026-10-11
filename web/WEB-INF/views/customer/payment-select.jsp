@@ -104,6 +104,25 @@
                     </button>
                 </form>
 
+                <%-- MoMo demo bypass — chỉ hiện khi chọn MoMo, dùng để test callback mà không cần app MoMo --%>
+                <div id="momoBypassWrap" style="display:none; margin-top:.6rem;">
+                    <form method="get" action="${pageContext.request.contextPath}/payment/momo-return">
+                        <input type="hidden" name="resultCode"  value="0">
+                        <input type="hidden" name="orderId"     value="${booking.bookingCode}_demo">
+                        <input type="hidden" name="requestId"   value="demo-bypass">
+                        <input type="hidden" name="amount"      value="${booking.finalTotal}">
+                        <input type="hidden" name="transId"     value="9999999999">
+                        <input type="hidden" name="message"     value="Thanh cong">
+                        <input type="hidden" name="payType"     value="qr">
+                        <input type="hidden" name="signature"   value="DEMO_BYPASS">
+                        <button type="submit" class="btn w-100 py-2 fw-semibold"
+                                style="background:#fdf2f8;border:1.5px dashed #f9a8d4;color:#be185d;border-radius:10px;font-size:.82rem;">
+                            <i class="fa-solid fa-flask me-1"></i>
+                            Demo MoMo — Bỏ qua gateway (test callback trực tiếp)
+                        </button>
+                    </form>
+                </div>
+
                 <div class="text-center mt-3">
                     <a href="${pageContext.request.contextPath}/customer/bookings"
                        class="text-muted" style="font-size:.82rem;">
@@ -198,6 +217,10 @@ function selectMethod(method, card) {
 
     var labels = { 'VNPAY': ' qua VNPay', 'MOMO': ' qua MoMo' };
     document.getElementById('methodLabel').textContent = labels[method] || '';
+
+    // Show MoMo demo bypass only when MoMo selected
+    var bypass = document.getElementById('momoBypassWrap');
+    if (bypass) bypass.style.display = (method === 'MOMO') ? 'block' : 'none';
 }
 </script>
 
