@@ -108,27 +108,189 @@ public class EmailUtil {
     }
 
     /**
-     * Send booking confirmation email
+     * Send booking confirmation email with full booking details and embedded QR code.
+     * QR image is fetched from api.qrserver.com and embedded as base64 data URI
+     * so it renders correctly in all email clients without external image loading.
      */
     public static void sendBookingConfirmation(Booking booking) {
         if (booking == null) return;
+
+        String recipient = booking.getGuestEmail();
+        if (recipient == null || recipient.trim().isEmpty()) {
+            LOGGER.warning("sendBookingConfirmation: no email address for booking " + booking.getBookingCode());
+            return;
+        }
+
         try {
-            String recipient = booking.getGuestEmail();
-            String bookingCode = booking.getBookingCode();
-            String homestayName = booking.getHomestayName() != null ? booking.getHomestayName() : "Homestay";
+            String bookingCode  = booking.getBookingCode() != null ? booking.getBookingCode() : "";
+            String guestName    = booking.getGuestName()   != null ? booking.getGuestName()   : "Quý khách";
+            String homestayName = booking.getHomestayName()!= null ? booking.getHomestayName(): "Homestay";
+            String homestayAddr = booking.getHomestayAddress() != null ? booking.getHomestayAddress() : "";
+            String roomType     = booking.getRoomTypeName() != null ? booking.getRoomTypeName() : "";
+            String checkin      = booking.getCheckinDate()  != null ? booking.getCheckinDate().toString()  : "";
+            String checkout     = booking.getCheckoutDate() != null ? booking.getCheckoutDate().toString() : "";
+            int    nights       = booking.getTotalNights();
+            String total        = booking.getFinalTotal() != null
+                                  ? String.format("%,.0f", booking.getFinalTotal().doubleValue())
+                                  : "0";
 
-            String subject = "Xác nhận đặt phòng thành công #" + bookingCode;
-            String html = "<h3>Đặt phòng thành công #" + bookingCode + "</h3>" +
-                    "<p>Homestay: <strong>" + escapeHtml(homestayName) + "</strong></p>" +
-                    "<p>Cảm ơn quý khách đã sử dụng dịch vụ của Smart Booking Platform!</p>";
+            // ── QR code as base64 ────────────────────────────────────────────
+            String qrBase64 = fetchQrBase64(bookingCode, 180);
 
-            LOGGER.info("[EMAIL DISPATCH] To: " + recipient + " | Subject: " + subject);
-            if (MailConfig.isConfigured() && recipient != null) {
-                sendSmtpEmail(recipient, subject, html);
+            // ── Format dates đẹp hơn (yyyy-MM-dd → dd/MM/yyyy) ───────────────
+            String checkinFmt  = formatDate(checkin);
+            String checkoutFmt = formatDate(checkout);
+
+            // ── Build HTML email body ────────────────────────────────────────
+            String subject = "✅ Đặt phòng thành công #" + bookingCode + " — Smart Booking";
+
+            String qrImgTag = qrBase64 != null
+                ? "<img src=\"data:image/png;base64," + qrBase64 + "\" width=\"160\" height=\"160\" alt=\"QR Check-in\" style=\"display:block;border-radius:8px;\">"
+                : "<div style=\"width:160px;height:160px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;\">QR không khả dụng</div>";
+
+            String html =
+                "<!DOCTYPE html>" +
+                "<html><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'></head>" +
+                "<body style='margin:0;padding:0;background:#f1f5f9;font-family:Arial,Helvetica,sans-serif;color:#1e293b;'>" +
+
+                // Wrapper
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background:#f1f5f9;padding:32px 0;'><tr><td align='center'>" +
+                "<table width='600' cellpadding='0' cellspacing='0' style='background:#ffffff;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);'>" +
+
+                // Header banner
+                "<tr><td style='background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:32px 40px;text-align:center;'>" +
+                "<div style='background:rgba(255,255,255,.15);display:inline-block;border-radius:50%;width:56px;height:56px;line-height:56px;font-size:28px;margin-bottom:12px;'>🏠</div>" +
+                "<h1 style='margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-.3px;'>Đặt phòng thành công!</h1>" +
+                "<p style='margin:8px 0 0;color:rgba(255,255,255,.85);font-size:14px;'>Smart Booking Platform</p>" +
+                "</td></tr>" +
+
+                // Greeting
+                "<tr><td style='padding:32px 40px 0;'>" +
+                "<p style='font-size:16px;margin:0 0 6px;'>Xin chào <strong>" + escapeHtml(guestName) + "</strong>,</p>" +
+                "<p style='font-size:14px;color:#64748b;margin:0;line-height:1.6;'>" +
+                "Đơn đặt phòng của bạn đã được xác nhận và thanh toán thành công. " +
+                "Vui lòng xuất trình <strong>mã QR bên dưới</strong> tại quầy lễ tân để check-in nhanh không cần giấy tờ." +
+                "</p>" +
+                "</td></tr>" +
+
+                // Booking code badge
+                "<tr><td style='padding:20px 40px 0;text-align:center;'>" +
+                "<div style='display:inline-block;background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:10px 24px;'>" +
+                "<span style='font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#16a34a;font-weight:700;display:block;margin-bottom:4px;'>Mã đặt phòng</span>" +
+                "<span style='font-family:monospace;font-size:22px;font-weight:900;color:#15803d;letter-spacing:2px;'>" + escapeHtml(bookingCode) + "</span>" +
+                "</div>" +
+                "</td></tr>" +
+
+                // Details table + QR side by side
+                "<tr><td style='padding:24px 40px;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0'><tr>" +
+
+                // Left: booking details
+                "<td style='vertical-align:top;padding-right:20px;'>" +
+                "<table width='100%' cellpadding='0' cellspacing='0' style='background:#f8fafc;border-radius:12px;overflow:hidden;'>" +
+                detailRow("🏨", "Homestay",   escapeHtml(homestayName)) +
+                (homestayAddr.isEmpty() ? "" : detailRow("📍", "Địa chỉ", escapeHtml(homestayAddr))) +
+                (roomType.isEmpty()     ? "" : detailRow("🛏", "Loại phòng", escapeHtml(roomType))) +
+                detailRow("📅", "Nhận phòng", "<strong>" + checkinFmt  + "</strong>") +
+                detailRow("📅", "Trả phòng",  "<strong>" + checkoutFmt + "</strong>") +
+                detailRow("🌙", "Số đêm",     nights + " đêm") +
+                detailRowLast("💳", "Tổng thanh toán",
+                    "<strong style='color:#4f46e5;font-size:16px;'>" + total + " ₫</strong>") +
+                "</table></td>" +
+
+                // Right: QR code
+                "<td style='vertical-align:top;width:180px;text-align:center;'>" +
+                "<div style='background:#f8fafc;border:1.5px dashed #cbd5e1;border-radius:12px;padding:16px;display:inline-block;'>" +
+                qrImgTag +
+                "<p style='margin:8px 0 0;font-size:11px;color:#64748b;font-weight:600;text-transform:uppercase;letter-spacing:.05em;'>QR Check-in</p>" +
+                "</div>" +
+                "</td>" +
+                "</tr></table>" +
+                "</td></tr>" +
+
+                // Info note
+                "<tr><td style='padding:0 40px 24px;'>" +
+                "<div style='background:#fffbeb;border:1px solid #fef08a;border-radius:10px;padding:14px 18px;'>" +
+                "<p style='margin:0;font-size:13px;color:#854d0e;line-height:1.6;'>" +
+                "<strong>📌 Lưu ý:</strong> Bạn có thể xem lại mã QR này bất cứ lúc nào trong mục " +
+                "<strong>Lịch sử đặt phòng → Xem Vé &amp; QR</strong> sau khi đăng nhập vào hệ thống." +
+                "</p>" +
+                "</div>" +
+                "</td></tr>" +
+
+                // Divider + footer
+                "<tr><td style='padding:0 40px 28px;'>" +
+                "<hr style='border:none;border-top:1px solid #e2e8f0;margin:0 0 20px;'/>" +
+                "<p style='font-size:12px;color:#94a3b8;text-align:center;margin:0;line-height:1.8;'>" +
+                "Nếu bạn cần hỗ trợ, vui lòng liên hệ chúng tôi qua trang <strong>Liên hệ</strong>.<br>" +
+                "© Smart Booking Platform — Hệ thống Đặt phòng Homestay &amp; Khách sạn Thông minh" +
+                "</p>" +
+                "</td></tr>" +
+
+                "</table>" + // inner table
+                "</td></tr></table>" + // outer table
+                "</body></html>";
+
+            LOGGER.info("[EMAIL BOOKING CONFIRM] To: " + recipient + " | Code: " + bookingCode);
+
+            if (MailConfig.isConfigured()) {
+                boolean sent = sendSmtpEmail(recipient, subject, html);
+                if (sent) {
+                    LOGGER.info("Booking confirmation email sent to " + recipient);
+                } else {
+                    LOGGER.warning("Failed to send booking confirmation to " + recipient);
+                }
+            } else {
+                LOGGER.warning("[SMTP CHƯA CẤU HÌNH] Booking confirmation logged for " + recipient + " | Code: " + bookingCode);
+            }
+
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "Failed to send booking confirmation for booking: " + booking.getBookingCode(), e);
+        }
+    }
+
+    /** Fetch QR PNG from api.qrserver.com and return Base64-encoded string, or null on failure. */
+    private static String fetchQrBase64(String data, int size) {
+        try {
+            String urlStr = "https://api.qrserver.com/v1/create-qr-code/?size=" + size + "x" + size
+                          + "&data=" + java.net.URLEncoder.encode(data, "UTF-8")
+                          + "&color=1e1b4b&bgcolor=ffffff&margin=1";
+            java.net.URL url = new java.net.URL(urlStr);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setConnectTimeout(5000);
+            conn.setReadTimeout(5000);
+            conn.setRequestMethod("GET");
+            if (conn.getResponseCode() == 200) {
+                byte[] bytes = conn.getInputStream().readAllBytes();
+                return Base64.getEncoder().encodeToString(bytes);
             }
         } catch (Exception e) {
-            LOGGER.log(Level.WARNING, "Failed to send booking confirmation email for booking: " + booking.getBookingCode(), e);
+            LOGGER.warning("Could not fetch QR image for " + data + ": " + e.getMessage());
         }
+        return null;
+    }
+
+    /** Format yyyy-MM-dd → dd/MM/yyyy, returns original string on parse failure. */
+    private static String formatDate(String iso) {
+        if (iso == null || iso.length() < 10) return iso != null ? iso : "";
+        try {
+            String[] p = iso.substring(0, 10).split("-");
+            return p[2] + "/" + p[1] + "/" + p[0];
+        } catch (Exception e) { return iso; }
+    }
+
+    /** HTML table row for booking details (not last). */
+    private static String detailRow(String icon, String label, String value) {
+        return "<tr><td style='padding:9px 14px;border-bottom:1px solid #e2e8f0;font-size:13px;color:#64748b;white-space:nowrap;width:130px;'>"
+             + icon + " " + label + "</td>"
+             + "<td style='padding:9px 14px;border-bottom:1px solid #e2e8f0;font-size:13px;color:#1e293b;'>" + value + "</td></tr>";
+    }
+
+    /** HTML table row for booking details (last row, no bottom border). */
+    private static String detailRowLast(String icon, String label, String value) {
+        return "<tr><td style='padding:9px 14px;font-size:13px;color:#64748b;white-space:nowrap;width:130px;'>"
+             + icon + " " + label + "</td>"
+             + "<td style='padding:9px 14px;font-size:13px;color:#1e293b;'>" + value + "</td></tr>";
     }
 
     /**
