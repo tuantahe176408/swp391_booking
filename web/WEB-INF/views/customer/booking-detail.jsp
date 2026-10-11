@@ -56,7 +56,13 @@
                     </div>
 
                     <h4 class="fw-bold mb-2">${booking.homestayName}</h4>
-                    <p class="text-muted mb-4"><i class="fa-solid fa-location-dot me-2 text-danger"></i>${booking.homestayAddress}, ${booking.homestayCity}</p>
+                    <p class="text-muted mb-3"><i class="fa-solid fa-location-dot me-2 text-danger"></i>${booking.homestayAddress}, ${booking.homestayCity}</p>
+                    <div class="mb-4">
+                        <a href="${pageContext.request.contextPath}/detail?id=${booking.homestayId}"
+                           class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                            <i class="fa-solid fa-house me-1"></i>Xem trang Homestay
+                        </a>
+                    </div>
 
                     <div class="row g-3 p-3 bg-light rounded-4 mb-4">
                         <div class="col-sm-6">
