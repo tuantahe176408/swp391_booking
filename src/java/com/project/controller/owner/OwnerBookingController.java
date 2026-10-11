@@ -53,6 +53,7 @@ public class OwnerBookingController extends HttpServlet {
         String  status        = request.getParameter("status");
         String  fromDate      = request.getParameter("fromDate");
         String  toDate        = request.getParameter("toDate");
+        String  keyword       = request.getParameter("keyword");
         String  pageParam     = request.getParameter("page");
 
         Integer homestayId = null;
@@ -64,6 +65,7 @@ public class OwnerBookingController extends HttpServlet {
         if (status   != null && status.trim().isEmpty())   status   = null;
         if (fromDate != null && fromDate.trim().isEmpty())  fromDate = null;
         if (toDate   != null && toDate.trim().isEmpty())    toDate   = null;
+        if (keyword  != null && keyword.trim().isEmpty())   keyword  = null;
 
         int page = 1;
         if (pageParam != null) {
@@ -73,9 +75,9 @@ public class OwnerBookingController extends HttpServlet {
 
         // ── DAO calls ────────────────────────────────────────────────────────
         List<Booking>  bookings    = bookingDAO.getBookingsByOwner(
-                                         ownerId, homestayId, status, fromDate, toDate, offset, PAGE_SIZE);
+                                         ownerId, homestayId, status, fromDate, toDate, keyword, offset, PAGE_SIZE);
         int            totalRows   = bookingDAO.countBookingsByOwner(
-                                         ownerId, homestayId, status, fromDate, toDate);
+                                         ownerId, homestayId, status, fromDate, toDate, keyword);
         List<Homestay> myHomestays = homestayDAO.getHomestaysByOwnerId(ownerId);
 
         int totalPages = (totalRows == 0) ? 1 : (int) Math.ceil((double) totalRows / PAGE_SIZE);
@@ -92,6 +94,7 @@ public class OwnerBookingController extends HttpServlet {
         request.setAttribute("filterStatus",     status);
         request.setAttribute("filterFromDate",   fromDate);
         request.setAttribute("filterToDate",     toDate);
+        request.setAttribute("filterKeyword",    keyword);
 
         request.setAttribute("activeTab",  "bookings");
         request.setAttribute("pageTitle",  "Đơn đặt phòng");

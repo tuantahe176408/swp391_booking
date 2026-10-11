@@ -65,8 +65,15 @@
                                value="${not empty filterToDate ? filterToDate : ''}">
                     </div>
 
-                    <div class="col-12 col-lg-3 d-flex gap-2">
-                        <button type="submit" class="btn btn-primary-custom btn-sm flex-grow-1">
+                    <div class="col-sm-12 col-lg-3">
+                        <label class="form-label fw-semibold" style="font-size:.82rem;">Tìm kiếm</label>
+                        <input type="search" name="keyword" class="form-control form-control-sm"
+                               placeholder="Mã đặt phòng, tên khách, SĐT..."
+                               value="${not empty filterKeyword ? filterKeyword : ''}">
+                    </div>
+
+                    <div class="col-12 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary-custom btn-sm">
                             <i class="fa-solid fa-filter me-1"></i>Lọc kết quả
                         </button>
                         <a href="${pageContext.request.contextPath}/owner/bookings"
@@ -82,10 +89,17 @@
                 <span class="text-muted" style="font-size:.85rem;">
                     Tìm thấy <strong class="text-dark">${totalRows}</strong> đơn đặt phòng
                 </span>
+                <c:if test="${not empty filterKeyword}">
+                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                        <i class="fa-solid fa-magnifying-glass me-1"></i>${filterKeyword}
+                        <a href="${pageContext.request.contextPath}/owner/bookings?homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}"
+                           class="text-secondary ms-1" style="text-decoration:none;">×</a>
+                    </span>
+                </c:if>
                 <c:if test="${not empty filterStatus}">
                     <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">
                         ${filterStatus}
-                        <a href="${pageContext.request.contextPath}/owner/bookings?homestayId=${filterHomestayId}&fromDate=${filterFromDate}&toDate=${filterToDate}"
+                        <a href="${pageContext.request.contextPath}/owner/bookings?homestayId=${filterHomestayId}&keyword=${filterKeyword}&fromDate=${filterFromDate}&toDate=${filterToDate}"
                            class="text-primary ms-1" style="text-decoration:none;">×</a>
                     </span>
                 </c:if>
@@ -243,7 +257,7 @@
                             <!-- Prev -->
                             <a class="bk-page ${currentPage <= 1 ? 'disabled' : ''}"
                                aria-label="Trang trước"
-                               href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage - 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
+                               href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage - 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}&keyword=${filterKeyword}">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
 
@@ -252,7 +266,7 @@
                                 <c:when test="${totalPages <= 7}">
                                     <c:forEach begin="1" end="${totalPages}" var="p">
                                         <a class="bk-page ${p == currentPage ? 'active' : ''}"
-                                           href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">${p}</a>
+                                           href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}&keyword=${filterKeyword}">${p}</a>
                                     </c:forEach>
                                 </c:when>
                                 <%-- Many pages: sliding window around currentPage --%>
@@ -263,7 +277,7 @@
 
                                     <%-- Page 1 always --%>
                                     <a class="bk-page ${1 == currentPage ? 'active' : ''}"
-                                       href="${pageContext.request.contextPath}/owner/bookings?page=1&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">1</a>
+                                       href="${pageContext.request.contextPath}/owner/bookings?page=1&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}&keyword=${filterKeyword}">1</a>
 
                                     <%-- Left ellipsis if window doesn't start at 2 --%>
                                     <c:if test="${winStart > 2}">
@@ -273,7 +287,7 @@
                                     <%-- Window pages --%>
                                     <c:forEach begin="${winStart}" end="${winEnd}" var="p">
                                         <a class="bk-page ${p == currentPage ? 'active' : ''}"
-                                           href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">${p}</a>
+                                           href="${pageContext.request.contextPath}/owner/bookings?page=${p}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}&keyword=${filterKeyword}">${p}</a>
                                     </c:forEach>
 
                                     <%-- Right ellipsis if window doesn't reach totalPages-1 --%>
@@ -283,14 +297,14 @@
 
                                     <%-- Last page always --%>
                                     <a class="bk-page ${totalPages == currentPage ? 'active' : ''}"
-                                       href="${pageContext.request.contextPath}/owner/bookings?page=${totalPages}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">${totalPages}</a>
+                                       href="${pageContext.request.contextPath}/owner/bookings?page=${totalPages}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}&keyword=${filterKeyword}">${totalPages}</a>
                                 </c:otherwise>
                             </c:choose>
 
                             <!-- Next -->
                             <a class="bk-page ${currentPage >= totalPages ? 'disabled' : ''}"
                                aria-label="Trang sau"
-                               href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage + 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}">
+                               href="${pageContext.request.contextPath}/owner/bookings?page=${currentPage + 1}&homestayId=${filterHomestayId}&status=${filterStatus}&fromDate=${filterFromDate}&toDate=${filterToDate}&keyword=${filterKeyword}">
                                 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </div>
