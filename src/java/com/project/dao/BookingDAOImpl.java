@@ -208,7 +208,7 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public List<Booking> getBookingsByOwner(int ownerId, Integer homestayId, String status,
-                                             String fromDate, String toDate,
+                                             String fromDate, String toDate, String keyword,
                                              int offset, int limit) {
         List<Booking> list = new ArrayList<>();
         StringBuilder sql = new StringBuilder(BASE_SELECT);
@@ -233,6 +233,13 @@ public class BookingDAOImpl implements BookingDAO {
             sql.append("AND b.checkin_date <= ? ");
             params.add(toDate.trim());
         }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String like = "%" + keyword.trim() + "%";
+            sql.append("AND (b.booking_code LIKE ? OR b.guest_name LIKE ? OR b.guest_phone LIKE ?) ");
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
         sql.append("ORDER BY b.created_at DESC LIMIT ? OFFSET ?");
         params.add(limit);
         params.add(offset);
@@ -256,7 +263,7 @@ public class BookingDAOImpl implements BookingDAO {
 
     @Override
     public int countBookingsByOwner(int ownerId, Integer homestayId, String status,
-                                     String fromDate, String toDate) {
+                                     String fromDate, String toDate, String keyword) {
         StringBuilder sql = new StringBuilder(
                 "SELECT COUNT(*) FROM bookings b " +
                 "LEFT JOIN homestays h ON b.homestay_id = h.homestay_id " +
@@ -280,6 +287,13 @@ public class BookingDAOImpl implements BookingDAO {
         if (toDate != null && !toDate.trim().isEmpty()) {
             sql.append("AND b.checkin_date <= ? ");
             params.add(toDate.trim());
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String like = "%" + keyword.trim() + "%";
+            sql.append("AND (b.booking_code LIKE ? OR b.guest_name LIKE ? OR b.guest_phone LIKE ?) ");
+            params.add(like);
+            params.add(like);
+            params.add(like);
         }
 
         try (Connection conn = DBContext.getConnection();

@@ -28,17 +28,18 @@ public interface BookingDAO {
     /**
      * UC20/UC17: Query bookings belonging to a specific owner with optional filters.
      *
-     * @param ownerId   owner's user ID (matched via homestays.owner_id)
+     * @param ownerId    owner's user ID (matched via homestays.owner_id)
      * @param homestayId filter by specific homestay; 0 or null = all homestays of owner
-     * @param status    booking_status filter; null = all statuses
-     * @param fromDate  checkin_date >= fromDate; null = no lower bound (format: yyyy-MM-dd)
-     * @param toDate    checkin_date <= toDate;   null = no upper bound (format: yyyy-MM-dd)
-     * @param offset    pagination offset (0-based)
-     * @param limit     max rows per page
+     * @param status     booking_status filter; null = all statuses
+     * @param fromDate   checkin_date >= fromDate; null = no lower bound (format: yyyy-MM-dd)
+     * @param toDate     checkin_date <= toDate;   null = no upper bound (format: yyyy-MM-dd)
+     * @param keyword    free-text search on booking_code, guest_name, guest_phone; null = no filter
+     * @param offset     pagination offset (0-based)
+     * @param limit      max rows per page
      * @return list of bookings ordered by created_at DESC
      */
     List<Booking> getBookingsByOwner(int ownerId, Integer homestayId, String status,
-                                     String fromDate, String toDate,
+                                     String fromDate, String toDate, String keyword,
                                      int offset, int limit);
 
     /**
@@ -46,7 +47,7 @@ public interface BookingDAO {
      * Same filter parameters as {@link #getBookingsByOwner}.
      */
     int countBookingsByOwner(int ownerId, Integer homestayId, String status,
-                              String fromDate, String toDate);
+                              String fromDate, String toDate, String keyword);
 
     // ── UC12: Reception Check-in ──────────────────────────────────────────────
 
