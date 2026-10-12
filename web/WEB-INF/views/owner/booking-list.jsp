@@ -72,12 +72,12 @@
                                value="${not empty filterKeyword ? filterKeyword : ''}">
                     </div>
 
-                    <div class="col-12 d-flex gap-2">
+                    <div class="col-12 d-flex gap-2 align-items-center">
                         <button type="submit" class="btn btn-primary-custom btn-sm">
                             <i class="fa-solid fa-filter me-1"></i>Lọc kết quả
                         </button>
                         <a href="${pageContext.request.contextPath}/owner/bookings"
-                           class="btn btn-outline-secondary btn-sm px-3">
+                           class="btn btn-outline-secondary btn-sm px-3" title="Xóa bộ lọc">
                             <i class="fa-solid fa-rotate-left"></i>
                         </a>
                     </div>
