@@ -69,6 +69,13 @@ src/java/mail.properties
 .env.*
 config.local.properties
 
+# Local runner & deployment scripts
+deploy.sh
+rebuild.sh
+run-mac.sh
+setup_fedora.sh
+start.sh
+stop.sh
 
 # Kiro IDE session store points
 tore_point*
