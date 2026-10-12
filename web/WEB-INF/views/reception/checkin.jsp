@@ -78,26 +78,107 @@
                 </c:if>
 
                 <%-- ── Search bar ──────────────────────────────────────────── --%>
-                <form method="GET" action="${pageContext.request.contextPath}/reception/checkin" class="mb-4">
+                <%-- html5-qrcode for camera scanning --%>
+                <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+                <form method="GET" action="${pageContext.request.contextPath}/reception/checkin"
+                      class="mb-4" id="checkinSearchForm">
                     <div class="card border rounded-4 p-3 bg-light">
                         <h6 class="fw-bold mb-3">
                             <i class="fa-solid fa-magnifying-glass me-2 text-primary"></i>Tra cứu đơn đặt phòng
                         </h6>
                         <div class="input-group input-group-lg">
-                            <input type="text" class="form-control" name="q"
+                            <input type="text" class="form-control" name="q" id="searchInput"
                                    placeholder="Nhập mã đặt phòng (VD: BK-20261001-0001) hoặc số điện thoại khách..."
                                    value="${searchQuery}" autofocus>
+                            <%-- QR scan button --%>
+                            <button type="button" class="btn btn-outline-info fw-semibold"
+                                    onclick="toggleQrScanner()" id="btnQrScan"
+                                    title="Quét mã QR từ điện thoại khách">
+                                <i class="fa-solid fa-qrcode me-1"></i>Quét QR
+                            </button>
                             <button class="btn btn-primary fw-semibold" type="submit">
-                                <i class="fa-solid fa-search me-1"></i> Tìm kiếm
+                                <i class="fa-solid fa-search me-1"></i>Tìm kiếm
                             </button>
                         </div>
                         <small class="text-muted mt-2 d-block">
                             <i class="fa-solid fa-circle-info text-info me-1"></i>
                             Nhập mã bắt đầu bằng <code>BK-</code> để tìm theo mã đặt phòng,
                             hoặc nhập số điện thoại 10 chữ số để tìm theo SĐT khách.
+                            Hoặc nhấn <strong>Quét QR</strong> để scan trực tiếp từ điện thoại khách.
                         </small>
+
+                        <%-- QR scanner container (ẩn mặc định) --%>
+                        <div id="qrScannerWrap" style="display:none; margin-top:1rem;">
+                            <div class="d-flex align-items-center justify-content-between mb-2">
+                                <span class="fw-semibold text-info" style="font-size:.88rem;">
+                                    <i class="fa-solid fa-camera me-1"></i>Hướng camera vào mã QR của khách
+                                </span>
+                                <button type="button" class="btn btn-sm btn-outline-secondary rounded-3"
+                                        onclick="stopQrScanner()">
+                                    <i class="fa-solid fa-xmark me-1"></i>Đóng
+                                </button>
+                            </div>
+                            <div id="qrReaderDiv" style="width:100%; max-width:400px; margin:0 auto; border-radius:12px; overflow:hidden;"></div>
+                            <div id="qrStatusMsg" class="text-center text-muted mt-2" style="font-size:.82rem;"></div>
+                        </div>
                     </div>
                 </form>
+
+                <script>
+                var html5QrcodeScanner = null;
+
+                function toggleQrScanner() {
+                    var wrap = document.getElementById('qrScannerWrap');
+                    if (wrap.style.display === 'none' || wrap.style.display === '') {
+                        wrap.style.display = 'block';
+                        startQrScanner();
+                        document.getElementById('btnQrScan').classList.replace('btn-outline-info', 'btn-info');
+                    } else {
+                        stopQrScanner();
+                    }
+                }
+
+                function startQrScanner() {
+                    document.getElementById('qrStatusMsg').textContent = 'Đang khởi động camera...';
+                    html5QrcodeScanner = new Html5Qrcode('qrReaderDiv');
+                    html5QrcodeScanner.start(
+                        { facingMode: 'environment' },   // camera sau
+                        { fps: 10, qrbox: { width: 280, height: 280 } },
+                        function onScanSuccess(decodedText) {
+                            // Lấy bookingCode từ QR — chỉ chấp nhận định dạng BK-...
+                            var code = decodedText.trim().toUpperCase();
+                            if (code.startsWith('BK-')) {
+                                stopQrScanner();
+                                document.getElementById('searchInput').value = code;
+                                document.getElementById('qrStatusMsg').textContent = '';
+                                // Auto-submit
+                                document.getElementById('checkinSearchForm').submit();
+                            } else {
+                                document.getElementById('qrStatusMsg').textContent =
+                                    'Mã không hợp lệ: ' + decodedText + ' — chỉ nhận mã BK-...';
+                            }
+                        },
+                        function onScanError(errorMessage) {
+                            // Bỏ qua lỗi quét liên tục (frame không có QR)
+                        }
+                    ).catch(function(err) {
+                        document.getElementById('qrStatusMsg').textContent =
+                            'Không thể truy cập camera: ' + err;
+                    });
+                }
+
+                function stopQrScanner() {
+                    if (html5QrcodeScanner) {
+                        html5QrcodeScanner.stop().then(function() {
+                            html5QrcodeScanner.clear();
+                            html5QrcodeScanner = null;
+                        }).catch(function(){});
+                    }
+                    document.getElementById('qrScannerWrap').style.display = 'none';
+                    document.getElementById('btnQrScan').classList.replace('btn-info', 'btn-outline-info');
+                }
+                </script>
 
                 <%-- ── Chưa tìm kiếm: welcome panel ──────────────────────── --%>
                 <c:if test="${empty searchQuery and empty param.success}">
