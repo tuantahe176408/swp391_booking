@@ -134,8 +134,10 @@ public class EmailUtil {
                                   ? String.format("%,.0f", booking.getFinalTotal().doubleValue())
                                   : "0";
 
-            // ── QR code as base64 ────────────────────────────────────────────
-            String qrBase64 = fetchQrBase64(bookingCode, 180);
+            // ── QR code image URL (Email clients như Gmail/Apple Mail/Outlook chặn data:base64 URI, cần dùng HTTPS URL trực tiếp) ──
+            String qrUrl = "https://api.qrserver.com/v1/create-qr-code/?size=160x160&data="
+                         + java.net.URLEncoder.encode(bookingCode, "UTF-8")
+                         + "&color=1e1b4b&bgcolor=ffffff&margin=1";
 
             // ── Format dates đẹp hơn (yyyy-MM-dd → dd/MM/yyyy) ───────────────
             String checkinFmt  = formatDate(checkin);
@@ -144,9 +146,7 @@ public class EmailUtil {
             // ── Build HTML email body ────────────────────────────────────────
             String subject = "✅ Đặt phòng thành công #" + bookingCode + " — Smart Booking";
 
-            String qrImgTag = qrBase64 != null
-                ? "<img src=\"data:image/png;base64," + qrBase64 + "\" width=\"160\" height=\"160\" alt=\"QR Check-in\" style=\"display:block;border-radius:8px;\">"
-                : "<div style=\"width:160px;height:160px;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;\">QR không khả dụng</div>";
+            String qrImgTag = "<img src=\"" + qrUrl + "\" width=\"160\" height=\"160\" alt=\"QR Check-in\" style=\"display:block;border-radius:8px;border:none;outline:none;\">";
 
             String html =
                 "<!DOCTYPE html>" +
