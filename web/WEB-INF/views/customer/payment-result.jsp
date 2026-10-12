@@ -5,8 +5,13 @@
 <jsp:include page="/WEB-INF/views/common/header.jsp" />
 <jsp:include page="/WEB-INF/views/common/navbar.jsp" />
 
-<%-- QR code library (pure JS, no backend needed) --%>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<%-- QR code library (local asset with CDN fallback) --%>
+<script src="${pageContext.request.contextPath}/assets/js/qrcode.min.js"></script>
+<script>
+if (typeof QRCode === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"><\/script>');
+}
+</script>
 
 <style>
 .result-hero { padding:80px 0; text-align:center; }
@@ -71,7 +76,15 @@
                             <div class="qr-label">
                                 <i class="fa-solid fa-qrcode me-1"></i>Mã QR check-in — xuất trình cho lễ tân
                             </div>
-                            <canvas id="bookingQrCanvas"></canvas>
+                            <div class="d-flex justify-content-center align-items-center" style="min-height: 180px;">
+                                <canvas id="bookingQrCanvas" style="display:none;"></canvas>
+                                <img id="bookingQrImg" 
+                                     src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${booking.bookingCode}" 
+                                     alt="QR Check-in" 
+                                     width="180" height="180" 
+                                     class="rounded-3 shadow-sm border p-1 bg-white"
+                                     onerror="this.style.display='none';">
+                            </div>
                             <div class="qr-code-text">${booking.bookingCode}</div>
                             <small class="text-muted" style="font-size:.72rem;">
                                 Lễ tân sẽ quét mã này để xác nhận check-in nhanh
@@ -83,12 +96,36 @@
                     (function() {
                         var code = '${booking.bookingCode}';
                         if (!code) return;
-                        QRCode.toCanvas(
-                            document.getElementById('bookingQrCanvas'),
-                            code,
-                            { width: 180, margin: 2, color: { dark: '#1e1b4b', light: '#ffffff' } },
-                            function(err) { if (err) console.error('QR gen error:', err); }
-                        );
+                        var canvas = document.getElementById('bookingQrCanvas');
+                        var img = document.getElementById('bookingQrImg');
+                        
+                        function tryRender() {
+                            if (window.QRCode && typeof QRCode.toCanvas === 'function') {
+                                QRCode.toCanvas(
+                                    canvas,
+                                    code,
+                                    { width: 180, margin: 2, color: { dark: '#1e1b4b', light: '#ffffff' } },
+                                    function(err) {
+                                        if (!err) {
+                                            canvas.style.display = 'block';
+                                            if (img) img.style.display = 'none';
+                                        } else {
+                                            console.warn('QR canvas error, using img fallback:', err);
+                                            if (img) img.style.display = 'block';
+                                        }
+                                    }
+                                );
+                            } else {
+                                // Fallback image remains visible
+                                if (img) img.style.display = 'block';
+                            }
+                        }
+
+                        if (document.readyState === 'loading') {
+                            document.addEventListener('DOMContentLoaded', tryRender);
+                        } else {
+                            tryRender();
+                        }
                     })();
                     </script>
                 </c:if>

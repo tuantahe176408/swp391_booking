@@ -95,8 +95,13 @@ body { background: #f5f0f8; }
 .countdown-wrap .exp { color:#be185d; font-weight:700; }
 </style>
 
-<%-- Load qrcode.js for QR display --%>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<%-- Load qrcode.js for QR display (local asset + CDN fallback) --%>
+<script src="${pageContext.request.contextPath}/assets/js/qrcode.min.js"></script>
+<script>
+if (typeof QRCode === 'undefined') {
+    document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"><\/script>');
+}
+</script>
 
 <div class="mock-wrapper">
     <div class="mock-card">
@@ -135,7 +140,12 @@ body { background: #f5f0f8; }
 
             <%-- QR code area --%>
             <div class="qr-area">
-                <canvas id="momoQr"></canvas>
+                <canvas id="momoQr" style="display:none;"></canvas>
+                <img id="momoQrImg" 
+                     src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${booking.bookingCode}&color=831843" 
+                     alt="QR MoMo" width="150" height="150" 
+                     class="rounded-3 shadow-sm border p-1 bg-white"
+                     onerror="this.style.display='none';">
                 <div class="qr-hint"><i class="fa-solid fa-qrcode me-1"></i>Quét mã QR bằng ứng dụng MoMo</div>
             </div>
 
@@ -190,10 +200,30 @@ body { background: #f5f0f8; }
 // Generate QR với bookingCode
 (function() {
     var code = '${booking.bookingCode}';
-    if (code && window.QRCode) {
-        QRCode.toCanvas(document.getElementById('momoQr'), code,
-            { width: 150, margin: 1, color: { dark: '#831843', light: '#fdf2f8' } },
-            function(err) { if (err) console.error('QR error:', err); });
+    var canvas = document.getElementById('momoQr');
+    var img = document.getElementById('momoQrImg');
+
+    function tryRender() {
+        if (code && window.QRCode && typeof QRCode.toCanvas === 'function') {
+            QRCode.toCanvas(canvas, code,
+                { width: 150, margin: 1, color: { dark: '#831843', light: '#fdf2f8' } },
+                function(err) {
+                    if (!err) {
+                        canvas.style.display = 'block';
+                        if (img) img.style.display = 'none';
+                    } else if (img) {
+                        img.style.display = 'block';
+                    }
+                });
+        } else if (img) {
+            img.style.display = 'block';
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', tryRender);
+    } else {
+        tryRender();
     }
 
     // Date + Countdown 15 phút
