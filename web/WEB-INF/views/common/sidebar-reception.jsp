@@ -40,6 +40,13 @@
     <nav class="owner-sidebar__nav">
         <div class="owner-sidebar__group-label">Đón tiếp &amp; Quản lý Phòng</div>
 
+        <a class="owner-sidebar__link ${activeTab == 'dashboard' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/reception/dashboard">
+            <span class="owner-sidebar__link-icon"><i class="fa-solid fa-calendar-day"></i></span>
+            <span class="owner-sidebar__link-text">Tổng quan</span>
+            <c:if test="${activeTab == 'today'}"><span class="owner-sidebar__link-dot"></span></c:if>
+        </a>
+
         <a class="owner-sidebar__link ${activeTab == 'checkin' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/reception/checkin">
             <span class="owner-sidebar__link-icon"><i class="fa-solid fa-passport"></i></span>

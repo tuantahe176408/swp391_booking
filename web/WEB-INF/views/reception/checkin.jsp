@@ -120,7 +120,7 @@
                                 </button>
                             </div>
                             <div id="qrReaderDiv" style="width:100%; max-width:400px; margin:0 auto; border-radius:12px; overflow:hidden;"></div>
-                            <div id="qrStatusMsg" class="text-center text-muted mt-2" style="font-size:.82rem;"></div>
+                            <div id="qrStatusMsg" class="mt-2"></div>
                         </div>
                     </div>
                 </form>
@@ -140,7 +140,9 @@
                 }
 
                 function startQrScanner() {
-                    document.getElementById('qrStatusMsg').textContent = 'Đang khởi động camera...';
+                    document.getElementById('qrStatusMsg').innerHTML =
+                        '<div class="text-center text-muted py-1" style="font-size:.82rem;">' +
+                        '<i class="fa-solid fa-spinner fa-spin me-1"></i>Đang khởi động camera...</div>';
                     html5QrcodeScanner = new Html5Qrcode('qrReaderDiv');
                     html5QrcodeScanner.start(
                         { facingMode: 'environment' },   // camera sau
@@ -155,16 +157,21 @@
                                 // Auto-submit
                                 document.getElementById('checkinSearchForm').submit();
                             } else {
-                                document.getElementById('qrStatusMsg').textContent =
-                                    'Mã không hợp lệ: ' + decodedText + ' — chỉ nhận mã BK-...';
+                                document.getElementById('qrStatusMsg').innerHTML =
+                                    '<div class="alert alert-warning rounded-3 py-2 px-3 mb-0 text-start" style="font-size:.82rem;">' +
+                                    '<i class="fa-solid fa-triangle-exclamation me-1"></i>' +
+                                    'Mã không hợp lệ: <code>' + decodedText + '</code> — chỉ nhận mã <strong>BK-...</strong></div>';
                             }
                         },
                         function onScanError(errorMessage) {
                             // Bỏ qua lỗi quét liên tục (frame không có QR)
                         }
                     ).catch(function(err) {
-                        document.getElementById('qrStatusMsg').textContent =
-                            'Không thể truy cập camera: ' + err;
+                        document.getElementById('qrStatusMsg').innerHTML =
+                            '<div class="alert alert-danger rounded-3 py-2 px-3 mb-0 text-start" style="font-size:.82rem;">' +
+                            '<i class="fa-solid fa-circle-xmark me-1"></i>' +
+                            'Không thể truy cập camera. Vui lòng kiểm tra quyền truy cập camera trên trình duyệt.</div>';
+                        html5QrcodeScanner = null; // reset để nút Đóng hoạt động
                     });
                 }
 

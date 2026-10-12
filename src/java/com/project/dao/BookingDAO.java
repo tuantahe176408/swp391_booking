@@ -13,6 +13,14 @@ public interface BookingDAO {
 
     List<Booking> getBookingsByCustomerId(int customerId);
 
+    /**
+     * Đếm số thông báo đáng chú ý cho customer:
+     * - Đơn CONFIRMED có checkin_date trong vòng 3 ngày tới (sắp đến ngày check-in)
+     * - Đơn CHECKED_IN đang ở (nhắc nhở check-out)
+     * Dùng để hiện badge trên navbar.
+     */
+    int countBookingNotifications(int customerId);
+
     Optional<Booking> getBookingById(int bookingId);
 
     Optional<Booking> getBookingByCode(String bookingCode);
@@ -121,6 +129,22 @@ public interface BookingDAO {
                                 java.sql.Date checkinDate, java.sql.Date checkoutDate,
                                 int totalNights, java.math.BigDecimal finalTotal,
                                 int receptionistId);
+
+    /**
+     * UC-Today: Danh sách booking checkin_date = TODAY và status = CONFIRMED (chờ check-in).
+     */
+    List<Booking> getTodayArrivals(int homestayId);
+
+    /**
+     * UC-Today: Danh sách booking checkout_date = TODAY và status = CHECKED_IN (đang ở, cần trả phòng).
+     */
+    List<Booking> getTodayDepartures(int homestayId);
+
+    /**
+     * UC-Today: Toàn bộ khách đang CHECKED_IN tại homestay, filter tùy chọn theo keyword.
+     * @param keyword tìm theo guest_name, guest_phone, booking_code; null = không lọc
+     */
+    List<Booking> getCurrentGuests(int homestayId, String keyword);
 
     /**
      * System Service: Tự động huỷ các đơn PENDING đã hết thời gian giữ chỗ.

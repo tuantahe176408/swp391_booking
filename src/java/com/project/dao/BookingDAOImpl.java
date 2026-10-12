@@ -57,6 +57,27 @@ public class BookingDAOImpl implements BookingDAO {
     }
 
     @Override
+    public int countBookingNotifications(int customerId) {
+        // CONFIRMED với checkin trong 3 ngày tới + CHECKED_IN đang ở
+        String sql = "SELECT COUNT(*) FROM bookings " +
+                     "WHERE customer_id = ? " +
+                     "AND (" +
+                     "  (booking_status = 'CONFIRMED' AND checkin_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 3 DAY))" +
+                     "  OR booking_status = 'CHECKED_IN'" +
+                     ")";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, customerId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.WARNING, "Error in countBookingNotifications for customerId=" + customerId, e);
+        }
+        return 0;
+    }
+
+    @Override
     public Optional<Booking> getBookingById(int bookingId) {
         String sql = BASE_SELECT + "WHERE b.booking_id = ?";
 
@@ -547,6 +568,76 @@ public class BookingDAOImpl implements BookingDAO {
                 try { conn.setAutoCommit(true); conn.close(); } catch (SQLException ex) { /* ignore */ }
             }
         }
+    }
+
+    // ── UC-Today: Today's Arrivals / Departures / Current Guests ─────────────
+
+    @Override
+    public List<Booking> getTodayArrivals(int homestayId) {
+        List<Booking> list = new ArrayList<>();
+        String sql = BASE_SELECT +
+            "WHERE b.homestay_id = ? " +
+            "AND b.checkin_date = CURDATE() " +
+            "AND b.booking_status = 'CONFIRMED' " +
+            "ORDER BY b.checkin_date ASC, b.created_at ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, homestayId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapBooking(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getTodayArrivals homestayId=" + homestayId, e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<Booking> getTodayDepartures(int homestayId) {
+        List<Booking> list = new ArrayList<>();
+        String sql = BASE_SELECT +
+            "WHERE b.homestay_id = ? " +
+            "AND b.checkout_date = CURDATE() " +
+            "AND b.booking_status = 'CHECKED_IN' " +
+            "ORDER BY b.checkout_date ASC, b.created_at ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, homestayId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapBooking(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getTodayDepartures homestayId=" + homestayId, e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<Booking> getCurrentGuests(int homestayId, String keyword) {
+        List<Booking> list = new ArrayList<>();
+        StringBuilder sql = new StringBuilder(BASE_SELECT);
+        sql.append("WHERE b.homestay_id = ? AND b.booking_status = 'CHECKED_IN' ");
+
+        List<Object> params = new ArrayList<>();
+        params.add(homestayId);
+
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String like = "%" + keyword.trim() + "%";
+            sql.append("AND (b.guest_name LIKE ? OR b.guest_phone LIKE ? OR b.booking_code LIKE ?) ");
+            params.add(like); params.add(like); params.add(like);
+        }
+        sql.append("ORDER BY b.checkin_date ASC, b.guest_name ASC");
+
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapBooking(rs));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getCurrentGuests homestayId=" + homestayId, e);
+        }
+        return list;
     }
 
     @Override

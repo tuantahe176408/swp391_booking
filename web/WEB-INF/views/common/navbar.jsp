@@ -54,6 +54,18 @@
                 </li>
             </ul>
             <div class="d-flex align-items-center ms-auto">
+                <c:if test="${not empty sessionScope.currentUser && sessionScope.currentUser.role == 'CUSTOMER' && notifCount > 0}">
+                    <a href="${pageContext.request.contextPath}/customer/bookings"
+                       class="btn btn-light border rounded-pill me-2 px-2 py-1 position-relative"
+                       title="${notifCount} đơn cần chú ý"
+                       style="font-size:.85rem;">
+                        <i class="fa-solid fa-bell text-warning"></i>
+                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                              style="font-size:.6rem;padding:2px 5px;">
+                            ${notifCount}
+                        </span>
+                    </a>
+                </c:if>
                 <c:choose>
                     <c:when test="${not empty sessionScope.currentUser}">
                         <!-- Clean Single User Profile Dropdown -->
@@ -94,7 +106,12 @@
                                 </li>
                                 <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/profile"><i class="fa-regular fa-user me-2 text-primary"></i> Hồ sơ cá nhân</a></li>
                                 <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/customer/wishlist"><i class="fa-solid fa-heart me-2 text-danger"></i> Yêu thích đã lưu</a></li>
-                                <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/customer/bookings"><i class="fa-solid fa-receipt me-2 text-primary"></i> Đơn đặt phòng</a></li>
+                                <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/customer/bookings">
+                                    <i class="fa-solid fa-receipt me-2 text-primary"></i> Đơn đặt phòng
+                                    <c:if test="${notifCount > 0}">
+                                        <span class="badge bg-danger rounded-pill ms-1" style="font-size:.65rem;">${notifCount}</span>
+                                    </c:if>
+                                </a></li>
                                 
                                 <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
                                     <li><hr class="dropdown-divider my-1"></li>
@@ -106,7 +123,7 @@
                                 </c:if>
                                 <c:if test="${sessionScope.currentUser.role == 'RECEPTIONIST'}">
                                     <li><hr class="dropdown-divider my-1"></li>
-                                    <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/reception/checkin"><i class="fa-solid fa-concierge-bell me-2 text-info"></i> Portal Lễ Tân</a></li>
+                                    <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/reception/dashboard"><i class="fa-solid fa-concierge-bell me-2 text-info"></i> Portal Lễ Tân</a></li>
                                 </c:if>
                                 
                                 <li><hr class="dropdown-divider my-1"></li>
