@@ -43,6 +43,17 @@
         <!-- Group: Quản lý Tài sản -->
         <div class="owner-sidebar__group-label">Quản lý Tài sản</div>
 
+        <a class="owner-sidebar__link ${activeTab == 'dashboard' ? 'is-active' : ''}"
+           href="${pageContext.request.contextPath}/owner/dashboard">
+            <span class="owner-sidebar__link-icon">
+                <i class="fa-solid fa-gauge-high"></i>
+            </span>
+            <span class="owner-sidebar__link-text">Tổng quan</span>
+            <c:if test="${activeTab == 'dashboard'}">
+                <span class="owner-sidebar__link-dot"></span>
+            </c:if>
+        </a>
+
         <a class="owner-sidebar__link ${activeTab == 'homestays' || activeTab == 'rooms' ? 'is-active' : ''}"
            href="${pageContext.request.contextPath}/owner/homestays">
             <span class="owner-sidebar__link-icon">

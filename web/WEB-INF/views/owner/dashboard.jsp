@@ -217,14 +217,54 @@
                         <div class="fw-bold" style="font-size:.92rem;color:#4338ca;">Khách đang lưu trú</div>
                         <div class="text-muted" style="font-size:.75rem;">Tất cả cơ sở</div>
                     </div>
-                    <span class="badge ms-auto px-2 py-1" style="font-size:.8rem;background:#6366f1;">${fn:length(currentGuests)}</span>
+                    <span class="badge ms-auto px-2 py-1" style="font-size:.8rem;background:#6366f1;">${totalGuests}</span>
                 </div>
+
+                <%-- Search form --%>
+                <div class="px-4 py-2 border-bottom bg-light d-flex align-items-center gap-2">
+                    <form method="get" action="${pageContext.request.contextPath}/owner/dashboard"
+                          class="d-flex gap-2 align-items-center flex-grow-1">
+                        <div class="input-group input-group-sm" style="max-width:320px;">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa-solid fa-magnifying-glass text-muted" style="font-size:.75rem;"></i>
+                            </span>
+                            <input type="search" name="q" class="form-control border-start-0 ps-0"
+                                   placeholder="Tên khách, SĐT, mã đặt phòng..."
+                                   value="${not empty searchKeyword ? searchKeyword : ''}">
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
+                        </div>
+                        <c:if test="${not empty searchKeyword}">
+                            <a href="${pageContext.request.contextPath}/owner/dashboard"
+                               class="btn btn-sm btn-outline-secondary" title="Xóa tìm kiếm">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        </c:if>
+                    </form>
+                </div>
+
+                <%-- Keyword badge --%>
+                <c:if test="${not empty searchKeyword}">
+                    <div class="px-4 py-2 bg-light border-bottom d-flex align-items-center gap-2" style="font-size:.8rem;">
+                        <span class="text-muted">Kết quả cho:</span>
+                        <span class="badge bg-secondary-subtle text-secondary border px-2">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>${searchKeyword}
+                        </span>
+                        <span class="text-muted">— ${totalGuests} khách</span>
+                    </div>
+                </c:if>
 
                 <c:choose>
                     <c:when test="${empty currentGuests}">
                         <div class="text-center py-5 text-muted">
                             <i class="fa-solid fa-moon fa-2x mb-2 d-block opacity-25"></i>
-                            <div style="font-size:.85rem;">Hiện không có khách đang lưu trú</div>
+                            <c:choose>
+                                <c:when test="${not empty searchKeyword}">
+                                    Không tìm thấy khách với từ khóa "<strong>${searchKeyword}</strong>".
+                                </c:when>
+                                <c:otherwise>
+                                    <div style="font-size:.85rem;">Hiện không có khách đang lưu trú</div>
+                                </c:otherwise>
+                            </c:choose>
                         </div>
                     </c:when>
                     <c:otherwise>
@@ -244,7 +284,7 @@
                                 <tbody>
                                     <c:forEach var="g" items="${currentGuests}" varStatus="st">
                                         <tr>
-                                            <td class="ps-4 text-muted" style="font-size:.8rem;">${st.index + 1}</td>
+                                            <td class="ps-4 text-muted" style="font-size:.8rem;">${(currentPage - 1) * 10 + st.index + 1}</td>
                                             <td>
                                                 <div class="d-flex align-items-center gap-2">
                                                     <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#4f46e5);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:.78rem;flex-shrink:0;">
@@ -262,7 +302,13 @@
                                             </td>
                                             <td style="font-size:.8rem;">${g.homestayName}</td>
                                             <td style="font-size:.8rem;"><fmt:formatDate value="${g.checkinDate}"  pattern="dd/MM/yyyy"/></td>
-                                            <td style="font-size:.8rem;"><fmt:formatDate value="${g.checkoutDate}" pattern="dd/MM/yyyy"/></td>
+                                            <td style="font-size:.8rem;">
+                                                <fmt:formatDate value="${g.checkoutDate}" pattern="dd/MM/yyyy"/>
+                                                <c:set var="todayDate" value="<%= new java.sql.Date(System.currentTimeMillis()) %>"/>
+                                                <c:if test="${g.checkoutDate == todayDate}">
+                                                    <span class="badge bg-warning-subtle text-warning border border-warning ms-1" style="font-size:.65rem;">Hôm nay</span>
+                                                </c:if>
+                                            </td>
                                             <td>
                                                 <span class="fw-semibold" style="font-size:.82rem;">
                                                     <fmt:formatNumber value="${g.finalTotal}" type="number" groupingUsed="true"/>đ
@@ -272,6 +318,35 @@
                                     </c:forEach>
                                 </tbody>
                             </table>
+                        </div>
+
+                        <%-- Pagination footer --%>
+                        <div class="px-4 py-3 border-top d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <small class="text-muted">
+                                Hiển thị <strong>${(currentPage - 1) * 10 + 1}</strong>–<strong>${(currentPage - 1) * 10 + fn:length(currentGuests)}</strong>
+                                trong tổng <strong>${totalGuests}</strong> khách đang lưu trú
+                            </small>
+                            <c:if test="${totalPages > 1}">
+                                <nav>
+                                    <ul class="pagination pagination-sm mb-0">
+                                        <li class="page-item ${currentPage == 1 ? 'disabled' : ''}">
+                                            <a class="page-link" href="${pageContext.request.contextPath}/owner/dashboard?page=${currentPage - 1}<c:if test='${not empty searchKeyword}'>&amp;q=${searchKeyword}</c:if>">
+                                                <i class="fa-solid fa-chevron-left"></i>
+                                            </a>
+                                        </li>
+                                        <c:forEach begin="1" end="${totalPages}" var="p">
+                                            <li class="page-item ${p == currentPage ? 'active' : ''}">
+                                                <a class="page-link" href="${pageContext.request.contextPath}/owner/dashboard?page=${p}<c:if test='${not empty searchKeyword}'>&amp;q=${searchKeyword}</c:if>">${p}</a>
+                                            </li>
+                                        </c:forEach>
+                                        <li class="page-item ${currentPage == totalPages ? 'disabled' : ''}">
+                                            <a class="page-link" href="${pageContext.request.contextPath}/owner/dashboard?page=${currentPage + 1}<c:if test='${not empty searchKeyword}'>&amp;q=${searchKeyword}</c:if>">
+                                                <i class="fa-solid fa-chevron-right"></i>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
+                            </c:if>
                         </div>
                     </c:otherwise>
                 </c:choose>

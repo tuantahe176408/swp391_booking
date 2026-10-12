@@ -26,11 +26,14 @@ import java.util.Map;
 
 /**
  * Controller: Owner — Dashboard tổng quan hôm nay (UC17)
- * GET /owner/dashboard — Nhận/Trả phòng hôm nay, khách đang ở, KPI tháng
+ * GET /owner/dashboard              — Nhận/Trả phòng hôm nay, khách đang ở, KPI tháng
+ * GET /owner/dashboard?q=kw&page=2 — Tìm kiếm + phân trang "Khách đang lưu trú"
  * Package: com.project.controller.owner
  */
 @WebServlet(name = "OwnerDashboardController", urlPatterns = {"/owner/dashboard"})
 public class OwnerDashboardController extends HttpServlet {
+
+    private static final int GUEST_PAGE_SIZE = 10;
 
     private BookingDAO        bookingDAO;
     private HomestayDAO       homestayDAO;
@@ -61,13 +64,12 @@ public class OwnerDashboardController extends HttpServlet {
             homestayNames.put(h.getHomestayId(), h.getName());
         }
 
-        // ── Aggregate today's arrivals, departures, current guests ──────────
-        List<Booking> arrivals     = new ArrayList<>();
-        List<Booking> departures   = new ArrayList<>();
-        List<Booking> currentGuests = new ArrayList<>();
+        // ── Aggregate today's arrivals & departures (per homestay, no pagination needed) ─
+        List<Booking> arrivals   = new ArrayList<>();
+        List<Booking> departures = new ArrayList<>();
 
         for (Homestay h : myHomestays) {
-            int hId = h.getHomestayId();
+            int    hId   = h.getHomestayId();
             String hName = h.getName();
 
             List<Booking> hArrivals = bookingDAO.getTodayArrivals(hId);
@@ -77,11 +79,25 @@ public class OwnerDashboardController extends HttpServlet {
             List<Booking> hDepartures = bookingDAO.getTodayDepartures(hId);
             for (Booking b : hDepartures) b.setHomestayName(hName);
             departures.addAll(hDepartures);
-
-            List<Booking> hGuests = bookingDAO.getCurrentGuests(hId, null);
-            for (Booking b : hGuests) b.setHomestayName(hName);
-            currentGuests.addAll(hGuests);
         }
+
+        // ── Current guests: search + pagination dùng getBookingsByOwner ─────
+        String keyword = request.getParameter("q");
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+
+        int page = 1;
+        try {
+            String pageParam = request.getParameter("page");
+            if (pageParam != null) page = Math.max(1, Integer.parseInt(pageParam.trim()));
+        } catch (NumberFormatException ignored) {}
+
+        int offset       = (page - 1) * GUEST_PAGE_SIZE;
+        int totalGuests  = bookingDAO.countBookingsByOwner(ownerId, null, "CHECKED_IN",
+                                                           null, null, keyword);
+        int totalPages   = totalGuests == 0 ? 1 : (int) Math.ceil((double) totalGuests / GUEST_PAGE_SIZE);
+
+        List<Booking> currentGuests = bookingDAO.getBookingsByOwner(
+                ownerId, null, "CHECKED_IN", null, null, keyword, offset, GUEST_PAGE_SIZE);
 
         // ── KPI tháng này ────────────────────────────────────────────────────
         String today         = new SimpleDateFormat("yyyy-MM-dd").format(new Date());
@@ -99,6 +115,10 @@ public class OwnerDashboardController extends HttpServlet {
         request.setAttribute("arrivals",       arrivals);
         request.setAttribute("departures",     departures);
         request.setAttribute("currentGuests",  currentGuests);
+        request.setAttribute("totalGuests",    totalGuests);
+        request.setAttribute("currentPage",    page);
+        request.setAttribute("totalPages",     totalPages);
+        request.setAttribute("searchKeyword",  keyword);
         request.setAttribute("monthRevenue",   monthRevenue);
         request.setAttribute("monthBookings",  monthBookings);
         request.setAttribute("occupancyRate",  occupancyRate);
