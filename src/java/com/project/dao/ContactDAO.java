@@ -13,11 +13,19 @@ public interface ContactDAO {
     /** Lưu tin nhắn liên hệ mới từ khách hàng. */
     boolean insertMessage(ContactMessage msg);
 
-    /** Danh sách tin nhắn, filter theo resolved (null = tất cả), phân trang. */
-    List<ContactMessage> getMessages(Boolean resolved, int offset, int limit);
+    /**
+     * Danh sách tin nhắn, filter theo resolved (null = tất cả) và keyword tìm kiếm, phân trang.
+     * @param resolved null=tất cả, true=đã xử lý, false=chưa xử lý
+     * @param keyword  tìm trên sender_name, sender_email, subject; null = không lọc
+     */
+    List<ContactMessage> getMessages(Boolean resolved, String keyword, int offset, int limit);
 
-    /** Đếm tổng tin nhắn theo filter (dùng cho pagination). */
-    int countMessages(Boolean resolved);
+    /**
+     * Đếm tổng tin nhắn theo filter (dùng cho pagination).
+     * @param resolved null=tất cả, true=đã xử lý, false=chưa xử lý
+     * @param keyword  tìm trên sender_name, sender_email, subject; null = không lọc
+     */
+    int countMessages(Boolean resolved, String keyword);
 
     /** Lấy chi tiết 1 tin nhắn. */
     Optional<ContactMessage> getMessageById(int messageId);

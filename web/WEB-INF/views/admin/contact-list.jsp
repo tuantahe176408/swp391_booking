@@ -42,27 +42,63 @@
                     </span>
                 </div>
 
-                <%-- Filter toolbar --%>
-                <div class="d-flex gap-2 mb-4 flex-wrap align-items-center">
-                    <a href="${pageContext.request.contextPath}/admin/contacts"
-                       class="btn btn-sm rounded-pill px-4 fw-semibold
-                              ${filterParam == 'all' || empty filterParam ? 'btn-primary' : 'btn-outline-secondary'}">
-                        Tất cả
-                        <span class="badge rounded-pill ms-1 bg-white text-dark">${countAll}</span>
-                    </a>
-                    <a href="${pageContext.request.contextPath}/admin/contacts?filter=pending"
-                       class="btn btn-sm rounded-pill px-4 fw-semibold
-                              ${filterParam == 'pending' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}">
-                        <i class="fa-solid fa-clock me-1"></i>Chưa xử lý
-                        <span class="badge rounded-pill ms-1 bg-white text-dark">${countPending}</span>
-                    </a>
-                    <a href="${pageContext.request.contextPath}/admin/contacts?filter=resolved"
-                       class="btn btn-sm rounded-pill px-4 fw-semibold
-                              ${filterParam == 'resolved' ? 'btn-success text-white' : 'btn-outline-success'}">
-                        <i class="fa-solid fa-circle-check me-1"></i>Đã xử lý
-                        <span class="badge rounded-pill ms-1 bg-white text-dark">${countResolved}</span>
-                    </a>
+                <%-- Filter toolbar + search --%>
+                <div class="d-flex gap-2 mb-3 flex-wrap align-items-center justify-content-between">
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <a href="${pageContext.request.contextPath}/admin/contacts<c:if test='${not empty filterKeyword}'>?keyword=${filterKeyword}</c:if>"
+                           class="btn btn-sm rounded-pill px-4 fw-semibold
+                                  ${filterParam == 'all' || empty filterParam ? 'btn-primary' : 'btn-outline-secondary'}">
+                            Tất cả
+                            <span class="badge rounded-pill ms-1 bg-white text-dark">${countAll}</span>
+                        </a>
+                        <a href="${pageContext.request.contextPath}/admin/contacts?filter=pending<c:if test='${not empty filterKeyword}'>&keyword=${filterKeyword}</c:if>"
+                           class="btn btn-sm rounded-pill px-4 fw-semibold
+                                  ${filterParam == 'pending' ? 'btn-warning text-dark' : 'btn-outline-warning text-dark'}">
+                            <i class="fa-solid fa-clock me-1"></i>Chưa xử lý
+                            <span class="badge rounded-pill ms-1 bg-white text-dark">${countPending}</span>
+                        </a>
+                        <a href="${pageContext.request.contextPath}/admin/contacts?filter=resolved<c:if test='${not empty filterKeyword}'>&keyword=${filterKeyword}</c:if>"
+                           class="btn btn-sm rounded-pill px-4 fw-semibold
+                                  ${filterParam == 'resolved' ? 'btn-success text-white' : 'btn-outline-success'}">
+                            <i class="fa-solid fa-circle-check me-1"></i>Đã xử lý
+                            <span class="badge rounded-pill ms-1 bg-white text-dark">${countResolved}</span>
+                        </a>
+                    </div>
+
+                    <%-- Search box --%>
+                    <form method="get" action="${pageContext.request.contextPath}/admin/contacts"
+                          class="d-flex gap-2 align-items-center">
+                        <c:if test="${not empty filterParam && filterParam != 'all'}">
+                            <input type="hidden" name="filter" value="${filterParam}">
+                        </c:if>
+                        <div class="input-group input-group-sm" style="width:280px;">
+                            <span class="input-group-text bg-white border-end-0">
+                                <i class="fa-solid fa-magnifying-glass text-muted" style="font-size:.8rem;"></i>
+                            </span>
+                            <input type="search" name="keyword" class="form-control border-start-0 ps-0"
+                                   placeholder="Tên, email, chủ đề..."
+                                   value="${not empty filterKeyword ? filterKeyword : ''}">
+                            <button type="submit" class="btn btn-primary btn-sm px-3">Tìm</button>
+                        </div>
+                        <c:if test="${not empty filterKeyword}">
+                            <a href="${pageContext.request.contextPath}/admin/contacts${not empty filterParam && filterParam != 'all' ? '?filter='.concat(filterParam) : ''}"
+                               class="btn btn-sm btn-outline-secondary" title="Xóa tìm kiếm">
+                                <i class="fa-solid fa-xmark"></i>
+                            </a>
+                        </c:if>
+                    </form>
                 </div>
+
+                <%-- Active filter badge --%>
+                <c:if test="${not empty filterKeyword}">
+                    <div class="mb-3 d-flex align-items-center gap-2">
+                        <small class="text-muted">Kết quả tìm kiếm:</small>
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">
+                            <i class="fa-solid fa-magnifying-glass me-1"></i>${filterKeyword}
+                        </span>
+                        <small class="text-muted">— ${total} tin nhắn</small>
+                    </div>
+                </c:if>
 
                 <%-- Table --%>
                 <div class="table-responsive">
@@ -158,6 +194,9 @@
                                                     <input type="hidden" name="resolve"   value="${m.resolved ? 'false' : 'true'}">
                                                     <input type="hidden" name="filter"    value="${filterParam}">
                                                     <input type="hidden" name="page"      value="${currentPage}">
+                                                    <c:if test="${not empty filterKeyword}">
+                                                        <input type="hidden" name="keyword" value="${filterKeyword}">
+                                                    </c:if>
                                                     <c:choose>
                                                         <c:when test="${m.resolved}">
                                                             <button type="submit" class="btn btn-sm btn-outline-secondary rounded-3"
@@ -183,33 +222,86 @@
                 </div>
 
                 <%-- Pagination --%>
-                <c:if test="${totalPages > 1}">
-                    <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2 border-top pt-3">
-                        <small class="text-muted">Trang ${currentPage}/${totalPages} · ${total} tin nhắn</small>
-                        <nav>
-                            <ul class="pagination pagination-sm mb-0">
-                                <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                                    <a class="page-link rounded-3 me-1"
-                                       href="${pageContext.request.contextPath}/admin/contacts?filter=${filterParam}&page=${currentPage-1}">
-                                        <i class="fa-solid fa-chevron-left"></i>
-                                    </a>
-                                </li>
-                                <c:forEach begin="1" end="${totalPages}" var="p">
-                                    <li class="page-item ${p == currentPage ? 'active' : ''}">
-                                        <a class="page-link rounded-3 me-1"
-                                           href="${pageContext.request.contextPath}/admin/contacts?filter=${filterParam}&page=${p}">${p}</a>
-                                    </li>
-                                </c:forEach>
-                                <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                                    <a class="page-link rounded-3"
-                                       href="${pageContext.request.contextPath}/admin/contacts?filter=${filterParam}&page=${currentPage+1}">
-                                        <i class="fa-solid fa-chevron-right"></i>
-                                    </a>
-                                </li>
-                            </ul>
+                <c:set var="kwParam"  value="${not empty filterKeyword ? filterKeyword : ''}"/>
+                <c:set var="baseUrl"  value="${pageContext.request.contextPath}/admin/contacts?filter=${filterParam}&keyword=${kwParam}&page="/>
+
+                <style>
+                    .ct-pager { display:flex; align-items:center; gap:5px; flex-wrap:wrap; }
+                    .ct-pager .ct-pg {
+                        display:inline-flex; align-items:center; justify-content:center;
+                        min-width:34px; height:34px; padding:0 8px;
+                        border-radius:9px; border:1px solid #e2e8f0;
+                        background:#fff; color:#475569; font-size:13px; line-height:1;
+                        text-decoration:none; transition:all .15s ease;
+                    }
+                    .ct-pager .ct-pg:hover { background:#eef2ff; border-color:#6366f1; color:#6366f1; }
+                    .ct-pager .ct-pg.active { background:#6366f1; border-color:#6366f1; color:#fff; pointer-events:none; }
+                    .ct-pager .ct-pg.disabled { opacity:.38; pointer-events:none; }
+                    .ct-pager .ct-ellipsis {
+                        display:inline-flex; align-items:center; justify-content:center;
+                        min-width:34px; height:34px; color:#94a3b8; font-size:13px; user-select:none;
+                    }
+                </style>
+
+                <div class="d-flex align-items-center justify-content-between mt-3 flex-wrap gap-2 border-top pt-3">
+                    <small class="text-muted">
+                        Trang ${currentPage}/${totalPages} &nbsp;·&nbsp; ${total} tin nhắn
+                    </small>
+
+                    <c:if test="${totalPages > 1}">
+                        <nav aria-label="Phân trang tin nhắn">
+                            <div class="ct-pager">
+                                <%-- Prev --%>
+                                <a class="ct-pg ${currentPage <= 1 ? 'disabled' : ''}"
+                                   href="${baseUrl}${currentPage - 1}" aria-label="Trang trước">
+                                    <i class="fa-solid fa-chevron-left"></i>
+                                </a>
+
+                                <c:choose>
+                                    <%-- 7 trang trở xuống: hiện hết --%>
+                                    <c:when test="${totalPages <= 7}">
+                                        <c:forEach begin="1" end="${totalPages}" var="p">
+                                            <a class="ct-pg ${p == currentPage ? 'active' : ''}"
+                                               href="${baseUrl}${p}">${p}</a>
+                                        </c:forEach>
+                                    </c:when>
+                                    <%-- Nhiều hơn 7: sliding window quanh currentPage --%>
+                                    <c:otherwise>
+                                        <c:set var="winStart" value="${currentPage - 1 > 2 ? currentPage - 1 : 2}"/>
+                                        <c:set var="winEnd"   value="${currentPage + 1 < totalPages ? currentPage + 1 : totalPages - 1}"/>
+
+                                        <%-- Trang 1 luôn hiện --%>
+                                        <a class="ct-pg ${1 == currentPage ? 'active' : ''}"
+                                           href="${baseUrl}1">1</a>
+
+                                        <c:if test="${winStart > 2}">
+                                            <span class="ct-ellipsis">…</span>
+                                        </c:if>
+
+                                        <c:forEach begin="${winStart}" end="${winEnd}" var="p">
+                                            <a class="ct-pg ${p == currentPage ? 'active' : ''}"
+                                               href="${baseUrl}${p}">${p}</a>
+                                        </c:forEach>
+
+                                        <c:if test="${winEnd < totalPages - 1}">
+                                            <span class="ct-ellipsis">…</span>
+                                        </c:if>
+
+                                        <%-- Trang cuối luôn hiện --%>
+                                        <a class="ct-pg ${totalPages == currentPage ? 'active' : ''}"
+                                           href="${baseUrl}${totalPages}">${totalPages}</a>
+                                    </c:otherwise>
+                                </c:choose>
+
+                                <%-- Next --%>
+                                <a class="ct-pg ${currentPage >= totalPages ? 'disabled' : ''}"
+                                   href="${baseUrl}${currentPage + 1}" aria-label="Trang sau">
+                                    <i class="fa-solid fa-chevron-right"></i>
+                                </a>
+                            </div>
                         </nav>
-                    </div>
-                </c:if>
+                    </c:if>
+                </div>
 
             </div><%-- /card --%>
         </div><%-- /owner-content --%>

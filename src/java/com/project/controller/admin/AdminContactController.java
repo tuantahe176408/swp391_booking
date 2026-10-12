@@ -40,23 +40,28 @@ public class AdminContactController extends HttpServlet {
         if ("pending".equals(filterParam))  resolved = false;
         if ("resolved".equals(filterParam)) resolved = true;
 
+        // Keyword search
+        String keyword = request.getParameter("keyword");
+        if (keyword != null && keyword.trim().isEmpty()) keyword = null;
+
         int page   = parseIntSafe(request.getParameter("page"), 1);
         int offset = (page - 1) * PAGE_SIZE;
 
-        List<ContactMessage> messages = contactDAO.getMessages(resolved, offset, PAGE_SIZE);
-        int total      = contactDAO.countMessages(resolved);
+        List<ContactMessage> messages = contactDAO.getMessages(resolved, keyword, offset, PAGE_SIZE);
+        int total      = contactDAO.countMessages(resolved, keyword);
         int totalPages = (total == 0) ? 1 : (int) Math.ceil((double) total / PAGE_SIZE);
 
-        // Counts for filter tabs
-        int countAll      = contactDAO.countMessages(null);
-        int countPending  = contactDAO.countMessages(false);
-        int countResolved = contactDAO.countMessages(true);
+        // Counts for filter tabs (không dùng keyword để đếm tabs — hiển thị tổng thực)
+        int countAll      = contactDAO.countMessages(null,  null);
+        int countPending  = contactDAO.countMessages(false, null);
+        int countResolved = contactDAO.countMessages(true,  null);
 
         request.setAttribute("messages",      messages);
         request.setAttribute("total",         total);
         request.setAttribute("currentPage",   page);
         request.setAttribute("totalPages",    totalPages);
         request.setAttribute("filterParam",   filterParam != null ? filterParam : "all");
+        request.setAttribute("filterKeyword", keyword);
         request.setAttribute("countAll",      countAll);
         request.setAttribute("countPending",  countPending);
         request.setAttribute("countResolved", countResolved);
@@ -80,6 +85,7 @@ public class AdminContactController extends HttpServlet {
         boolean resolve   = "true".equals(request.getParameter("resolve"));
         String  filter    = request.getParameter("filter");
         String  page      = request.getParameter("page");
+        String  keyword   = request.getParameter("keyword");
 
         if (messageId > 0) {
             boolean ok = contactDAO.setResolved(messageId, resolve, admin.getUserId());
@@ -92,11 +98,16 @@ public class AdminContactController extends HttpServlet {
             }
         }
 
-        // Redirect back giữ filter + page
-        String redirect = request.getContextPath() + "/admin/contacts";
-        if (filter != null && !filter.isEmpty()) redirect += "?filter=" + filter;
-        if (page   != null && !page.isEmpty())   redirect += (redirect.contains("?") ? "&" : "?") + "page=" + page;
-        response.sendRedirect(redirect);
+        // Redirect back giữ filter + page + keyword
+        StringBuilder redirect = new StringBuilder(request.getContextPath() + "/admin/contacts?");
+        if (filter  != null && !filter.isEmpty())  redirect.append("filter=").append(filter).append("&");
+        if (page    != null && !page.isEmpty())    redirect.append("page=").append(page).append("&");
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            redirect.append("keyword=").append(java.net.URLEncoder.encode(keyword.trim(), "UTF-8")).append("&");
+        }
+        // trim trailing '&' or '?'
+        String url = redirect.toString().replaceAll("[?&]$", "");
+        response.sendRedirect(url);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

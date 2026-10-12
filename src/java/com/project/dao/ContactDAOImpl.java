@@ -55,21 +55,35 @@ public class ContactDAOImpl implements ContactDAO {
     }
 
     @Override
-    public List<ContactMessage> getMessages(Boolean resolved, int offset, int limit) {
+    public List<ContactMessage> getMessages(Boolean resolved, String keyword, int offset, int limit) {
         List<ContactMessage> list = new ArrayList<>();
-        String where = (resolved == null) ? "" : " WHERE cm.is_resolved = ?";
-        String sql = "SELECT cm.*, u.full_name AS resolved_by_name " +
-                     "FROM contact_messages cm " +
-                     "LEFT JOIN users u ON cm.resolved_by = u.user_id" +
-                     where +
-                     " ORDER BY cm.is_resolved ASC, cm.created_at DESC" +
-                     " LIMIT ? OFFSET ?";
+        StringBuilder sql = new StringBuilder(
+            "SELECT cm.*, u.full_name AS resolved_by_name " +
+            "FROM contact_messages cm " +
+            "LEFT JOIN users u ON cm.resolved_by = u.user_id" +
+            " WHERE 1=1");
+
+        List<Object> params = new ArrayList<>();
+
+        if (resolved != null) {
+            sql.append(" AND cm.is_resolved = ?");
+            params.add(resolved);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String like = "%" + keyword.trim() + "%";
+            sql.append(" AND (cm.sender_name LIKE ? OR cm.sender_email LIKE ? OR cm.subject LIKE ?)");
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+
+        sql.append(" ORDER BY cm.is_resolved ASC, cm.created_at DESC LIMIT ? OFFSET ?");
+        params.add(limit);
+        params.add(offset);
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            int idx = 1;
-            if (resolved != null) ps.setBoolean(idx++, resolved);
-            ps.setInt(idx++, limit);
-            ps.setInt(idx,   offset);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) list.add(map(rs));
             }
@@ -80,12 +94,27 @@ public class ContactDAOImpl implements ContactDAO {
     }
 
     @Override
-    public int countMessages(Boolean resolved) {
-        String where = (resolved == null) ? "" : " WHERE is_resolved = ?";
-        String sql = "SELECT COUNT(*) FROM contact_messages" + where;
+    public int countMessages(Boolean resolved, String keyword) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT COUNT(*) FROM contact_messages cm WHERE 1=1");
+
+        List<Object> params = new ArrayList<>();
+
+        if (resolved != null) {
+            sql.append(" AND cm.is_resolved = ?");
+            params.add(resolved);
+        }
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String like = "%" + keyword.trim() + "%";
+            sql.append(" AND (cm.sender_name LIKE ? OR cm.sender_email LIKE ? OR cm.subject LIKE ?)");
+            params.add(like);
+            params.add(like);
+            params.add(like);
+        }
+
         try (Connection conn = DBContext.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            if (resolved != null) ps.setBoolean(1, resolved);
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+            for (int i = 0; i < params.size(); i++) ps.setObject(i + 1, params.get(i));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getInt(1);
             }
