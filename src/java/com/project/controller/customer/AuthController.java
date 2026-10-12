@@ -298,10 +298,10 @@ public class AuthController extends HttpServlet {
                     redirectUrl = request.getContextPath() + "/admin/users";
                     break;
                 case OWNER:
-                    redirectUrl = request.getContextPath() + "/owner/homestays";
+                    redirectUrl = request.getContextPath() + "/owner/dashboard";
                     break;
                 case RECEPTIONIST:
-                    redirectUrl = request.getContextPath() + "/reception/checkin";
+                    redirectUrl = request.getContextPath() + "/reception/dashboard";
                     break;
                 case CUSTOMER:
                 default:
