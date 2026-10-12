@@ -325,7 +325,7 @@
                                             </td>
                                             <td class="pe-4 text-center">
                                                 <div class="d-flex gap-1 justify-content-center">
-                                                    <form method="post" action="${pageContext.request.contextPath}/reception/today"
+                                                    <form method="post" action="${pageContext.request.contextPath}/reception/dashboard"
                                                           onsubmit="return confirm('Xác nhận check-out cho ${g.guestName}?')">
                                                         <input type="hidden" name="action"    value="checkout">
                                                         <input type="hidden" name="bookingId" value="${g.bookingId}">
