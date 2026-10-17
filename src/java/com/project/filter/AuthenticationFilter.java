@@ -65,17 +65,30 @@ public class AuthenticationFilter implements Filter {
             return;
         }
 
-        if (uri.contains("/owner/") && role != User.Role.OWNER && role != User.Role.ADMIN) {
-            httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Owner Privilege Required");
+        // OWNER-only zone: chỉ OWNER mới được vào — ADMIN bị chặn như mọi role khác
+        if (uri.contains("/owner/") && role != User.Role.OWNER) {
+            httpResponse.sendRedirect(httpRequest.getContextPath() + getDashboardForRole(role));
             return;
         }
 
-        if (uri.contains("/reception/") && role != User.Role.RECEPTIONIST && role != User.Role.OWNER && role != User.Role.ADMIN) {
-            httpResponse.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied: Receptionist Privilege Required");
+        // RECEPTION zone: RECEPTIONIST và OWNER được vào — ADMIN bị chặn
+        if (uri.contains("/reception/") && role != User.Role.RECEPTIONIST && role != User.Role.OWNER) {
+            httpResponse.sendRedirect(httpRequest.getContextPath() + getDashboardForRole(role));
             return;
         }
 
         chain.doFilter(request, response);
+    }
+
+    /** Trả về URL dashboard phù hợp với role để redirect khi truy cập sai khu vực. */
+    private String getDashboardForRole(User.Role role) {
+        if (role == null) return "/login";
+        switch (role) {
+            case ADMIN:        return "/admin/dashboard";
+            case OWNER:        return "/owner/dashboard";
+            case RECEPTIONIST: return "/reception/dashboard";
+            default:           return "/home";
+        }
     }
 
     @Override
