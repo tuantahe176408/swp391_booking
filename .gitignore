@@ -3,6 +3,11 @@ build/
 dist/
 nbproject/private/
 
+# NOTE: KHONG ignore cac file sau - BAT BUOC commit de ca nhom build giong nhau:
+#   nbproject/project.xml, nbproject/project.properties,
+#   nbproject/build-impl.xml, nbproject/genfiles.properties, nbproject/ant-deploy.xml
+# Chi co nbproject/private/ la cau hinh rieng tung may nen moi ignore.
+
 
 # Compiled Class Files & Packaging
 *.class
@@ -30,6 +35,11 @@ bin/
 
 # Kiro AI steering files (local dev environment rules, not for sharing)
 .kiro/steering/no-shell-no-admin.md
+
+# Kiro AI agent task outputs & workflow artifacts
+.agents/
+.kiro/hooks/
+.kiro/workflows/
 
 # Log & Temporary Files
 *.log
