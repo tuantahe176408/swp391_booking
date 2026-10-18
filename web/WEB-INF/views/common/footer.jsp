@@ -84,6 +84,35 @@
     </div>
 </footer>
 
+<!-- ── AI Chatbox Widget (UC27) ──────────────────────────────────── -->
+<button id="chatbox-toggle-btn" aria-label="Mở trợ lý AI" title="Trợ lý AI Smart Booking">
+    <i class="fa-solid fa-robot"></i>
+</button>
+<div id="chatbox-panel" role="dialog" aria-label="Trợ lý AI Chatbox">
+    <div class="chatbox-header">
+        <div class="chatbox-header-title">
+            <div>Trợ lý AI Smart Booking</div>
+            <div class="chatbox-header-sub">Powered by Google Gemini</div>
+        </div>
+        <button id="chatbox-close-btn" class="chatbox-close-btn" aria-label="Đóng">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+    <div id="chatbox-messages" class="chatbox-messages">
+        <div class="cb-msg cb-msg-bot">
+            Xin chào! Tôi là trợ lý AI của Smart Booking. Tôi có thể giúp bạn tìm homestay phù hợp hoặc trả lời câu hỏi về đặt phòng. 🏡
+        </div>
+    </div>
+    <div class="chatbox-input-area">
+        <input id="chatbox-input" type="text" maxlength="500"
+               placeholder="Nhập câu hỏi của bạn..." autocomplete="off" />
+        <button id="chatbox-send-btn" aria-label="Gửi">
+            <i class="fa-solid fa-paper-plane"></i>
+        </button>
+    </div>
+</div>
+<!-- ── /AI Chatbox Widget ─────────────────────────────────────────── -->
+
 <!-- Bootstrap 5 JS Bundle (Local & CDN Fallback) -->
 <script src="${pageContext.request.contextPath}/assets/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -188,5 +217,7 @@
         });
     })();
 </script>
+<!-- AI Chatbox Script (UC27) -->
+<script src="${pageContext.request.contextPath}/assets/js/chatbox.js"></script>
 </body>
 </html>
