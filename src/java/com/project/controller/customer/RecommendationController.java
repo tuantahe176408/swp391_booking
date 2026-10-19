@@ -4,6 +4,7 @@ import com.project.dao.HomestayDAO;
 import com.project.dao.HomestayDAOImpl;
 import com.project.model.Homestay;
 import com.project.model.User;
+import com.project.util.GeminiAIUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -42,6 +43,22 @@ public class RecommendationController extends HttpServlet {
 
         List<Homestay> recommendations = homestayDAO.getRecommendedHomestays(currentUser.getUserId(), 6);
 
+        // ── AI Reranking (UC27) ──────────────────────────────────────────
+        boolean aiReranked = false;
+        if (GeminiAIUtil.isEnabled() && !recommendations.isEmpty()) {
+            // Build user context from session preferences (user_preferences already queried inside DAO)
+            // Use the first reasonTag as a proxy for detected preferences; guard against null (cold-start)
+            String rawCtx = recommendations.get(0).getReasonTag();
+            String userCtx = (rawCtx != null) ? rawCtx : "Không rõ sở thích";
+            List<Homestay> aiList = GeminiAIUtil.rerankForRecommendations(recommendations, userCtx);
+            if (aiList != null) {
+                recommendations = aiList;
+                aiReranked = true;
+            }
+        }
+        // ── /AI Reranking ────────────────────────────────────────────────
+
+        request.setAttribute("aiReranked", aiReranked);
         request.setAttribute("recommendations", recommendations);
         request.setAttribute("activeTab", "recommendations");
         request.setAttribute("pageTitle", "Gợi ý AI Thông minh - Smart Booking Platform");

@@ -16,7 +16,7 @@
         <div class="hero-search-box">
             <form action="${pageContext.request.contextPath}/search" method="GET">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label"><i class="fa-solid fa-location-dot text-primary me-1"></i> Địa điểm</label>
                         <div class="position-relative">
                             <input type="text" name="location" id="homeLocationInput" class="form-control" placeholder="Đà Lạt, Nha Trang, Phú Quốc..." autocomplete="off">
@@ -53,15 +53,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Nhận phòng</label>
                         <input type="date" name="checkin" id="homeCheckin" class="form-control">
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label"><i class="fa-regular fa-calendar-check text-primary me-1"></i> Trả phòng</label>
                         <input type="date" name="checkout" id="homeCheckout" class="form-control">
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label"><i class="fa-solid fa-user-group text-primary me-1"></i> Số khách</label>
                         <select name="guests" class="form-select">
                             <option value="1">1 Khách</option>
@@ -85,8 +85,20 @@
 <div class="container section-content">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="h3 mb-1">Điểm đến Hot Nổi bật</h2>
-            <p class="text-secondary mb-0">Các homestay được khách hàng đánh giá cao nhất trên hệ thống</p>
+            <h2 class="h3 mb-1">
+                Điểm đến Hot Nổi bật
+                <c:if test="${aiReranked}">
+                    <span class="badge bg-warning text-dark ms-2 fw-normal" style="font-size:0.55em;vertical-align:middle;">
+                        <i class="fa-solid fa-wand-magic-sparkles me-1"></i>AI Gợi ý
+                    </span>
+                </c:if>
+            </h2>
+            <p class="text-secondary mb-0">
+                <c:choose>
+                    <c:when test="${aiReranked}">Được sắp xếp thông minh bởi AI dựa trên sở thích của bạn</c:when>
+                    <c:otherwise>Các homestay được khách hàng đánh giá cao nhất trên hệ thống</c:otherwise>
+                </c:choose>
+            </p>
         </div>
         <a href="${pageContext.request.contextPath}/search" class="btn btn-outline-primary rounded-pill">
             Xem tất cả <i class="fa-solid fa-arrow-right ms-1"></i>

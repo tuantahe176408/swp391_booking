@@ -38,11 +38,6 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link ${pageContext.request.requestURI.contains('/recommendations') ? 'active' : ''}" href="${pageContext.request.contextPath}/customer/recommendations">
-                        <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Gợi ý AI <span class="badge bg-danger ms-1">New</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link ${pageContext.request.requestURI.contains('/about') ? 'active' : ''}" href="${pageContext.request.contextPath}/about">
                         <i class="fa-solid fa-circle-info me-1"></i> Giới thiệu
                     </a>

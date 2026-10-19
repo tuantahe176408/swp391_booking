@@ -11,6 +11,12 @@
                 <span class="badge bg-white fw-bold mb-3 px-3 py-2 shadow-sm rounded-pill" style="font-size: 0.85rem; color: #4338ca !important;">
                     <i class="fa-solid fa-wand-magic-sparkles me-1" style="color: #4f46e5;"></i> Gợi ý AI Cá nhân hóa
                 </span>
+                <c:if test="${aiReranked}">
+                    <span class="badge ms-2 fw-bold mb-3 px-3 py-2 shadow-sm rounded-pill"
+                          style="font-size: 0.85rem; background: rgba(255,255,255,0.18); color: #fff; border: 1px solid rgba(255,255,255,0.35);">
+                        <i class="fa-brands fa-google me-1"></i> Gemini AI Reranked
+                    </span>
+                </c:if>
                 <h2 class="fw-bold text-white mb-2" style="font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.2);">
                     Gợi Ý Thông Minh Cho ${sessionScope.currentUser.fullName}
                 </h2>
