@@ -43,6 +43,7 @@
 | **UC24** | System Configuration & AI Monitoring | Thành viên 5 | Admin | Level 6 | 210 | 14-15 fields / 7 transactions |
 | **UC25** | View Platform Analytics & Financials | Thành viên 5 | Admin | Level 5 | 180 | 12-13 fields / 6 transactions |
 | **UC26** | Manage Platform Vouchers & Campaigns | Thành viên 5 | Admin | Level 5 | 180 | 12-13 fields / 6 transactions |
+| **UC27** | AI Chatbox & Smart Recommendations | Thành viên 3 | Customer | Level 5 | 200 | 12-13 fields / 6 transactions |
 
 ---
 
