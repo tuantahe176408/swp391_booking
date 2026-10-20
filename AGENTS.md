@@ -105,7 +105,7 @@ Whenever performing git operations or executing a commit command on behalf of th
 1. **Author Mapping & Git Config**:
    - TV 1 (`tuantahe176408@fpt.edu.vn` / `tuantahe176408`): **UC12 - UC16** (Receptionist)
    - TV 2 (`sangnvhe171435@fpt.edu.vn` / `sangnvhe171435`): **UC03, UC04, UC07 - UC11** (Search, Detail, Booking, Payments, Reviews, Vouchers)
-   - TV 3 (`binhtxghe171513@fpt.edu.vn` / `binhtxghe171513`): **UC01, UC02, UC05, UC06** (Auth, Profile, Security Filters, Recommendations, Wishlist)
+   - TV 3 (`binhtxghe171513@fpt.edu.vn` / `binhtxghe171513`): **UC01, UC02, UC05, UC06, UC27** (Auth, Profile, Security Filters, Recommendations, Wishlist, AI Chatbox)
    - TV 4 (`khoandhe173573@fpt.edu.vn` / `khoandhe173573`): **UC17 - UC21** (Owner Dashboard)
    - TV 5 (`Thanhlthe171416@fpt.edu.vn` / `Thanhlthe171416`): **UC22 - UC26** (System Admin)
 2. **Branch Workflow (QUY TẮC BẮT BUỘC - TUYỆT ĐỐI KHÔNG COMMIT TRỰC TIẾP LÊN MAIN)**:
@@ -120,4 +120,4 @@ Whenever performing git operations or executing a commit command on behalf of th
 3. **Commit Message Format**:
    - `<type>(<scope>): <short description in Vietnamese or English>`
    - Types: `feat`, `fix`, `docs`, `style`, `refactor`, `chore`
-   - Scope: `UC01` to `UC26`, `config`, `common`, `filter`, `db`.
+   - Scope: `UC01` to `UC27`, `config`, `common`, `filter`, `db`.

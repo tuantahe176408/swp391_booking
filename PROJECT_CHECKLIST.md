@@ -276,6 +276,17 @@
 - [x] VNPay integration: tạo `payment-select.jsp`, `payment-mock.jsp`, lưu Payment record vào DB khi callback, fix HMAC hashData encoding (`PaymentController.java`, `PaymentUtil.java`)
 - [x] VNPay sandbox credentials cấu hình (TmnCode: 1JGR8UF7)
 
+#### Nhóm 26: AI Chatbox & AI Gợi ý Thông minh (Bình - UC27) ✨ **[MỚI]**
+- [x] Tích hợp Google Gemini 1.5 Flash API (free tier) (`GeminiAIUtil.java`, `application.properties`)
+- [x] `GeminiAIUtil`: `isEnabled()` kiểm tra cấu hình, `chat()` hội thoại đa lượt, `rerankForRecommendations()` tái xếp hạng
+- [x] AI Chatbox Controller: `ChatController.java` tại `/chat`, không yêu cầu đăng nhập
+- [x] Session-based chat history (key `CHAT_HISTORY`, tối đa 20 entries) — không lưu DB (MVP)
+- [x] Frontend widget: `chatbox.css` + `chatbox.js` (IIFE, không global), chèn vào `footer.jsp`
+- [x] Chatbox ẩn tự động nếu AI bị tắt (`GET /chat?check=enabled`)
+- [x] Tích hợp AI Reranking vào `RecommendationController.java`: gọi `GeminiAIUtil.rerankForRecommendations()`, fallback graceful
+- [x] Badge "Gemini AI Reranked" trong `recommendations.jsp` khi AI tái xếp hạng thành công
+- [x] Cập nhật scope TV3 trong `AGENTS.md`, `GIT_COMMIT_RULES.md`, `usecase.md`
+
 ---
 
 ## 🔑 Tài Khoản Thử Nghiệm Mặc Định (Seed Test Data)
