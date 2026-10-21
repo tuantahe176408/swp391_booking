@@ -378,4 +378,52 @@ public class UserDAOImpl implements UserDAO {
         user.setUpdatedAt(rs.getTimestamp("updated_at"));
         return user;
     }
+
+    // ── UC02/UC05: User Preferences ──────────────────────────────────────────
+
+    @Override
+    public List<String> getPreferences(int userId) {
+        List<String> result = new ArrayList<>();
+        String sql = "SELECT category FROM user_preferences WHERE user_id = ? ORDER BY preference_id ASC";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, userId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) result.add(rs.getString("category"));
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getPreferences for userId=" + userId, e);
+        }
+        return result;
+    }
+
+    @Override
+    public boolean savePreferences(int userId, List<String> categories) {
+        String deleteSql = "DELETE FROM user_preferences WHERE user_id = ?";
+        String insertSql = "INSERT INTO user_preferences (user_id, category) VALUES (?, ?)";
+        try (Connection conn = DBContext.getConnection()) {
+            conn.setAutoCommit(false);
+            try (PreparedStatement del = conn.prepareStatement(deleteSql)) {
+                del.setInt(1, userId);
+                del.executeUpdate();
+            }
+            if (categories != null && !categories.isEmpty()) {
+                try (PreparedStatement ins = conn.prepareStatement(insertSql)) {
+                    for (String cat : categories) {
+                        if (cat != null && !cat.isBlank()) {
+                            ins.setInt(1, userId);
+                            ins.setString(2, cat.trim().toUpperCase());
+                            ins.addBatch();
+                        }
+                    }
+                    ins.executeBatch();
+                }
+            }
+            conn.commit();
+            return true;
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in savePreferences for userId=" + userId, e);
+        }
+        return false;
+    }
 }

@@ -15,6 +15,9 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import javax.servlet.http.Part;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -65,6 +68,10 @@ public class ProfileController extends HttpServlet {
         userDAO.findById(currentUser.getUserId())
                .ifPresent(u -> session.setAttribute("currentUser", u));
 
+        // Load preferences từ DB để JSP hiển thị đúng trạng thái checked
+        List<String> prefs = userDAO.getPreferences(currentUser.getUserId());
+        request.setAttribute("userPreferences", prefs);
+
         request.setAttribute("activeTab", "profile");
         request.setAttribute("pageTitle", "Hồ sơ cá nhân - Smart Booking Platform");
         request.getRequestDispatcher("/WEB-INF/views/customer/profile.jsp")
@@ -106,11 +113,22 @@ public class ProfileController extends HttpServlet {
         }
 
         if (userDAO.updateUser(currentUser)) {
+            // Lưu preferences
+            String[] prefArray = request.getParameterValues("preferences");
+            List<String> prefs = (prefArray != null)
+                    ? Arrays.asList(prefArray)
+                    : Collections.emptyList();
+            userDAO.savePreferences(currentUser.getUserId(), prefs);
+
             session.setAttribute("currentUser", currentUser);
             request.setAttribute("successMessage", "Cập nhật thông tin hồ sơ thành công!");
         } else {
             request.setAttribute("errorMessage", "Cập nhật hồ sơ thất bại. Vui lòng thử lại!");
         }
+
+        // Load lại preferences để JSP hiển thị đúng sau khi lưu
+        List<String> savedPrefs = userDAO.getPreferences(currentUser.getUserId());
+        request.setAttribute("userPreferences", savedPrefs);
 
         request.setAttribute("activeTab", "profile");
         request.setAttribute("pageTitle", "Hồ sơ cá nhân - Smart Booking Platform");

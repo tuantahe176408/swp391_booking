@@ -309,31 +309,31 @@
 
                                 <div class="d-flex flex-wrap gap-2">
                                     <div>
-                                        <input class="preference-pill-checkbox" type="checkbox" id="pref1" checked>
+                                        <input class="preference-pill-checkbox" type="checkbox" name="preferences" id="pref1" value="BEACH" ${userPreferences.contains('BEACH') ? 'checked' : ''}>
                                         <label class="preference-pill-label" for="pref1">
                                             <i class="fa-solid fa-water me-1.5 text-primary"></i>View Biển / Hồ nước
                                         </label>
                                     </div>
                                     <div>
-                                        <input class="preference-pill-checkbox" type="checkbox" id="pref2" checked>
+                                        <input class="preference-pill-checkbox" type="checkbox" name="preferences" id="pref2" value="POOL" ${userPreferences.contains('POOL') ? 'checked' : ''}>
                                         <label class="preference-pill-label" for="pref2">
                                             <i class="fa-solid fa-person-swimming me-1.5 text-info"></i>Có Bể bơi riêng
                                         </label>
                                     </div>
                                     <div>
-                                        <input class="preference-pill-checkbox" type="checkbox" id="pref3">
+                                        <input class="preference-pill-checkbox" type="checkbox" name="preferences" id="pref3" value="ECO" ${userPreferences.contains('ECO') ? 'checked' : ''}>
                                         <label class="preference-pill-label" for="pref3">
                                             <i class="fa-solid fa-tree me-1.5 text-success"></i>Phong cách Eco & Thiên nhiên
                                         </label>
                                     </div>
                                     <div>
-                                        <input class="preference-pill-checkbox" type="checkbox" id="pref4" checked>
+                                        <input class="preference-pill-checkbox" type="checkbox" name="preferences" id="pref4" value="BBQ" ${userPreferences.contains('BBQ') ? 'checked' : ''}>
                                         <label class="preference-pill-label" for="pref4">
                                             <i class="fa-solid fa-fire-burner me-1.5 text-danger"></i>Tiệc nướng BBQ & Sân vườn
                                         </label>
                                     </div>
                                     <div>
-                                        <input class="preference-pill-checkbox" type="checkbox" id="pref5">
+                                        <input class="preference-pill-checkbox" type="checkbox" name="preferences" id="pref5" value="MOUNTAIN" ${userPreferences.contains('MOUNTAIN') ? 'checked' : ''}>
                                         <label class="preference-pill-label" for="pref5">
                                             <i class="fa-solid fa-mountain me-1.5 text-warning"></i>Khu vực yên tĩnh & Săn mây
                                         </label>
