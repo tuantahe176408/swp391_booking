@@ -16,7 +16,7 @@
         <div class="hero-search-box">
             <form action="${pageContext.request.contextPath}/search" method="GET">
                 <div class="row g-3 align-items-end">
-                    <div class="col-md-2">
+                    <div class="col-md-3">
                         <label class="form-label"><i class="fa-solid fa-location-dot text-primary me-1"></i> Địa điểm</label>
                         <div class="position-relative">
                             <input type="text" name="location" id="homeLocationInput" class="form-control" placeholder="Đà Lạt, Nha Trang, Phú Quốc..." autocomplete="off">
@@ -53,15 +53,15 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
+                    <div class="col-md-2">
                         <label class="form-label"><i class="fa-solid fa-calendar-days text-primary me-1"></i> Nhận phòng</label>
-                        <input type="date" name="checkin" id="homeCheckin" class="form-control">
-                    </div>
-                    <div class="col-md-3">
-                        <label class="form-label"><i class="fa-regular fa-calendar-check text-primary me-1"></i> Trả phòng</label>
-                        <input type="date" name="checkout" id="homeCheckout" class="form-control">
+                        <input type="date" name="checkin" id="homeCheckin" class="form-control" style="font-size:0.875rem; padding-right:4px;">
                     </div>
                     <div class="col-md-2">
+                        <label class="form-label"><i class="fa-regular fa-calendar-check text-primary me-1"></i> Trả phòng</label>
+                        <input type="date" name="checkout" id="homeCheckout" class="form-control" style="font-size:0.875rem; padding-right:4px;">
+                    </div>
+                    <div class="col-md-3">
                         <label class="form-label"><i class="fa-solid fa-user-group text-primary me-1"></i> Số khách</label>
                         <select name="guests" class="form-select">
                             <option value="1">1 Khách</option>

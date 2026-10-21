@@ -37,4 +37,10 @@ public interface UserDAO {
     List<User> searchUsers(String keyword, String role, Boolean isActive, int offset, int limit);
 
     int countSearchUsers(String keyword, String role, Boolean isActive);
+
+    /** UC02/UC05: Load preference categories for a user. */
+    List<String> getPreferences(int userId);
+
+    /** UC02/UC05: Replace all preferences for a user (DELETE + INSERT). */
+    boolean savePreferences(int userId, List<String> categories);
 }
