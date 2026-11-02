@@ -14,6 +14,8 @@ public interface UserDAO {
 
     Optional<User> findByEmail(String email);
 
+    Optional<User> findByPhone(String phoneNumber);
+
     Optional<User> findByGoogleId(String googleId);
 
     boolean insertUser(User user);

@@ -226,6 +226,12 @@ public class AuthController extends HttpServlet {
             return;
         }
 
+        if (!isValidPhoneNumber(phone)) {
+            request.setAttribute("errorMessage", "Số điện thoại không hợp lệ. Vui lòng nhập số điện thoại Việt Nam gồm 10 chữ số (bắt đầu bằng 0).");
+            request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
+            return;
+        }
+
         if (!password.equals(confirmPassword)) {
             request.setAttribute("errorMessage", "Mật khẩu xác nhận không trùng khớp.");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
@@ -234,6 +240,12 @@ public class AuthController extends HttpServlet {
 
         if (userDAO.findByEmail(email).isPresent()) {
             request.setAttribute("errorMessage", "Email này đã được đăng ký tài khoản.");
+            request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
+            return;
+        }
+
+        if (userDAO.findByPhone(phone.trim()).isPresent()) {
+            request.setAttribute("errorMessage", "Số điện thoại này đã được đăng ký tài khoản.");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
             return;
         }
@@ -260,6 +272,20 @@ public class AuthController extends HttpServlet {
             request.setAttribute("errorMessage", "Đăng ký không thành công. Vui lòng thử lại sau.");
             request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
         }
+    }
+
+    /**
+     * Kiểm tra số điện thoại hợp lệ theo định dạng Việt Nam:
+     * gồm đúng 10 chữ số và bắt đầu bằng số 0 (đầu số 03/05/07/08/09).
+     *
+     * @param phone chuỗi số điện thoại cần kiểm tra
+     * @return true nếu hợp lệ, false nếu rỗng/null hoặc sai định dạng
+     */
+    private boolean isValidPhoneNumber(String phone) {
+        if (phone == null || phone.trim().isEmpty()) {
+            return false;
+        }
+        return phone.trim().matches("^0[35789]\\d{8}$");
     }
 
     private void redirectAfterAuth(HttpServletRequest request, HttpServletResponse response, User user, String redirect)
