@@ -143,7 +143,7 @@ public class AdminUserController extends HttpServlet {
             // Check phone number duplicate
             if (userDAO.findByPhone(phone.trim()).isPresent()) {
                 request.setAttribute("errorMessage", "Số điện thoại này đã được đăng ký tài khoản.");
-                request.getRequestDispatcher("/WEB-INF/views/customer/login.jsp").forward(request, response);
+                response.sendRedirect(request.getContextPath() + "/admin/users");
                 return;
             }
 
