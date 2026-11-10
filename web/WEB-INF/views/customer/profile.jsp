@@ -232,6 +232,23 @@
                     <a href="${pageContext.request.contextPath}/customer/recommendations" class="profile-side-link">
                         <i class="fa-solid fa-wand-magic-sparkles me-2.5 text-warning"></i>Gợi ý Homestay dành cho bạn
                     </a>
+                    <a href="${pageContext.request.contextPath}/customer/loyalty" class="profile-side-link">
+                        <i class="fa-solid fa-star me-2.5 text-warning"></i>Điểm thưởng Loyalty
+                        <c:choose>
+                            <c:when test="${sessionScope.currentUser.loyaltyTier == 'PLATINUM'}">
+                                <span class="badge ms-auto px-2" style="background:linear-gradient(135deg,#8b5cf6,#4f46e5);font-size:.6rem;">💎</span>
+                            </c:when>
+                            <c:when test="${sessionScope.currentUser.loyaltyTier == 'GOLD'}">
+                                <span class="badge bg-warning ms-auto px-2" style="font-size:.6rem;">🥇</span>
+                            </c:when>
+                            <c:when test="${sessionScope.currentUser.loyaltyTier == 'SILVER'}">
+                                <span class="badge bg-secondary ms-auto px-2" style="font-size:.6rem;">🥈</span>
+                            </c:when>
+                            <c:otherwise>
+                                <span class="badge ms-auto px-2" style="background:#cd7f32;font-size:.6rem;">🥉</span>
+                            </c:otherwise>
+                        </c:choose>
+                    </a>
                 </div>
             </div>
         </div>

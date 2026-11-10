@@ -36,6 +36,11 @@ public class User implements Serializable {
     private Timestamp createdAt;
     private Timestamp updatedAt;
 
+    // ── Loyalty fields (populated by UserDAO from loyalty columns) ────────────
+    private int loyaltyPointsBalance;
+    private int loyaltyTotalEarned;
+    private String loyaltyTier = "BRONZE";
+
     public User() {
         this.role = Role.CUSTOMER;
         this.authProvider = AuthProvider.LOCAL;
@@ -171,4 +176,15 @@ public class User implements Serializable {
     public void setUpdatedAt(Timestamp updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    // ── Loyalty getters/setters ───────────────────────────────────────────────
+
+    public int getLoyaltyPointsBalance() { return loyaltyPointsBalance; }
+    public void setLoyaltyPointsBalance(int loyaltyPointsBalance) { this.loyaltyPointsBalance = loyaltyPointsBalance; }
+
+    public int getLoyaltyTotalEarned() { return loyaltyTotalEarned; }
+    public void setLoyaltyTotalEarned(int loyaltyTotalEarned) { this.loyaltyTotalEarned = loyaltyTotalEarned; }
+
+    public String getLoyaltyTier() { return loyaltyTier != null ? loyaltyTier : "BRONZE"; }
+    public void setLoyaltyTier(String loyaltyTier) { this.loyaltyTier = loyaltyTier; }
 }

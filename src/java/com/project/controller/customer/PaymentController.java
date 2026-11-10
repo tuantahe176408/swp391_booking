@@ -2,6 +2,8 @@ package com.project.controller.customer;
 
 import com.project.dao.BookingDAO;
 import com.project.dao.BookingDAOImpl;
+import com.project.dao.LoyaltyDAO;
+import com.project.dao.LoyaltyDAOImpl;
 import com.project.dao.PaymentDAO;
 import com.project.dao.PaymentDAOImpl;
 import com.project.model.Booking;
@@ -39,11 +41,13 @@ public class PaymentController extends HttpServlet {
 
     private BookingDAO bookingDAO;
     private PaymentDAO paymentDAO;
+    private LoyaltyDAO loyaltyDAO;
 
     @Override
     public void init() throws ServletException {
         this.bookingDAO = new BookingDAOImpl();
         this.paymentDAO = new PaymentDAOImpl();
+        this.loyaltyDAO = new LoyaltyDAOImpl();
     }
 
     @Override
@@ -211,6 +215,16 @@ public class PaymentController extends HttpServlet {
 
                 bookingDAO.updateBookingStatus(b.getBookingId(), "CONFIRMED");
                 updatePendingPaymentMoMo(request, b, transId, "SUCCESS", amount);
+
+                // Award loyalty points on MoMo success
+                if (b.getCustomerId() != null && b.getCustomerId() > 0 && b.getFinalTotal() != null) {
+                    com.project.dao.UserDAO userDao = new com.project.dao.UserDAOImpl();
+                    userDao.findById(b.getCustomerId()).ifPresent(u ->
+                        loyaltyDAO.earnPoints(b.getCustomerId(), b.getBookingId(),
+                                b.getFinalTotal(), u.getLoyaltyTier())
+                    );
+                }
+
                 EmailUtil.sendBookingConfirmation(b);
 
                 request.setAttribute("booking",        b);
@@ -310,7 +324,16 @@ public class PaymentController extends HttpServlet {
                 // 2. Update payment record → SUCCESS + store transaction code
                 updatePendingPayment(request, b, vnpTransactionNo, vnpSecureHash, "SUCCESS", vnpAmount);
 
-                // 3. Gửi email xác nhận đặt phòng kèm QR code
+                // 3. Award loyalty points (1 pt per 10,000 VND, tier multiplier applied)
+                if (b.getCustomerId() != null && b.getCustomerId() > 0 && b.getFinalTotal() != null) {
+                    com.project.dao.UserDAO userDao = new com.project.dao.UserDAOImpl();
+                    userDao.findById(b.getCustomerId()).ifPresent(u ->
+                        loyaltyDAO.earnPoints(b.getCustomerId(), b.getBookingId(),
+                                b.getFinalTotal(), u.getLoyaltyTier())
+                    );
+                }
+
+                // 4. Gửi email xác nhận đặt phòng kèm QR code
                 EmailUtil.sendBookingConfirmation(b);
 
                 request.setAttribute("booking",          b);

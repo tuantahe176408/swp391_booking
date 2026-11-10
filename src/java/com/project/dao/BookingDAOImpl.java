@@ -658,6 +658,24 @@ public class BookingDAOImpl implements BookingDAO {
         }
     }
 
+    @Override
+    public java.util.List<Integer> getExpiredPendingBookingIds() {
+        java.util.List<Integer> ids = new java.util.ArrayList<>();
+        String sql =
+            "SELECT booking_id FROM bookings " +
+            "WHERE booking_status = 'PENDING' " +
+            "  AND hold_expires_at IS NOT NULL " +
+            "  AND hold_expires_at < NOW()";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) ids.add(rs.getInt("booking_id"));
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in getExpiredPendingBookingIds", e);
+        }
+        return ids;
+    }
+
     /** Sinh mã booking walk-in: BK-W{yyyyMMdd}-XXXX (sequential per day). */
     private String generateWalkInCode(Connection conn) throws SQLException {
         String today  = java.time.LocalDate.now()

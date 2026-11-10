@@ -360,3 +360,30 @@
 2. `config.jsp`: bind `value="${platformCommissionRate}"` / `"${bookingHoldMinutes}"`, bỏ `disabled`, thêm `method="post"`
 3. `BookingService`: thay `DEFAULT_HOLD_MINUTES` bằng `new SystemConfigDAOImpl().getBookingHoldMinutes()`
 4. `PaymentService` (khi tạo invoice): dùng `new SystemConfigDAOImpl().getCommissionRate()`
+
+---
+
+#### Nhóm 27: Chương trình Khách hàng Thân thiết (Loyalty Program) ✨ **[MỚI]**
+- [x] **DB migration** `sql/alter_loyalty.sql`: thêm 3 cột vào `users` (`loyalty_points_balance`, `loyalty_total_earned`, `loyalty_tier`) + tạo bảng `loyalty_transactions`
+- [x] **Model** `LoyaltyTransaction.java` — entity cho lịch sử điểm (EARN/REDEEM/REFUND/ADJUSTMENT)
+- [x] **DAO Interface** `LoyaltyDAO.java` — business rules: 1 pt/10,000₫, nhân hệ số tier, 1 pt = 100₫ giảm giá, tối đa 20% đơn, tính tier tự động
+- [x] **DAO Impl** `LoyaltyDAOImpl.java` — lazy migration schema, JDBC transactions, `earnPoints`, `redeemPoints`, `refundRedeemedPoints`
+- [x] **Controller** `LoyaltyController.java` — `/customer/loyalty`: balance, tier, progress, lịch sử phân trang
+- [x] **JSP** `loyalty.jsp` — hero card màu theo tier, tier progress bar, bảng lịch sử, bảng hạng thành viên, hướng dẫn tích/dùng điểm
+- [x] **Tích điểm tự động**: `PaymentController.java` — `earnPoints()` sau khi booking CONFIRMED (VNPay + MoMo)
+- [x] **Dùng điểm khi đặt phòng**: `BookingController.java` — đọc `loyaltyPointsToRedeem`, validate balance + 20% cap, cộng vào `discountAmount`; deduct ngay sau khi booking tạo thành công
+- [x] **Hoàn điểm khi hủy**: `CustomerBookingController.java` — `refundRedeemedPoints()` sau `cancelBooking()`
+- [x] **Hoàn điểm khi hết hạn tự động**: `BookingExpiryJob.java` — lấy expired booking IDs trước, refund từng cái, rồi bulk-cancel
+- [x] **UI Checkout** `checkout.jsp` — section "Điểm thưởng Loyalty" (step 3.5): hiển thị balance, nhập số điểm, real-time preview discount, hàng "🌟 Điểm thưởng" trong order summary
+- [x] **UI Navbar** `navbar.jsp` — link "Điểm thưởng" trong user dropdown, hiển thị tier badge (🥉🥈🥇💎) + số điểm
+- [x] **UI Profile** `profile.jsp` — link "Điểm thưởng Loyalty" trong sidebar với tier icon
+- [x] **Session refresh**: `ProfileController.java` load loyalty data vào `currentUser` session khi visit profile
+- [x] **web.xml** — bảo vệ `/customer/loyalty` bằng `AuthenticationFilter`
+
+**Hạng thành viên & Nhân hệ số tích điểm:**
+| Hạng | Tổng điểm tích lũy | Nhân hệ số |
+|------|-------------------|------------|
+| 🥉 Bronze   | 0 – 999         | ×1.0 |
+| 🥈 Silver   | 1,000 – 4,999   | ×1.25 |
+| 🥇 Gold     | 5,000 – 14,999  | ×1.5 |
+| 💎 Platinum | 15,000+         | ×2.0 |

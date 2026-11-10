@@ -376,6 +376,10 @@ public class UserDAOImpl implements UserDAO {
         }
         user.setCreatedAt(rs.getTimestamp("created_at"));
         user.setUpdatedAt(rs.getTimestamp("updated_at"));
+        // Loyalty fields (columns added via alter_loyalty.sql — graceful fallback)
+        try { user.setLoyaltyPointsBalance(rs.getInt("loyalty_points_balance")); } catch (SQLException ignored) {}
+        try { user.setLoyaltyTotalEarned(rs.getInt("loyalty_total_earned")); }    catch (SQLException ignored) {}
+        try { user.setLoyaltyTier(rs.getString("loyalty_tier")); }                catch (SQLException ignored) {}
         return user;
     }
 

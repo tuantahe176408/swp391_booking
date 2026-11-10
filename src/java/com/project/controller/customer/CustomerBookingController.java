@@ -2,6 +2,8 @@ package com.project.controller.customer;
 
 import com.project.dao.BookingDAO;
 import com.project.dao.BookingDAOImpl;
+import com.project.dao.LoyaltyDAO;
+import com.project.dao.LoyaltyDAOImpl;
 import com.project.dao.PaymentDAO;
 import com.project.dao.PaymentDAOImpl;
 import com.project.dao.ReviewDAO;
@@ -34,12 +36,14 @@ public class CustomerBookingController extends HttpServlet {
     private BookingDAO bookingDAO;
     private PaymentDAO paymentDAO;
     private ReviewDAO reviewDAO;
+    private LoyaltyDAO loyaltyDAO;
 
     @Override
     public void init() throws ServletException {
         this.bookingDAO = new BookingDAOImpl();
         this.paymentDAO = new PaymentDAOImpl();
         this.reviewDAO  = new ReviewDAOImpl();
+        this.loyaltyDAO = new LoyaltyDAOImpl();
     }
 
     @Override
@@ -159,6 +163,8 @@ public class CustomerBookingController extends HttpServlet {
                     if (booking.getCustomerId() != null && booking.getCustomerId() == currentUser.getUserId()) {
                         if (bookingDAO.isEligibleForCancellation(bookingId)) {
                             bookingDAO.cancelBooking(bookingId, reason.isEmpty() ? "Khách hàng hủy trên hệ thống" : reason);
+                            // Refund loyalty points that were redeemed for this booking
+                            loyaltyDAO.refundRedeemedPoints(bookingId);
                             EmailUtil.sendCancellationEmail(booking);
                             request.getSession().setAttribute("sessionSuccessMessage", "Đã hủy đơn đặt phòng #" + booking.getBookingCode() + " thành công!");
                         } else {

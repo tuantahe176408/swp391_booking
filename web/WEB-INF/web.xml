@@ -37,6 +37,7 @@
         <url-pattern>/customer/wishlist</url-pattern>
         <url-pattern>/customer/payment-history</url-pattern>
         <url-pattern>/customer/review</url-pattern>
+        <url-pattern>/customer/loyalty</url-pattern>
     </filter-mapping>
 
     <session-config>

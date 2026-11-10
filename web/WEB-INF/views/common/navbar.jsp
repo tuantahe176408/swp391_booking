@@ -107,7 +107,28 @@
                                         <span class="badge bg-danger rounded-pill ms-1" style="font-size:.65rem;">${notifCount}</span>
                                     </c:if>
                                 </a></li>
-                                
+                                <c:if test="${sessionScope.currentUser.role == 'CUSTOMER'}">
+                                <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/customer/loyalty">
+                                    <i class="fa-solid fa-star me-2 text-warning"></i> Điểm thưởng
+                                    <c:choose>
+                                        <c:when test="${sessionScope.currentUser.loyaltyTier == 'PLATINUM'}">
+                                            <span class="badge ms-1 px-2" style="background:linear-gradient(135deg,#8b5cf6,#4f46e5);font-size:.6rem;">💎 Platinum</span>
+                                        </c:when>
+                                        <c:when test="${sessionScope.currentUser.loyaltyTier == 'GOLD'}">
+                                            <span class="badge bg-warning ms-1 px-2" style="font-size:.6rem;">🥇 Gold</span>
+                                        </c:when>
+                                        <c:when test="${sessionScope.currentUser.loyaltyTier == 'SILVER'}">
+                                            <span class="badge bg-secondary ms-1 px-2" style="font-size:.6rem;">🥈 Silver</span>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <span class="badge ms-1 px-2" style="background:#cd7f32;font-size:.6rem;">🥉 Bronze</span>
+                                        </c:otherwise>
+                                    </c:choose>
+                                    <c:if test="${sessionScope.currentUser.loyaltyPointsBalance > 0}">
+                                        <span class="text-muted small ms-1">${sessionScope.currentUser.loyaltyPointsBalance} pts</span>
+                                    </c:if>
+                                </a></li>
+                                </c:if>
                                 <c:if test="${sessionScope.currentUser.role == 'ADMIN'}">
                                     <li><hr class="dropdown-divider my-1"></li>
                                     <li><a class="dropdown-item rounded-2 py-2" href="${pageContext.request.contextPath}/admin/users"><i class="fa-solid fa-user-shield me-2 text-danger"></i> Portal Quản Trị</a></li>

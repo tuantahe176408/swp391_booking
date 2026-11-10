@@ -156,4 +156,11 @@ public interface BookingDAO {
      * @return số đơn đã bị huỷ
      */
     int cancelExpiredPendingBookings();
+
+    /**
+     * Returns the IDs of PENDING bookings whose hold_expires_at has passed
+     * (but have NOT yet been set to CANCELLED). Used by the expiry job to
+     * refund loyalty points before bulk-cancelling.
+     */
+    java.util.List<Integer> getExpiredPendingBookingIds();
 }
