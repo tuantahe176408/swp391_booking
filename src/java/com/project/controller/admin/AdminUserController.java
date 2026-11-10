@@ -140,6 +140,13 @@ public class AdminUserController extends HttpServlet {
                 return;
             }
 
+            // Check phone number duplicate
+            if (userDAO.findByPhone(phone.trim()).isPresent()) {
+                request.setAttribute("errorMessage", "Số điện thoại này đã được đăng ký tài khoản.");
+                response.sendRedirect(request.getContextPath() + "/admin/users");
+                return;
+            }
+
             User.Role newRole;
             try { newRole = User.Role.valueOf(roleParam.toUpperCase()); }
             catch (IllegalArgumentException e) {

@@ -55,6 +55,24 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public Optional<User> findByPhone(String phoneNumber) {
+        String sql = "SELECT * FROM users WHERE phone_number = ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, phoneNumber);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToUser(rs));
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "Error in findByPhone for phoneNumber: " + phoneNumber, e);
+        }
+        return Optional.empty();
+    }
+
+    @Override
     public Optional<User> findByGoogleId(String googleId) {
         String sql = "SELECT * FROM users WHERE google_id = ?";
         try (Connection conn = DBContext.getConnection();
