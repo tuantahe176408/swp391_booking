@@ -91,8 +91,7 @@
                 <div class="checkout-card mb-3">
                     <div class="d-flex align-items-center gap-3 mb-4">
                         <div class="step-badge">3</div>
-                        <h5 class="fw-bold mb-0">Mã giảm giá Voucher</h5>
-                    </div>
+                        <h5 class="fw-bold mb-0">Mã giảm giá Voucher</h5>                    </div>
                     <%-- Hidden field chứa code đã validated để submit form --%>
                     <input type="hidden" name="voucherCode" id="voucherCodeHidden" value="">
                     <div id="voucherInputGroup">
@@ -127,6 +126,53 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Step 3.5: Điểm thưởng Loyalty -->
+                <input type="hidden" name="loyaltyPointsToRedeem" id="loyaltyPtsHidden" value="0">
+                <c:if test="${loyaltyBalance >= 100}">
+                <div class="checkout-card mb-3" id="loyaltySection">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="step-badge" style="background:linear-gradient(135deg,#f5a623,#f7c948);">⭐</div>
+                        <h5 class="fw-bold mb-0">Điểm thưởng Loyalty</h5>
+                        <a href="${pageContext.request.contextPath}/customer/loyalty" class="ms-auto text-muted small text-decoration-none">
+                            <i class="fa-solid fa-external-link-alt me-1"></i>Xem tất cả
+                        </a>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 p-3 rounded-3 mb-3"
+                         style="background:linear-gradient(135deg,#fffbeb,#fef3c7);border:1px solid #f5a623;">
+                        <div class="fs-2">🏆</div>
+                        <div>
+                            <div class="fw-bold">Bạn có <span class="text-warning"><fmt:formatNumber value="${loyaltyBalance}" type="number"/></span> điểm</div>
+                            <div class="text-muted small">1 điểm = 100₫. Tối đa 20% giá trị đơn.</div>
+                        </div>
+                    </div>
+                    <div id="loyaltyInputGroup">
+                        <label class="form-label fw-semibold small">Số điểm muốn dùng (tối thiểu 100 điểm)</label>
+                        <div class="input-group">
+                            <input type="number" id="loyaltyPtsInput" class="form-control rounded-start-3"
+                                   placeholder="VD: 500"
+                                   min="100" max="${loyaltyBalance}" step="100"
+                                   oninput="previewLoyaltyDiscount()">
+                            <button type="button" class="btn btn-outline-warning fw-semibold rounded-end-3"
+                                    onclick="applyLoyaltyPts()">Áp dụng</button>
+                        </div>
+                        <div id="loyaltyMsg" class="mt-2 small"></div>
+                    </div>
+                    <div id="loyaltyApplied" class="d-none">
+                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3"
+                             style="background:rgba(234,179,8,.1);border:1px solid rgba(234,179,8,.4);">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-star text-warning"></i>
+                                <span class="fw-semibold text-warning-emphasis" id="appliedPts"></span>
+                                <span class="text-muted small" id="appliedPtsDisc"></span>
+                            </div>
+                            <button type="button" class="btn btn-sm text-danger p-0 ms-2" onclick="removeLoyalty()" title="Xóa điểm">
+                                <i class="fa-solid fa-xmark"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                </c:if>
 
                 <!-- Step 4: Phương thức thanh toán -->
                 <div class="checkout-card mb-3">
@@ -187,6 +233,9 @@
                     <div class="order-row" id="discountRow" style="display:none;">
                         <span class="text-success">Giảm giá Voucher</span><strong class="text-success" id="discountAmt">-0₫</strong>
                     </div>
+                    <div class="order-row" id="loyaltyDiscRow" style="display:none;">
+                        <span class="text-warning">🌟 Điểm thưởng</span><strong class="text-warning" id="loyaltyDiscAmt">-0₫</strong>
+                    </div>
                     <div class="order-row total-row mt-2 pt-2 border-top">
                         <span>Tổng thanh toán</span>
                         <span id="finalTotal"><fmt:formatNumber value="${selectedRoomType.basePrice * totalNights}" type="number"/>₫</span>
@@ -228,7 +277,7 @@ function recalcTotal() {
 
 function updateFinal() {
     const subtotal = roomPrice * totalNights + addonTotal;
-    const total    = Math.max(0, subtotal - appliedDiscount);
+    const total    = Math.max(0, subtotal - appliedDiscount - appliedLoyaltyDisc);
     // Hiện/ẩn discount row
     const discRow  = document.getElementById('discountRow');
     if (appliedDiscount > 0) {
@@ -236,6 +285,16 @@ function updateFinal() {
         document.getElementById('discountAmt').textContent = '-' + new Intl.NumberFormat('vi-VN').format(appliedDiscount) + '₫';
     } else {
         discRow.style.display = 'none';
+    }
+    // Loyalty discount row
+    const loyDiscRow = document.getElementById('loyaltyDiscRow');
+    if (loyDiscRow) {
+        if (appliedLoyaltyDisc > 0) {
+            loyDiscRow.style.display = 'flex';
+            document.getElementById('loyaltyDiscAmt').textContent = '-' + new Intl.NumberFormat('vi-VN').format(appliedLoyaltyDisc) + '₫';
+        } else {
+            loyDiscRow.style.display = 'none';
+        }
     }
     document.getElementById('finalTotal').textContent = new Intl.NumberFormat('vi-VN').format(total) + '₫';
 }
@@ -301,6 +360,78 @@ function removeVoucher() {
     document.getElementById('voucherMsg').innerHTML    = '';
     document.getElementById('voucherApplied').classList.add('d-none');
     document.getElementById('voucherInputGroup').classList.remove('d-none');
+    updateFinal();
+}
+
+// ---------- Loyalty Points Logic ----------
+let appliedLoyaltyDisc  = 0;
+let appliedLoyaltyPts   = 0;
+const loyaltyBalance    = ${not empty loyaltyBalance ? loyaltyBalance : 0};
+const PTS_TO_VND        = 100; // 1 point = 100 VND
+
+function previewLoyaltyDiscount() {
+    const inp = document.getElementById('loyaltyPtsInput');
+    if (!inp) return;
+    const pts = parseInt(inp.value) || 0;
+    const msg = document.getElementById('loyaltyMsg');
+    if (pts < 100) {
+        msg.innerHTML = '';
+        return;
+    }
+    const disc = pts * PTS_TO_VND;
+    msg.innerHTML = '<span class="text-warning"><i class="fa-solid fa-star me-1"></i>Giảm <strong>'
+        + new Intl.NumberFormat('vi-VN').format(disc) + '₫</strong> khi dùng ' + new Intl.NumberFormat('vi-VN').format(pts) + ' điểm.</span>';
+}
+
+function applyLoyaltyPts() {
+    const inp = document.getElementById('loyaltyPtsInput');
+    if (!inp) return;
+    let pts = parseInt(inp.value) || 0;
+    const msg = document.getElementById('loyaltyMsg');
+
+    if (pts < 100) {
+        msg.innerHTML = '<span class="text-danger">Nhập tối thiểu 100 điểm.</span>';
+        return;
+    }
+    if (pts > loyaltyBalance) {
+        pts = loyaltyBalance;
+        inp.value = pts;
+    }
+    // Cap at 20% of subtotal
+    const subtotal = roomPrice * totalNights + addonTotal;
+    const maxFromCap = Math.floor(subtotal * 0.20 / PTS_TO_VND);
+    if (pts > maxFromCap) {
+        pts = maxFromCap;
+        inp.value = pts;
+        if (pts < 100) {
+            msg.innerHTML = '<span class="text-danger">Giá trị đơn quá thấp để dùng điểm.</span>';
+            return;
+        }
+    }
+
+    appliedLoyaltyPts  = pts;
+    appliedLoyaltyDisc = pts * PTS_TO_VND;
+
+    document.getElementById('loyaltyPtsHidden').value = pts;
+    document.getElementById('appliedPts').textContent = new Intl.NumberFormat('vi-VN').format(pts) + ' điểm';
+    document.getElementById('appliedPtsDisc').textContent = '(−' + new Intl.NumberFormat('vi-VN').format(appliedLoyaltyDisc) + '₫)';
+    document.getElementById('loyaltyApplied').classList.remove('d-none');
+    document.getElementById('loyaltyInputGroup').classList.add('d-none');
+    msg.innerHTML = '';
+    updateFinal();
+}
+
+function removeLoyalty() {
+    appliedLoyaltyPts  = 0;
+    appliedLoyaltyDisc = 0;
+    document.getElementById('loyaltyPtsHidden').value = '0';
+    const inp = document.getElementById('loyaltyPtsInput');
+    if (inp) inp.value = '';
+    document.getElementById('loyaltyMsg').innerHTML = '';
+    const applied = document.getElementById('loyaltyApplied');
+    const inputGrp = document.getElementById('loyaltyInputGroup');
+    if (applied) applied.classList.add('d-none');
+    if (inputGrp) inputGrp.classList.remove('d-none');
     updateFinal();
 }
 

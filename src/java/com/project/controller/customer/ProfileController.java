@@ -2,6 +2,8 @@ package com.project.controller.customer;
 
 import com.project.dao.UserDAO;
 import com.project.dao.UserDAOImpl;
+import com.project.dao.LoyaltyDAO;
+import com.project.dao.LoyaltyDAOImpl;
 import com.project.model.User;
 import com.project.util.CloudinaryUtil;
 import com.project.util.JSoupUtil;
@@ -45,10 +47,12 @@ public class ProfileController extends HttpServlet {
 
     private static final Logger LOGGER = Logger.getLogger(ProfileController.class.getName());
     private UserDAO userDAO;
+    private LoyaltyDAO loyaltyDAO;
 
     @Override
     public void init() throws ServletException {
-        this.userDAO = new UserDAOImpl();
+        this.userDAO    = new UserDAOImpl();
+        this.loyaltyDAO = new LoyaltyDAOImpl();
     }
 
     // ── GET ───────────────────────────────────────────────────────────────────
@@ -67,6 +71,18 @@ public class ProfileController extends HttpServlet {
         // Refresh from DB to get latest data
         userDAO.findById(currentUser.getUserId())
                .ifPresent(u -> session.setAttribute("currentUser", u));
+
+        // Refresh loyalty data into session user
+        currentUser = (User) session.getAttribute("currentUser");
+        if (currentUser != null) {
+            int lb = loyaltyDAO.getBalance(currentUser.getUserId());
+            int te = loyaltyDAO.getTotalEarned(currentUser.getUserId());
+            String tier = loyaltyDAO.getTier(currentUser.getUserId());
+            currentUser.setLoyaltyPointsBalance(lb);
+            currentUser.setLoyaltyTotalEarned(te);
+            currentUser.setLoyaltyTier(tier);
+            session.setAttribute("currentUser", currentUser);
+        }
 
         // Load preferences từ DB để JSP hiển thị đúng trạng thái checked
         List<String> prefs = userDAO.getPreferences(currentUser.getUserId());

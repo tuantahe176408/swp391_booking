@@ -32,6 +32,7 @@ public class BookingController extends HttpServlet {
     private BookingDAO bookingDAO;
     private RoomDAO roomDAO;
     private BookingService bookingService;
+    private LoyaltyDAO loyaltyDAO;
 
     @Override
     public void init() throws ServletException {
@@ -41,6 +42,7 @@ public class BookingController extends HttpServlet {
         this.bookingDAO   = new BookingDAOImpl();
         this.roomDAO      = new RoomDAOImpl();
         this.bookingService = new BookingService();
+        this.loyaltyDAO   = new LoyaltyDAOImpl();
     }
 
     /** GET /booking/checkout — Hiển thị trang xác nhận đặt phòng */
@@ -155,6 +157,10 @@ public class BookingController extends HttpServlet {
         request.setAttribute("currentUser", currentUser);
         request.setAttribute("pageTitle", "Xác nhận Đặt phòng - Smart Booking Platform");
 
+        // Loyalty data for checkout page
+        int loyaltyBalance = loyaltyDAO.getBalance(currentUser.getUserId());
+        request.setAttribute("loyaltyBalance", loyaltyBalance);
+
         request.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(request, response);
     }
 
@@ -177,6 +183,7 @@ public class BookingController extends HttpServlet {
             String checkout  = request.getParameter("checkout");
             String voucherCode = request.getParameter("voucherCode");
             String[] addonIdParams = request.getParameterValues("addonIds");
+            String loyaltyPtsParam = request.getParameter("loyaltyPointsToRedeem");
 
             // Tính tổng
             LocalDate ciDate = LocalDate.parse(checkin);
@@ -233,7 +240,30 @@ public class BookingController extends HttpServlet {
                 }
             }
 
-            BigDecimal finalTotal = roomTotal.add(addonTotal).subtract(discountAmt);
+            // Loyalty points redemption
+            int loyaltyPtsToRedeem = 0;
+            BigDecimal loyaltyDiscount = BigDecimal.ZERO;
+            if (loyaltyPtsParam != null && !loyaltyPtsParam.trim().isEmpty()) {
+                try {
+                    loyaltyPtsToRedeem = Integer.parseInt(loyaltyPtsParam.trim());
+                } catch (NumberFormatException ignored) {}
+            }
+            if (loyaltyPtsToRedeem >= 100) {
+                // Clamp to max allowed (20% of subtotal, user balance)
+                int balance = loyaltyDAO.getBalance(currentUser.getUserId());
+                int maxPts = LoyaltyDAO.maxRedeemablePoints(roomTotal.add(addonTotal), balance);
+                loyaltyPtsToRedeem = Math.min(loyaltyPtsToRedeem, maxPts);
+                if (loyaltyPtsToRedeem >= 100) {
+                    loyaltyDiscount = LoyaltyDAO.pointsToDiscount(loyaltyPtsToRedeem);
+                } else {
+                    loyaltyPtsToRedeem = 0;
+                }
+            } else {
+                loyaltyPtsToRedeem = 0;
+            }
+
+            BigDecimal finalTotal = roomTotal.add(addonTotal).subtract(discountAmt).subtract(loyaltyDiscount);
+            if (finalTotal.compareTo(BigDecimal.ZERO) < 0) finalTotal = BigDecimal.ZERO;
 
             // Tạo Booking
             Booking booking = new Booking();
@@ -248,7 +278,7 @@ public class BookingController extends HttpServlet {
             booking.setTotalNights((int) totalNights);
             booking.setRoomPriceTotal(roomTotal);
             booking.setAddonPriceTotal(addonTotal);
-            booking.setDiscountAmount(discountAmt);
+            booking.setDiscountAmount(discountAmt.add(loyaltyDiscount));
             booking.setFinalTotal(finalTotal);
             booking.setVoucherId(vId);
             booking.setBookingStatus("PENDING");
@@ -258,6 +288,11 @@ public class BookingController extends HttpServlet {
 
             if (newBookingId > 0) {
                 if (vId != null) voucherDAO.incrementUsedCount(vId);
+                // Deduct loyalty points (points already validated above)
+                if (loyaltyPtsToRedeem >= 100) {
+                    loyaltyDAO.redeemPoints(currentUser.getUserId(), newBookingId, loyaltyPtsToRedeem,
+                            "Dùng điểm thưởng cho đơn đặt phòng");
+                }
                 // Redirect sang payment
                 response.sendRedirect(request.getContextPath() + "/payment/create?bookingId=" + newBookingId);
             } else {
@@ -270,6 +305,7 @@ public class BookingController extends HttpServlet {
                 request.setAttribute("checkin",           checkin);
                 request.setAttribute("checkout",          checkout);
                 request.setAttribute("totalNights",       totalNights);
+                request.setAttribute("loyaltyBalance",    loyaltyDAO.getBalance(currentUser.getUserId()));
                 request.setAttribute("errorMsg", "Đặt phòng thất bại. Vui lòng thử lại.");
                 request.getRequestDispatcher("/WEB-INF/views/customer/checkout.jsp").forward(request, response);
             }
