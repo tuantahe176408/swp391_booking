@@ -224,7 +224,7 @@
                                                          class="w-100 object-fit-cover"
                                                          style="height:110px;"
                                                          alt="Ảnh ${loop.index + 1}"
-                                                         onerror="this.src='${pageContext.request.contextPath}/assets/images/placeholder.jpg'">
+                                                         onerror="this.onerror=null;this.src='${pageContext.request.contextPath}/assets/images/default-homestay.svg'">
 
                                                     <%-- Primary badge --%>
                                                     <c:if test="${img.primary}">
@@ -240,34 +240,23 @@
 
                                                         <%-- Set primary (hidden if already primary) --%>
                                                         <c:if test="${not img.primary}">
-                                                            <form method="post"
-                                                                  action="${pageContext.request.contextPath}/owner/homestays/set-primary"
-                                                                  class="d-inline">
-                                                                <input type="hidden" name="imageId"    value="${img.imageId}">
-                                                                <input type="hidden" name="homestayId" value="${homestay.homestayId}">
-                                                                <button type="submit"
-                                                                        class="btn btn-warning btn-sm p-0 px-1"
-                                                                        style="font-size:.7rem;"
-                                                                        title="Đặt làm ảnh đại diện">
-                                                                    <i class="fa-regular fa-star"></i>
-                                                                </button>
-                                                            </form>
+                                                            <button type="button"
+                                                                    class="btn btn-warning btn-sm p-0 px-1"
+                                                                    style="font-size:.7rem;"
+                                                                    title="Đặt làm ảnh đại diện"
+                                                                    onclick="imgSetPrimary(${img.imageId}, ${homestay.homestayId})">
+                                                                <i class="fa-regular fa-star"></i>
+                                                            </button>
                                                         </c:if>
 
                                                         <%-- Delete --%>
-                                                        <form method="post"
-                                                              action="${pageContext.request.contextPath}/owner/homestays/delete-image"
-                                                              class="d-inline ms-auto"
-                                                              onsubmit="return confirm('Xóa ảnh này?\nThao tác không thể hoàn tác.');">
-                                                            <input type="hidden" name="imageId"    value="${img.imageId}">
-                                                            <input type="hidden" name="homestayId" value="${homestay.homestayId}">
-                                                            <button type="submit"
-                                                                    class="btn btn-danger btn-sm p-0 px-1"
-                                                                    style="font-size:.7rem;"
-                                                                    title="Xóa ảnh">
-                                                                <i class="fa-solid fa-trash-can"></i>
-                                                            </button>
-                                                        </form>
+                                                        <button type="button"
+                                                                class="btn btn-danger btn-sm p-0 px-1 ms-auto"
+                                                                style="font-size:.7rem;"
+                                                                title="Xóa ảnh"
+                                                                onclick="imgDelete(${img.imageId}, ${homestay.homestayId})">
+                                                            <i class="fa-solid fa-trash-can"></i>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -445,6 +434,33 @@ function updateDeleteBtn() {
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeDeleteModal();
 });
+
+/**
+ * Submit image action (set-primary / delete-image) via a temporary form.
+ * Avoids nested <form> tags which break the main edit form submission.
+ */
+function imgSetPrimary(imageId, homestayId) {
+    imgAction('${pageContext.request.contextPath}/owner/homestays/set-primary', imageId, homestayId);
+}
+function imgDelete(imageId, homestayId) {
+    if (!confirm('Xóa ảnh này?\nThao tác không thể hoàn tác.')) return;
+    imgAction('${pageContext.request.contextPath}/owner/homestays/delete-image', imageId, homestayId);
+}
+function imgAction(url, imageId, homestayId) {
+    var f = document.createElement('form');
+    f.method = 'POST';
+    f.action = url;
+    f.style.display = 'none';
+    ['imageId', 'homestayId'].forEach(function(name) {
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = (name === 'imageId') ? imageId : homestayId;
+        f.appendChild(input);
+    });
+    document.body.appendChild(f);
+    f.submit();
+}
 </script>
 
 <jsp:include page="../common/footer.jsp"/>

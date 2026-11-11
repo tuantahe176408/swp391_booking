@@ -267,7 +267,7 @@ public class CloudinaryUtil {
         HttpURLConnection conn = (HttpURLConnection) new URL(endpoint).openConnection();
         conn.setDoOutput(true);
         conn.setRequestMethod("POST");
-        conn.setConnectTimeout(15_000);
+        conn.setConnectTimeout(5_000);   // 5s — fail fast nếu Cloudinary bị chặn / không có mạng
         conn.setReadTimeout(30_000);
         return conn;
     }

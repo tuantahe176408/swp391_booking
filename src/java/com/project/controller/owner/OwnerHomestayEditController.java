@@ -261,12 +261,26 @@ public class OwnerHomestayEditController extends HttpServlet {
             return;
         }
 
-        // Upload any attached images
-        int uploaded = uploadAndSaveImages(req, newId, owner.getUserId());
+        // Upload ảnh (tùy chọn — không làm hỏng đăng ký nếu Cloudinary bị chặn)
+        int uploaded = 0;
+        boolean uploadAttempted = false;
+        try {
+            uploadAttempted = hasNewImages(req);
+            if (uploadAttempted) {
+                uploaded = uploadAndSaveImages(req, newId, owner.getUserId());
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "[OwnerEdit] Image upload failed on new homestay: " + e.getMessage());
+        }
 
-        String msg = "Đăng ký homestay \"" + hs.getName() + "\" thành công! Đang chờ Admin xét duyệt.";
-        if (uploaded > 0) msg += " Đã tải lên " + uploaded + " ảnh.";
-        req.getSession().setAttribute("flash_success", msg);
+        StringBuilder msg = new StringBuilder(
+                "Đăng ký homestay \"" + hs.getName() + "\" thành công! Đang chờ Admin xét duyệt.");
+        if (uploaded > 0) {
+            msg.append(" Đã tải lên ").append(uploaded).append(" ảnh.");
+        } else if (uploadAttempted) {
+            msg.append(" ⚠️ Tải ảnh thất bại — Cloudinary không thể kết nối từ mạng hiện tại. Bạn có thể thêm ảnh sau khi đổi mạng.");
+        }
+        req.getSession().setAttribute("flash_success", msg.toString());
         res.sendRedirect(req.getContextPath() + "/owner/homestays/edit?id=" + newId);
     }
 
@@ -286,21 +300,39 @@ public class OwnerHomestayEditController extends HttpServlet {
         Homestay hs = opt.get();
         fillHomestayFromRequest(req, hs);
 
+        // 1. Save text fields first — không phụ thuộc Cloudinary
         boolean ok = homestayDAO.updateHomestay(hs);
 
-        // Upload any newly attached images (existing images are preserved)
-        int uploaded = uploadAndSaveImages(req, hsId, owner.getUserId());
-
-        if (ok || uploaded > 0) {
-            String msg = "Cập nhật homestay thành công!";
-            if (uploaded > 0)    msg += " Đã tải lên " + uploaded + " ảnh mới.";
-            if (opt.get().getStatus() == Homestay.Status.REJECTED) {
-                msg += " Cơ sở đã được gửi lại để Admin xét duyệt.";
-            }
-            req.getSession().setAttribute("flash_success", msg);
-        } else {
+        if (!ok) {
             req.getSession().setAttribute("flash_error", "Cập nhật thất bại. Vui lòng thử lại.");
+            res.sendRedirect(req.getContextPath() + "/owner/homestays/edit?id=" + hsId);
+            return;
         }
+
+        // 2. Upload ảnh mới (tùy chọn — không làm hỏng save nếu Cloudinary bị chặn)
+        int uploaded = 0;
+        boolean uploadAttempted = false;
+        try {
+            uploadAttempted = hasNewImages(req);
+            if (uploadAttempted) {
+                uploaded = uploadAndSaveImages(req, hsId, owner.getUserId());
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.WARNING, "[OwnerEdit] Image upload failed (Cloudinary unavailable?): " + e.getMessage());
+        }
+
+        // 3. Thông báo kết quả
+        StringBuilder msg = new StringBuilder("Cập nhật homestay thành công!");
+        if (opt.get().getStatus() == Homestay.Status.REJECTED) {
+            msg.append(" Cơ sở đã được gửi lại để Admin xét duyệt.");
+        }
+        if (uploaded > 0) {
+            msg.append(" Đã tải lên ").append(uploaded).append(" ảnh mới.");
+        } else if (uploadAttempted) {
+            // File được chọn nhưng upload thất bại (Cloudinary blocked/unavailable)
+            msg.append(" ⚠️ Tải ảnh thất bại — Cloudinary không thể kết nối từ mạng hiện tại. Thử lại khi đổi mạng.");
+        }
+        req.getSession().setAttribute("flash_success", msg.toString());
         res.sendRedirect(req.getContextPath() + "/owner/homestays/edit?id=" + hsId);
     }
 
@@ -354,9 +386,16 @@ public class OwnerHomestayEditController extends HttpServlet {
         return uploaded;
     }
 
+    /** Returns true if the request contains at least one non-empty file part named "images". */
+    private boolean hasNewImages(HttpServletRequest req) throws IOException, ServletException {
+        for (Part part : req.getParts()) {
+            if ("images".equals(part.getName()) && part.getSize() > 0) return true;
+        }
+        return false;
+    }
+
     /** Map request text params → Homestay fields (shared between create & edit). */
-    private void fillHomestayFromRequest(HttpServletRequest req, Homestay hs) {
-        hs.setName(safe(req.getParameter("name")));
+    private void fillHomestayFromRequest(HttpServletRequest req, Homestay hs) {        hs.setName(safe(req.getParameter("name")));
         hs.setDescription(safe(req.getParameter("description")));
         hs.setAddress(safe(req.getParameter("address")));
         hs.setCity(safe(req.getParameter("city")));
