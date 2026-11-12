@@ -68,4 +68,23 @@ public interface AdminAnalyticsDAO {
      * Each element is Object[2]: { String monthLabel e.g. "2026-10", Integer count }
      */
     List<Object[]> getNewUsersPerMonth(String fromDate, String toDate);
+
+    // ── Booking Detail Table ──────────────────────────────────────────────
+
+    /** COUNT of distinct customer_id (non-null) with any booking in the period. */
+    int countUniqueBookingCustomers(String fromDate, String toDate);
+
+    /** COUNT of new CUSTOMER registrations (created_at) in the period. */
+    int countNewCustomers(String fromDate, String toDate);
+
+    /**
+     * Returns paginated booking rows for the finance detail table.
+     * Each element: { String bookingCode, String guestName, String guestPhone,
+     *                 String homestayName, java.sql.Date checkinDate, java.sql.Date checkoutDate,
+     *                 Integer totalNights, Long finalTotal, String bookingStatus }
+     */
+    List<Object[]> getBookingList(String fromDate, String toDate, int offset, int limit);
+
+    /** Total row count matching getBookingList (for pagination). */
+    int countBookingListRows(String fromDate, String toDate);
 }

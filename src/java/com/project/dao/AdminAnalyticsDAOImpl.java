@@ -217,6 +217,69 @@ public class AdminAnalyticsDAOImpl implements AdminAnalyticsDAO {
         return result;
     }
 
+    // ── Booking Detail Table ──────────────────────────────────────────────
+
+    @Override
+    public int countUniqueBookingCustomers(String fromDate, String toDate) {
+        String sql = "SELECT COUNT(DISTINCT customer_id) FROM bookings " +
+                     "WHERE customer_id IS NOT NULL" + buildDateClause(fromDate, toDate);
+        return (int) queryLong(sql, fromDate, toDate);
+    }
+
+    @Override
+    public int countNewCustomers(String fromDate, String toDate) {
+        String sql = "SELECT COUNT(*) FROM users WHERE role = 'CUSTOMER'" +
+                     buildDateClause(fromDate, toDate);
+        return (int) queryLong(sql, fromDate, toDate);
+    }
+
+    @Override
+    public List<Object[]> getBookingList(String fromDate, String toDate, int offset, int limit) {
+        List<Object[]> result = new ArrayList<>();
+        String sql = "SELECT b.booking_code, b.guest_name, b.guest_phone, " +
+                     "       h.name AS homestay_name, " +
+                     "       b.checkin_date, b.checkout_date, b.total_nights, " +
+                     "       b.final_total, b.booking_status, b.created_at " +
+                     "FROM bookings b " +
+                     "JOIN homestays h ON b.homestay_id = h.homestay_id " +
+                     "WHERE 1=1" + buildDateClause("b.created_at", fromDate, toDate) +
+                     " ORDER BY b.created_at DESC LIMIT ? OFFSET ?";
+        try (Connection conn = DBContext.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            int idx = 1;
+            if (fromDate != null) ps.setString(idx++, fromDate);
+            if (toDate   != null) ps.setString(idx++, toDate);
+            ps.setInt(idx++, limit);
+            ps.setInt(idx,   offset);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    result.add(new Object[]{
+                        rs.getString("booking_code"),    // [0]
+                        rs.getString("guest_name"),      // [1]
+                        rs.getString("guest_phone"),     // [2]
+                        rs.getString("homestay_name"),   // [3]
+                        rs.getDate("checkin_date"),      // [4]
+                        rs.getDate("checkout_date"),     // [5]
+                        rs.getInt("total_nights"),       // [6]
+                        rs.getLong("final_total"),       // [7]
+                        rs.getString("booking_status"),  // [8]
+                        rs.getTimestamp("created_at")   // [9]
+                    });
+                }
+            }
+        } catch (SQLException e) {
+            LOGGER.log(Level.SEVERE, "getBookingList failed", e);
+        }
+        return result;
+    }
+
+    @Override
+    public int countBookingListRows(String fromDate, String toDate) {
+        String sql = "SELECT COUNT(*) FROM bookings WHERE 1=1" +
+                     buildDateClause(fromDate, toDate);
+        return (int) queryLong(sql, fromDate, toDate);
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────
 
     /**
