@@ -106,6 +106,7 @@
                                 <label class="mb-0 fw-semibold text-nowrap" style="font-size:.8rem;">Từ ngày:</label>
                                 <input type="date" name="fromDate" id="inpFrom"
                                        class="form-control form-control-sm" style="width:148px;"
+                                       min="2000-01-01"
                                        value="${fromDate}"
                                        ${filterType != 'date_range' ? 'disabled' : ''}>
                             </div>
@@ -113,6 +114,7 @@
                                 <label class="mb-0 fw-semibold text-nowrap" style="font-size:.8rem;">Đến ngày:</label>
                                 <input type="date" name="toDate" id="inpTo"
                                        class="form-control form-control-sm" style="width:148px;"
+                                       min="2000-01-01"
                                        value="${toDate}"
                                        ${filterType != 'date_range' ? 'disabled' : ''}>
                             </div>
@@ -547,6 +549,11 @@
     (function initFilter() {
         var checked = document.querySelector('input[name="filterType"]:checked');
         switchFilterType(checked ? checked.value : 'month');
+        // Remove any min/max that might be injected by other scripts
+        ['inpFrom', 'inpTo'].forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) { el.removeAttribute('max'); el.setAttribute('min', '2000-01-01'); }
+        });
     })();
 
     // ── Chart helpers ────────────────────────────────────────────────────────
