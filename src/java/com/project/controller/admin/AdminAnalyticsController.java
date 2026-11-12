@@ -232,10 +232,10 @@ public class AdminAnalyticsController extends HttpServlet {
                 : (int) Math.ceil((double) totalBookingRows / PAGE_SIZE);
         if (page > totalPages) page = totalPages;
 
-        // ── 11. Available years for dropdown ─────────────────────────────
+        // ── 11. Available years for dropdown (2020 → next year) ─────────
         int currentYear = today.getYear();
         List<Integer> availableYears = new ArrayList<>();
-        for (int y = currentYear - 3; y <= currentYear + 1; y++) availableYears.add(y);
+        for (int y = 2020; y <= currentYear + 1; y++) availableYears.add(y);
 
         // ── 12. Set attributes ────────────────────────────────────────────
         request.setAttribute("filterType", filterType);
