@@ -14,30 +14,28 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Controller: Platform Analytics & Financials (UC25)
- * URL: /admin/analytics[?period=this_month|last_3m|this_year|last_year|all_time]
- * Package: com.project.controller.admin
+ * URL: /admin/analytics
  *
- * GET  → Load analytics dashboard with chart data
- * POST → Export .xlsx report (param: action=export)
+ * GET  → Load analytics dashboard.
+ *        Filter params: fromDate (yyyy-MM-dd), toDate (yyyy-MM-dd),
+ *                       month (1-12), year (yyyy), page (integer, default 1)
+ *        Priority: fromDate+toDate > month+year > default (current month)
  *
- * Supported periods:
- *   this_month  — 1st of current month → today,    chart by DAY
- *   last_3m     — 3 months ago → today,             chart by MONTH
- *   this_year   — Jan 1 current year → today,       chart by MONTH  (default)
- *   last_year   — Jan 1 – Dec 31 of previous year,  chart by MONTH
- *   all_time    — earliest data → today,             chart by MONTH
+ * POST → Export .xlsx report (param: action=export), same filter params.
  */
 @WebServlet(name = "AdminAnalyticsController", urlPatterns = {"/admin/analytics"})
 public class AdminAnalyticsController extends HttpServlet {
 
     private AdminAnalyticsDAO analyticsDAO;
 
-    /** Platform commission rate used for display (deferred from SystemConfig). */
     private static final double COMMISSION_RATE = 10.0;
+    private static final int    PAGE_SIZE       = 10;
 
     @Override
     public void init() throws ServletException {
@@ -54,27 +52,112 @@ public class AdminAnalyticsController extends HttpServlet {
 
         if (!isAdmin(request, response)) return;
 
-        // ── Resolve period ────────────────────────────────────────────────
-        String period = request.getParameter("period");
-        if (period == null || period.isBlank()) period = "this_year";
+        // ── 1. Resolve filter params ──────────────────────────────────────
+        String filterType    = nullIfBlank(request.getParameter("filterType"));
+        String fromDateParam = nullIfBlank(request.getParameter("fromDate"));
+        String toDateParam   = nullIfBlank(request.getParameter("toDate"));
+        String monthParam    = nullIfBlank(request.getParameter("month"));
+        String yearParam     = nullIfBlank(request.getParameter("year"));
 
-        PeriodRange range = resolvePeriod(period);
+        LocalDate today = LocalDate.now();
+        PeriodRange range;
 
-        // ── KPI Metrics ───────────────────────────────────────────────────
+        // Normalize filterType; default to "month" on first load
+        if (filterType == null) filterType = "month";
+
+        if ("date_range".equals(filterType)) {
+            // ── Mode: custom date range ──────────────────────────────────
+            if (fromDateParam != null && toDateParam != null) {
+                range = new PeriodRange(
+                    fromDateParam, toDateParam,
+                    resolveGroupBy(fromDateParam, toDateParam),
+                    "Từ " + fromDateParam + " đến " + toDateParam);
+            } else {
+                // Incomplete params — fall back to current month
+                filterType    = "month";
+                range         = defaultThisMonth(today);
+                fromDateParam = range.from;
+                toDateParam   = range.to;
+                monthParam    = String.valueOf(today.getMonthValue());
+                yearParam     = String.valueOf(today.getYear());
+            }
+
+        } else if ("year".equals(filterType)) {
+            // ── Mode: full year ──────────────────────────────────────────
+            yearParam = nullIfBlank(request.getParameter("yearOnly")); // dedicated param for year-only mode
+            if (yearParam != null) {
+                try {
+                    int y = Integer.parseInt(yearParam);
+                    range = new PeriodRange(
+                        LocalDate.of(y, 1, 1).toString(),
+                        LocalDate.of(y, 12, 31).toString(),
+                        "MONTH",
+                        "Năm " + y);
+                } catch (Exception ex) {
+                    filterType = "month";
+                    range      = defaultThisMonth(today);
+                    monthParam = String.valueOf(today.getMonthValue());
+                    yearParam  = String.valueOf(today.getYear());
+                }
+            } else {
+                filterType = "month";
+                range      = defaultThisMonth(today);
+                monthParam = String.valueOf(today.getMonthValue());
+                yearParam  = String.valueOf(today.getYear());
+            }
+
+        } else {
+            // ── Mode: by month (default) ──────────────────────────────────
+            filterType = "month";
+            if (monthParam != null && yearParam != null) {
+                try {
+                    int m = Integer.parseInt(monthParam);
+                    int y = Integer.parseInt(yearParam);
+                    LocalDate start = LocalDate.of(y, m, 1);
+                    LocalDate end   = start.withDayOfMonth(start.lengthOfMonth());
+                    fromDateParam   = start.toString();
+                    toDateParam     = end.toString();
+                    range = new PeriodRange(fromDateParam, toDateParam, "DAY",
+                        "Tháng " + m + "/" + y);
+                } catch (Exception ex) {
+                    range         = defaultThisMonth(today);
+                    fromDateParam = range.from;
+                    toDateParam   = range.to;
+                    monthParam    = String.valueOf(today.getMonthValue());
+                    yearParam     = String.valueOf(today.getYear());
+                }
+            } else {
+                range         = defaultThisMonth(today);
+                fromDateParam = range.from;
+                toDateParam   = range.to;
+                monthParam    = String.valueOf(today.getMonthValue());
+                yearParam     = String.valueOf(today.getYear());
+            }
+        }
+
+        // ── 2. Pagination ─────────────────────────────────────────────────
+        int page   = Math.max(1, parseIntOrDefault(request.getParameter("page"), 1));
+        int offset = (page - 1) * PAGE_SIZE;
+
+        // ── 3. KPI Metrics ────────────────────────────────────────────────
         long   totalGmv           = analyticsDAO.getTotalGmv(range.from, range.to);
         int    successfulBookings  = analyticsDAO.countSuccessfulBookings(range.from, range.to);
         int    cancelledBookings   = analyticsDAO.countCancelledBookings(range.from, range.to);
-        int    totalBookings       = analyticsDAO.countTotalBookings(range.from, range.to);
+        int    totalBookingsKpi    = analyticsDAO.countTotalBookings(range.from, range.to);
         long   commissionRevenue   = Math.round(totalGmv * COMMISSION_RATE / 100.0);
-        double cancelRate          = totalBookings > 0
-                ? Math.round(cancelledBookings * 1000.0 / totalBookings) / 10.0 : 0.0;
+        double cancelRate          = totalBookingsKpi > 0
+                ? Math.round(cancelledBookings * 1000.0 / totalBookingsKpi) / 10.0 : 0.0;
 
-        // ── Platform Stats (all-time) ─────────────────────────────────────
+        // Customer KPI
+        int uniqueCustomers = analyticsDAO.countUniqueBookingCustomers(range.from, range.to);
+        int newCustomers    = analyticsDAO.countNewCustomers(range.from, range.to);
+
+        // ── 4. Platform Stats (all-time) ──────────────────────────────────
         int activeHomestays = analyticsDAO.countActiveHomestays();
         int totalOwners     = analyticsDAO.countOwners();
         int totalCustomers  = analyticsDAO.countCustomers();
 
-        // ── Main Chart: Revenue + Counts ──────────────────────────────────
+        // ── 5. Main Chart: Revenue + Counts ──────────────────────────────
         List<Object[]> chartRows = analyticsDAO.getChartData(range.from, range.to, range.groupBy);
         StringBuilder chartLabels = new StringBuilder("[");
         StringBuilder chartGmv    = new StringBuilder("[");
@@ -89,7 +172,7 @@ public class AdminAnalyticsController extends HttpServlet {
         }
         chartLabels.append("]"); chartGmv.append("]"); chartCounts.append("]");
 
-        // ── Booking Status Breakdown ──────────────────────────────────────
+        // ── 6. Booking Status Breakdown ───────────────────────────────────
         List<Object[]> statusRows = analyticsDAO.getBookingStatusBreakdown(range.from, range.to);
         StringBuilder statusLabels = new StringBuilder("[");
         StringBuilder statusData   = new StringBuilder("[");
@@ -101,7 +184,7 @@ public class AdminAnalyticsController extends HttpServlet {
         }
         statusLabels.append("]"); statusData.append("]");
 
-        // ── Payment Method Breakdown ──────────────────────────────────────
+        // ── 7. Payment Method Breakdown ───────────────────────────────────
         List<Object[]> paymentRows = analyticsDAO.getPaymentMethodBreakdown(range.from, range.to);
         StringBuilder paymentLabels = new StringBuilder("[");
         StringBuilder paymentData   = new StringBuilder("[");
@@ -113,7 +196,7 @@ public class AdminAnalyticsController extends HttpServlet {
         }
         paymentLabels.append("]"); paymentData.append("]");
 
-        // ── Top Homestays ─────────────────────────────────────────────────
+        // ── 8. Top Homestays ──────────────────────────────────────────────
         List<Object[]> topHomestayRows = analyticsDAO.getTopHomestaysByRevenue(range.from, range.to, 6);
         StringBuilder topHsLabels  = new StringBuilder("[");
         StringBuilder topHsRevenue = new StringBuilder("[");
@@ -128,7 +211,7 @@ public class AdminAnalyticsController extends HttpServlet {
         }
         topHsLabels.append("]"); topHsRevenue.append("]"); topHsCounts.append("]");
 
-        // ── New Users Per Month (fixed: last 6 months) ────────────────────
+        // ── 9. New Users (last 6 months, fixed window) ────────────────────
         String userFromDate = LocalDate.now().minusMonths(5).withDayOfMonth(1).toString();
         List<Object[]> newUserRows = analyticsDAO.getNewUsersPerMonth(userFromDate, null);
         StringBuilder userLabels = new StringBuilder("[");
@@ -142,11 +225,27 @@ public class AdminAnalyticsController extends HttpServlet {
         }
         userLabels.append("]"); userData.append("]");
 
-        // ── Request Attributes ────────────────────────────────────────────
-        request.setAttribute("period",             period);
+        // ── 10. Booking list (paginated) ──────────────────────────────────
+        List<Object[]> bookingList  = analyticsDAO.getBookingList(range.from, range.to, offset, PAGE_SIZE);
+        int   totalBookingRows      = analyticsDAO.countBookingListRows(range.from, range.to);
+        int   totalPages            = (totalBookingRows == 0) ? 1
+                : (int) Math.ceil((double) totalBookingRows / PAGE_SIZE);
+        if (page > totalPages) page = totalPages;
+
+        // ── 11. Available years for dropdown ─────────────────────────────
+        int currentYear = today.getYear();
+        List<Integer> availableYears = new ArrayList<>();
+        for (int y = currentYear - 3; y <= currentYear + 1; y++) availableYears.add(y);
+
+        // ── 12. Set attributes ────────────────────────────────────────────
+        request.setAttribute("filterType", filterType);
+        request.setAttribute("fromDate",  fromDateParam != null ? fromDateParam : "");
+        request.setAttribute("toDate",    toDateParam   != null ? toDateParam   : "");
+        request.setAttribute("month",     monthParam    != null ? monthParam    : "");
+        request.setAttribute("year",      yearParam     != null ? yearParam     : "");
         request.setAttribute("periodLabel",        range.label);
-        request.setAttribute("fromDate",           range.from != null ? range.from : "");
-        request.setAttribute("toDate",             range.to   != null ? range.to   : "");
+        request.setAttribute("currentYear",        currentYear);
+        request.setAttribute("availableYears",     availableYears);
 
         request.setAttribute("totalGmv",           totalGmv);
         request.setAttribute("commissionRevenue",  commissionRevenue);
@@ -154,6 +253,8 @@ public class AdminAnalyticsController extends HttpServlet {
         request.setAttribute("successfulBookings", successfulBookings);
         request.setAttribute("cancelledBookings",  cancelledBookings);
         request.setAttribute("cancelRate",         cancelRate);
+        request.setAttribute("uniqueCustomers",    uniqueCustomers);
+        request.setAttribute("newCustomers",       newCustomers);
 
         request.setAttribute("activeHomestays",    activeHomestays);
         request.setAttribute("totalOwners",        totalOwners);
@@ -176,16 +277,19 @@ public class AdminAnalyticsController extends HttpServlet {
         request.setAttribute("userLabels",         userLabels.toString());
         request.setAttribute("userData",           userData.toString());
 
+        request.setAttribute("bookingList",        bookingList);
+        request.setAttribute("currentPage",        page);
+        request.setAttribute("totalPages",         totalPages);
+        request.setAttribute("totalBookingRows",   totalBookingRows);
+
         request.setAttribute("activeTab",          "analytics");
-        request.setAttribute("pageTitle",          "Admin - Phân tích Tài chính Toàn sàn");
-        request.setAttribute("pageBreadcrumb",     "Hệ thống & Phân tích");
 
         request.getRequestDispatcher("/WEB-INF/views/admin/analytics.jsp")
                .forward(request, response);
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    // POST — export .xlsx  (?action=export&period=...)
+    // POST — export .xlsx
     // ─────────────────────────────────────────────────────────────────────────
 
     @Override
@@ -194,11 +298,48 @@ public class AdminAnalyticsController extends HttpServlet {
 
         if (!isAdmin(request, response)) return;
 
-        String period = request.getParameter("period");
-        if (period == null || period.isBlank()) period = "this_year";
-        PeriodRange range = resolvePeriod(period);
+        // Resolve range from same filter params as GET
+        String filterTypePost = nullIfBlank(request.getParameter("filterType"));
+        String fromDateParam = nullIfBlank(request.getParameter("fromDate"));
+        String toDateParam   = nullIfBlank(request.getParameter("toDate"));
+        String monthParam    = nullIfBlank(request.getParameter("month"));
+        String yearParam     = nullIfBlank(request.getParameter("year"));
 
-        // Fetch all data needed for the report
+        LocalDate today = LocalDate.now();
+        PeriodRange range;
+
+        if ("date_range".equals(filterTypePost) && fromDateParam != null && toDateParam != null) {
+            range = new PeriodRange(fromDateParam, toDateParam,
+                resolveGroupBy(fromDateParam, toDateParam),
+                "Từ " + fromDateParam + " đến " + toDateParam);
+        } else if ("year".equals(filterTypePost)) {
+            String yp = nullIfBlank(request.getParameter("yearOnly"));
+            if (yp == null) yp = yearParam; // fallback to year if yearOnly absent
+            try {
+                int y = Integer.parseInt(yp);
+                range = new PeriodRange(
+                    LocalDate.of(y, 1, 1).toString(),
+                    LocalDate.of(y, 12, 31).toString(),
+                    "MONTH",
+                    "Năm " + y);
+            } catch (Exception ex) {
+                range = defaultThisMonth(today);
+            }
+        } else if (monthParam != null && yearParam != null) {
+            try {
+                int m = Integer.parseInt(monthParam);
+                int y = Integer.parseInt(yearParam);
+                LocalDate start = LocalDate.of(y, m, 1);
+                range = new PeriodRange(start.toString(),
+                    start.withDayOfMonth(start.lengthOfMonth()).toString(), "DAY",
+                    "Tháng " + m + "/" + y);
+            } catch (Exception ex) {
+                range = defaultThisMonth(today);
+            }
+        } else {
+            range = defaultThisMonth(today);
+        }
+
         long   totalGmv           = analyticsDAO.getTotalGmv(range.from, range.to);
         int    successfulBookings  = analyticsDAO.countSuccessfulBookings(range.from, range.to);
         int    cancelledBookings   = analyticsDAO.countCancelledBookings(range.from, range.to);
@@ -211,11 +352,9 @@ public class AdminAnalyticsController extends HttpServlet {
         List<Object[]> topHsRows   = analyticsDAO.getTopHomestaysByRevenue(range.from, range.to, 20);
         List<Object[]> paymentRows = analyticsDAO.getPaymentMethodBreakdown(range.from, range.to);
 
-        // Build filename: BaoCao_TaiChinh_<period>_<date>.xlsx
-        String today    = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        String filename = "BaoCao_TaiChinh_" + period + "_" + today + ".xlsx";
+        String today2   = today.format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String filename = "BaoCao_TaiChinh_" + today2 + ".xlsx";
 
-        // Set response headers for download
         response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
         response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
         response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
@@ -246,14 +385,49 @@ public class AdminAnalyticsController extends HttpServlet {
         return true;
     }
 
-    /** Resolve a period string into date bounds + groupBy + label. */
+    /** Return null when s is null or blank. */
+    private static String nullIfBlank(String s) {
+        return (s == null || s.isBlank()) ? null : s.trim();
+    }
+
+    private static int parseIntOrDefault(String s, int def) {
+        try { return (s != null && !s.isBlank()) ? Integer.parseInt(s.trim()) : def; }
+        catch (NumberFormatException e) { return def; }
+    }
+
+    /**
+     * Choose groupBy based on date range length:
+     *   ≤ 60 days → DAY-level chart; otherwise → MONTH-level.
+     */
+    private static String resolveGroupBy(String fromDate, String toDate) {
+        if (fromDate == null || toDate == null) return "MONTH";
+        try {
+            long days = ChronoUnit.DAYS.between(
+                LocalDate.parse(fromDate, DateTimeFormatter.ISO_LOCAL_DATE),
+                LocalDate.parse(toDate,   DateTimeFormatter.ISO_LOCAL_DATE));
+            return days <= 60 ? "DAY" : "MONTH";
+        } catch (Exception e) {
+            return "MONTH";
+        }
+    }
+
+    private static PeriodRange defaultThisMonth(LocalDate today) {
+        return new PeriodRange(
+            today.withDayOfMonth(1).toString(),
+            today.toString(),
+            "DAY",
+            "Tháng " + today.getMonthValue() + "/" + today.getYear());
+    }
+
+    /**
+     * Kept for backward-compat with any old bookmarks using ?period=this_month etc.
+     */
+    @SuppressWarnings("unused")
     private static PeriodRange resolvePeriod(String period) {
         LocalDate today = LocalDate.now();
         switch (period) {
             case "this_month":
-                return new PeriodRange(
-                        today.withDayOfMonth(1).toString(), today.toString(), "DAY",
-                        "Tháng " + today.getMonthValue() + "/" + today.getYear());
+                return defaultThisMonth(today);
             case "last_3m":
                 return new PeriodRange(
                         today.minusMonths(3).withDayOfMonth(1).toString(), today.toString(), "MONTH",
@@ -267,7 +441,7 @@ public class AdminAnalyticsController extends HttpServlet {
             }
             case "all_time":
                 return new PeriodRange(null, null, "MONTH", "Tất cả thời gian");
-            default: // this_year
+            default:
                 return new PeriodRange(
                         LocalDate.of(today.getYear(), 1, 1).toString(), today.toString(), "MONTH",
                         "Năm " + today.getYear());
@@ -294,7 +468,6 @@ public class AdminAnalyticsController extends HttpServlet {
         }
     }
 
-    /** Simple value object holding resolved period bounds. */
     private static class PeriodRange {
         final String from;
         final String to;
